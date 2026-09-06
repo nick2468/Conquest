@@ -7,6 +7,29 @@
 
 export const GAME_NAME = 'Conquest'
 
+export type {
+  Card,
+  CardId,
+  CardSymbol,
+  DeckState,
+  GameMap,
+  GameOptions,
+  GameState,
+  LogEntry,
+  Occupation,
+  Player,
+  PlayerId,
+  PlayerKind,
+  Point,
+  RegionDefinition,
+  RegionId,
+  TerritoryDefinition,
+  TerritoryId,
+  TerritoryState,
+  TurnPhase,
+  TurnState,
+} from './types'
+
 export type { RandomSource } from './random'
 export { fixedRandom, scriptedRandom, seededRandom } from './random'
 

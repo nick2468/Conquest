@@ -56,10 +56,10 @@ The first real code. See spec 6.3 and D13.
 
 ### 1.2 The map
 
-- [ ] 1.2.1 `types.ts`: every type from spec section 4
-- [ ] 1.2.2 `maps/validate.ts`: the eight checks from spec 3.2
-- [ ] 1.2.3 `maps/australia.ts`: 11 territories, 4 regions, SVG shapes
-- [ ] 1.2.4 A test that runs `validateMap()` against Australia
+- [x] 1.2.1 `types.ts`: every type from spec section 4
+- [x] 1.2.2 `maps/validate.ts`: the eight checks from spec 3.2
+- [x] 1.2.3 `maps/australia.ts`: 10 territories, 4 regions, SVG shapes
+- [x] 1.2.4 A test that runs `validateMap()` against Australia
 
 ### 1.3 Setting up a game
 
@@ -218,7 +218,7 @@ something to play with while the interesting part gets built.
 | Phase | State |
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
-| 1 - the rules engine | **In progress.** 1.1 dice and attacks complete. |
+| 1 - the rules engine | **In progress.** 1.1 dice and attacks, 1.2 the map. |
 | 2 - the screen | Not started |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |

@@ -168,7 +168,7 @@ one flat colour.
 
 ### The phase 1 map
 
-Agreed 2026-09-06. It has 11 territories in 4 regions.
+Agreed 2026-09-06. It has 10 territories in 4 regions.
 
 | Region | Territories | Bonus |
 |---|---|---|
@@ -214,7 +214,7 @@ no new code, because the map is data, not code.
 Each phase ends with a game you can actually play.
 
 ### Phase 1 - the rules engine and a hot-seat game
-Players pass the one iPad around. The 11-territory Australia map. Cards, combat,
+Players pass the one iPad around. The 10-territory Australia map. Cards, combat,
 fortify moves and a win check all work. No computer player yet.
 
 ### Phase 2 - computer opponents
@@ -299,7 +299,11 @@ Nick is also teaching him Git, using this repository.
 - D2. Host on Cloudflare Pages at `conquest.datacrafter.net`. Not DuckDNS.
 - D3. Language is TypeScript.
 - D4. Keep the rules engine pure and separate from the view.
-- D5. Phase 1 uses a small Australia map, about 11 territories.
+- D5. Phase 1 uses a small Australia map of 10 territories. The count was
+  written as 11 until 2026-09-06, when building the map showed the table had
+  only ever listed 10. Eight states and territories, plus Rottnest Island and
+  the Whitsunday Islands. Tasmania is both a state and an island, so it is
+  counted once.
 - D6. Cross-device play is the last phase, not the first.
 - D7. The game is called Conquest.
 - D8. Use cards and sets.

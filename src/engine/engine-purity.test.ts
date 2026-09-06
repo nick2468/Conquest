@@ -14,7 +14,10 @@ import { describe, expect, it } from 'vitest'
  * Test files are skipped. A test may use anything it likes.
  */
 
-const ENGINE_DIR = join(process.cwd(), 'src', 'engine')
+const PURE_DIRS = [
+  join(process.cwd(), 'src', 'engine'),
+  join(process.cwd(), 'src', 'maps'),
+]
 
 interface BannedThing {
   readonly name: string
@@ -79,8 +82,8 @@ function engineSourceFiles(directory: string): string[] {
   return found
 }
 
-describe('the engine stays pure', () => {
-  const files = engineSourceFiles(ENGINE_DIR)
+describe('the engine and the maps stay pure', () => {
+  const files = PURE_DIRS.flatMap(engineSourceFiles)
 
   it('finds engine files to check', () => {
     // If this fails, the guard is looking in the wrong place and every other

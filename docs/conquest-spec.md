@@ -21,7 +21,7 @@ words.
 
 | Word | Meaning |
 |---|---|
-| **Territory** | One area on the map. A player can own it. Australia has 11 in phase 1. |
+| **Territory** | One area on the map. A player can own it. Australia has 10 in phase 1. |
 | **Region** | A group of territories. Owning all of a region earns a bonus. The board game Risk calls this a continent. |
 | **Border** | A link between two territories. A player may attack across a border. Some borders cross water. |
 | **Army** | One playing piece. A territory holds one or more armies. |
@@ -59,11 +59,12 @@ Three layers. Each one may only use the layer above it.
   src/ui/        The screen. React. Draws the map, reads taps and clicks.
 ```
 
-**S2. `src/engine/` must never import from `src/ui/`, and must never touch
-`window`, `document`, `Math.random` or `Date`.** This is what makes every rule
-testable in under a second. A test in `src/engine/engine-purity.test.ts`
-enforces it by reading the files. A rule nobody checks is a rule that breaks.
-See D4.
+**S2. `src/engine/` and `src/maps/` must never import from `src/ui/`, and must
+never touch `window`, `document`, `Math.random` or `Date`.** This is what makes
+every rule testable in under a second. A test in
+`src/engine/engine-purity.test.ts` enforces it by reading the files, and a
+second block in the same test proves each of its checks really does catch the
+thing it names. A rule nobody checks is a rule that breaks. See D4.
 
 **S3. The engine never changes a value in place. Every function returns a new
 value.** So a test can hold the state from before and the state from after and
@@ -131,7 +132,10 @@ never be reached, which would make the game unwinnable.
 
 ### 3.3 The Australia map, phase 1
 
-Eleven territories in four regions. Agreed 2026-09-06.
+Ten territories in four regions. Agreed 2026-09-06.
+
+Eight states and territories, plus Rottnest Island and the Whitsunday
+Islands. Tasmania is both a state and an island, so it is counted once.
 
 | Region | Territories | Bonus |
 |---|---|---|
@@ -159,7 +163,6 @@ Borders:
 | Australian Capital Territory | New South Wales |
 | Victoria | South Australia, New South Wales, Tasmania |
 | Tasmania | Victoria |
-| South Australia | see above |
 
 Two territories are worth noticing. The Australian Capital Territory has one
 border, so it is safe but useless. South Australia has five, so it is the
@@ -178,9 +181,28 @@ interface GameState {
   readonly players: readonly Player[]
   readonly territories: Readonly<Record<TerritoryId, TerritoryState>>
   readonly turn: TurnState
+  readonly round: number                  // the first round is 1
   readonly deck: DeckState
   readonly winnerId: PlayerId | null
   readonly log: readonly LogEntry[]
+}
+
+interface DeckState {
+  readonly undrawn: readonly Card[]       // in the order they will be drawn
+  readonly discarded: readonly Card[]     // return to the deck when it empties
+  readonly setsTraded: number             // across the whole game, see 6.6
+}
+
+interface Card {
+  readonly id: CardId
+  readonly symbol: 'infantry' | 'cavalry' | 'artillery' | 'wild'
+  readonly territoryId: TerritoryId | null   // null on a wild card
+}
+
+interface LogEntry {
+  readonly round: number
+  readonly playerId: PlayerId | null      // null for something the game did
+  readonly text: string
 }
 
 interface Player {
