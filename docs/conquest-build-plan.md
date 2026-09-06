@@ -80,12 +80,13 @@ The first real code. See spec 6.3 and D13.
 
 ### 1.5 Putting it together
 
-- [ ] 1.5.1 `game.ts`: `applyAction` for all seven actions
-- [ ] 1.5.2 `game.ts`: `legalActions`
-- [ ] 1.5.3 Elimination and the win check
-- [ ] 1.5.4 The event log
-- [ ] 1.5.5 `index.ts`: the one door into the engine, per spec S17
-- [ ] 1.5.6 A test that plays a whole game to a winner using scripted dice
+- [x] 1.5.1 `game.ts`: `applyAction` for all seven actions
+- [x] 1.5.2 `game.ts`: `legalActions`
+- [x] 1.5.3 Elimination and the win check
+- [x] 1.5.4 The event log
+- [x] 1.5.5 `index.ts`: the one door into the engine, per spec S17
+- [x] 1.5.6 A test that plays a whole game to a winner using scripted dice.
+      It found two faults on its first run. See spec S19.
 
 **Done when:** test 1.5.6 passes. A complete game runs from setup to a winner
 with no screen and no real randomness.
@@ -230,7 +231,7 @@ something to play with while the interesting part gets built.
 | Phase | State |
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
-| 1 - the rules engine | **In progress.** 1.1 to 1.4 done. 1.5 is left. |
+| 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
 | 2 - the screen | **In progress.** 2.1 the map on screen is done. |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |

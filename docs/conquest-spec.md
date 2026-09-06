@@ -256,9 +256,11 @@ interface Occupation {
 }
 ```
 
-**S6. `occupy` is a real phase, not a pop-up.** When a player captures a
-territory the game stops and waits for the move-in decision. Making that a phase
-keeps one rule true everywhere: the phase says what the game is waiting for.
+**S6. `occupy` is a real phase, not a pop-up.** When a capture leaves the
+player something to decide, the game stops in the `occupy` phase and waits.
+Making that a phase keeps one rule true everywhere: the phase says what the
+game is waiting for. When a capture leaves nothing to decide, see S19, the
+game never enters the phase at all.
 
 **S7. `log` records every event in plain words.** It drives the on-screen
 history, it explains a computer player's move, and it is the fastest way to see
@@ -344,10 +346,23 @@ This is the single most important testing decision in the project.
 
 When the defending territory reaches zero armies, the attacker takes it.
 
-- The attacker must move in at least as many armies as the dice they just
-  rolled.
-- The attacker may move in as many as they like, less one that must stay behind.
 - The captured territory changes owner.
+- **The smallest legal garrison moves in at once**, which is the number of
+  dice the attacker just rolled, or everything the attacking territory can
+  spare if that is fewer. So a captured territory is never left standing
+  empty, not even for a moment.
+- The attacker may then send more, up to everything the attacking territory
+  can spare. One army must always stay behind.
+- If the smallest garrison is already everything that can be spared, there is
+  nothing left to decide and the game does not stop to ask.
+
+**S19. The garrison moves in at the moment of capture, not when the player
+chooses.** The first version left the captured territory on zero until the
+player was asked. That looked tidy until a game was won by its last capture:
+the game ended before anyone was asked, so the winning territory stayed empty
+for good. The whole-game test in plan 1.5.6 found it. Moving the garrison at
+once removes the empty state altogether, which turns "a territory is never
+empty" into a rule with no exceptions.
 
 ### 6.5 Fortify
 
@@ -471,6 +486,15 @@ type GameAction =
 screen uses it to grey out what a player cannot do. The computer player picks
 its move from the same list. So the two can never disagree about the rules, and
 the rules live in one place.
+
+Where an action carries a number of armies, the listed action carries the
+SMALLEST legal number, and `armyLimitFor(state, action)` reports the largest.
+`applyAction` accepts anything between. Listing every count separately would
+give hundreds of near-identical entries and help nobody.
+
+A test checks that every action `legalActions` offers is one `applyAction`
+accepts. If the two ever drift apart, the screen would offer a move that then
+throws.
 
 **S12. `applyAction` throws `IllegalActionError` when handed an illegal action.**
 It does not return an error value. The screen never sends an illegal action,

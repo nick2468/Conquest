@@ -73,6 +73,14 @@ export {
   territoriesOwnedBy,
 } from './reinforce'
 
+export type { GameAction } from './game'
+export {
+  IllegalActionError,
+  applyAction,
+  armyLimitFor,
+  legalActions,
+} from './game'
+
 export type { NewGame, NewPlayer } from './setup'
 export { DEFAULT_OPTIONS, createGame } from './setup'
 
