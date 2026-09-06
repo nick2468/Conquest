@@ -63,16 +63,20 @@ The first real code. See spec 6.3 and D13.
 
 ### 1.3 Setting up a game
 
-- [ ] 1.3.1 `balance.ts`: starting armies, minimum reinforcements, set values
-- [ ] 1.3.2 `setup.ts`: deal the territories, spread the armies
-- [ ] 1.3.3 Tests: every territory is dealt, the counts are even, the army total
+- [x] 1.3.1 `balance.ts`: starting armies, minimum reinforcements, set values
+- [x] 1.3.2 `setup.ts`: deal the territories, spread the armies
+- [x] 1.3.3 Tests: every territory is dealt, the counts are even, the army total
       is right
 
 ### 1.4 The turn
 
-- [ ] 1.4.1 `reinforce.ts`: the sum from spec 6.1, with region bonuses
+- [x] 1.4.1 `reinforce.ts`: the sum from spec 6.1, with region bonuses. Done
+      early with 1.3, because setup cannot produce a playable state without
+      knowing the first player's reinforcements.
 - [ ] 1.4.2 `fortify.ts`: adjacency, and the breadth-first search for connected
-- [ ] 1.4.3 `cards.ts`: what makes a set, and what a set is worth
+- [ ] 1.4.3 `cards.ts`: what makes a set, and what a set is worth. `createDeck`
+      landed early with 1.3, since a new game needs a deck. Sets and their
+      value are still to do.
 - [ ] 1.4.4 Tests for each, including both fortify distance settings
 
 ### 1.5 Putting it together
@@ -95,6 +99,9 @@ with no screen and no real randomness.
 
 ### 2.1 The map on screen
 
+- [ ] 2.1.0 Replace the placeholder shapes with outlines that look like
+      Australia. See spec S18. Do this FIRST, while there is nothing else on
+      screen to distract from the shape of the coast.
 - [ ] 2.1.1 `MapView.tsx`: draw every territory from the map data
 - [ ] 2.1.2 Fill each territory with its owner's colour
 - [ ] 2.1.3 Draw the army count in a circle at `labelAt`
@@ -218,7 +225,7 @@ something to play with while the interesting part gets built.
 | Phase | State |
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
-| 1 - the rules engine | **In progress.** 1.1 dice and attacks, 1.2 the map. |
+| 1 - the rules engine | **In progress.** 1.1, 1.2, 1.3 and 1.4.1 done. |
 | 2 - the screen | Not started |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |

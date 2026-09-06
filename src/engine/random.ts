@@ -80,6 +80,30 @@ export function scriptedRandom(values: readonly number[]): RandomSource {
   }
 }
 
+/**
+ * Put a list in a random order, without changing the list you were given.
+ *
+ * It walks the list backwards, swapping each item with one picked from the
+ * part not yet walked. That gives every order an equal chance, which a
+ * simpler-looking shuffle does not.
+ */
+export function shuffle<Item>(
+  random: RandomSource,
+  items: readonly Item[],
+): Item[] {
+  const shuffled = [...items]
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapWith = random.nextInt(index + 1)
+    const held = shuffled[index] as Item
+
+    shuffled[index] = shuffled[swapWith] as Item
+    shuffled[swapWith] = held
+  }
+
+  return shuffled
+}
+
 /** A source for tests that always answers the same. */
 export function fixedRandom(value: number): RandomSource {
   return {

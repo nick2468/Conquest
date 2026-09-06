@@ -31,7 +31,34 @@ export type {
 } from './types'
 
 export type { RandomSource } from './random'
-export { fixedRandom, scriptedRandom, seededRandom } from './random'
+export { fixedRandom, scriptedRandom, seededRandom, shuffle } from './random'
+
+export {
+  CARDS_FORCING_A_TRADE,
+  FIXED_SET_VALUE,
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  MINIMUM_REINFORCEMENTS,
+  PLAYER_COLOURS,
+  RISING_SET_INCREMENT,
+  RISING_SET_VALUES,
+  STARTING_ARMIES,
+  TERRITORIES_PER_ARMY,
+  WILD_CARDS,
+} from './balance'
+
+export { createDeck } from './cards'
+
+export type { Board } from './reinforce'
+export {
+  ownsWholeRegion,
+  regionBonusFor,
+  reinforcementsFor,
+  territoriesOwnedBy,
+} from './reinforce'
+
+export type { NewGame, NewPlayer } from './setup'
+export { DEFAULT_OPTIONS, createGame } from './setup'
 
 export { DIE_FACES, rollDice, scriptedDice } from './dice'
 

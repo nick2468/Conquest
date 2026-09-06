@@ -144,6 +144,23 @@ Islands. Tasmania is both a state and an island, so it is counted once.
 | The South East | New South Wales, Australian Capital Territory, Victoria | 3 |
 | The South | South Australia, Tasmania | 2 |
 
+**S18. The shapes shipped in phase 1 are placeholders.** They are simple
+polygons. They read as Australia only if you already know that is what they
+are. Replacing them is a data change, because a shape is one string per
+territory and nothing but the drawing layer reads it.
+
+Better shapes are drawn by hand and refined by eye, in phase 2.1, when the map
+is on screen and we can judge it. Drawing them blind in phase 1 means guessing
+twice. Australia's coast has four or five features that carry the whole
+recognition: Cape York, the Gulf of Carpentaria, the Great Australian Bight and
+Shark Bay. Getting those right matters more than accuracy anywhere else.
+
+If hand-drawing stalls, the fallback is real boundary data. Natural Earth is
+public domain and the Australian Bureau of Statistics publishes official state
+boundaries under CC BY 4.0. Both need a download, a conversion to SVG and a
+heavy simplification pass, because survey data carries far more detail than a
+game map can use. That is why it is the fallback and not the first choice.
+
 **S5. The bonuses above are a first guess, not a considered balance.** In the
 board game Risk a region bonus is roughly the number of territories needed to
 hold its edge. We have not played a game yet, so these numbers are untested.
