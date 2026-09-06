@@ -6,9 +6,14 @@ dist/
 build/
 .vite/
 
-# Editor and operating system junk.
-.vscode/
+# Editor settings. Two files ARE committed, so that anyone opening the folder
+# gets the same extensions and the same formatting.
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 .idea/
+
+# Operating system junk.
 .DS_Store
 Thumbs.db
 

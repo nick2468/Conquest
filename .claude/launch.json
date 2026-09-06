@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "//": "Kept in sync with the copy in C:/Users/nick2/code/.claude/launch.json. The --prefix flag makes npm run the script in THIS folder whatever directory invoked it. Port 5180, because dc.web owns 5173.",
+      "name": "conquest-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/nick2/code/Conquest", "run", "dev"],
+      "port": 5180
+    }
+  ]
+}
