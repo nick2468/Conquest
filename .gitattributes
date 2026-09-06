@@ -1,0 +1,3 @@
+# Store every text file with LF line endings inside Git.
+# Windows editors still see CRLF in the working folder.
+* text=auto eol=lf
