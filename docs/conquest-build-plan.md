@@ -73,11 +73,10 @@ The first real code. See spec 6.3 and D13.
 - [x] 1.4.1 `reinforce.ts`: the sum from spec 6.1, with region bonuses. Done
       early with 1.3, because setup cannot produce a playable state without
       knowing the first player's reinforcements.
-- [ ] 1.4.2 `fortify.ts`: adjacency, and the breadth-first search for connected
-- [ ] 1.4.3 `cards.ts`: what makes a set, and what a set is worth. `createDeck`
-      landed early with 1.3, since a new game needs a deck. Sets and their
-      value are still to do.
-- [ ] 1.4.4 Tests for each, including both fortify distance settings
+- [x] 1.4.2 `fortify.ts`: adjacency, and the breadth-first search for connected
+- [x] 1.4.3 `cards.ts`: what makes a set, and what a set is worth. `createDeck`
+      landed early with 1.3, since a new game needs a deck.
+- [x] 1.4.4 Tests for each, including both fortify distance settings
 
 ### 1.5 Putting it together
 
@@ -225,7 +224,7 @@ something to play with while the interesting part gets built.
 | Phase | State |
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
-| 1 - the rules engine | **In progress.** 1.1, 1.2, 1.3 and 1.4.1 done. |
+| 1 - the rules engine | **In progress.** 1.1 to 1.4 done. 1.5 is left. |
 | 2 - the screen | Not started |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |

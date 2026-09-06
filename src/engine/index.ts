@@ -8,6 +8,7 @@
 export const GAME_NAME = 'Conquest'
 
 export type {
+  Board,
   Card,
   CardId,
   CardSymbol,
@@ -47,9 +48,24 @@ export {
   WILD_CARDS,
 } from './balance'
 
-export { createDeck } from './cards'
+export type { CardTrio } from './cards'
+export {
+  createDeck,
+  isSet,
+  mustTradeASet,
+  risingValueOf,
+  setValue,
+  setsInHand,
+} from './cards'
 
-export type { Board } from './reinforce'
+export type { FortifyDistance } from './fortify'
+export {
+  armiesAvailableToMove,
+  canFortify,
+  fortifyProblem,
+  fortifyTargets,
+} from './fortify'
+
 export {
   ownsWholeRegion,
   regionBonusFor,

@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA } from '../maps/australia'
-import type { GameMap } from './types'
-import type { Board } from './reinforce'
+import type { Board, GameMap } from './types'
 import {
   ownsWholeRegion,
   regionBonusFor,

@@ -104,6 +104,9 @@ export interface TerritoryState {
   readonly armies: number
 }
 
+/** The whole board: who owns what, and how many armies sit there. */
+export type Board = Readonly<Record<TerritoryId, TerritoryState>>
+
 // --------------------------------------------------------------- the turn
 
 export type TurnPhase =

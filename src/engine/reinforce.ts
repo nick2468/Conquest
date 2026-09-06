@@ -5,16 +5,7 @@
  *          + the bonus for each region the player owns completely
  */
 import { MINIMUM_REINFORCEMENTS, TERRITORIES_PER_ARMY } from './balance'
-import type {
-  GameMap,
-  PlayerId,
-  RegionId,
-  TerritoryId,
-  TerritoryState,
-} from './types'
-
-/** The board: who owns what, and how many armies sit there. */
-export type Board = Readonly<Record<TerritoryId, TerritoryState>>
+import type { Board, GameMap, PlayerId, RegionId, TerritoryId } from './types'
 
 export function territoriesOwnedBy(
   board: Board,
