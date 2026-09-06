@@ -1,6 +1,7 @@
 # Conquest - design brief
 
-An iPad strategy game, in the style of the classic board game Risk.
+A strategy game for the iPad, in the style of the classic board game Risk. It
+also runs in a web browser on a desktop or laptop computer.
 
 Started 2026-09-04. Answers from James and Nick added 2026-09-06.
 
@@ -70,7 +71,7 @@ Split the code in two parts and keep them apart.
 dice, reinforcements, combat, cards, turn phases and winning. It knows nothing
 about screens, taps or colours.
 
-**2. The view.** The part that draws the map and reads finger taps.
+**2. The view.** The part that draws the map and reads taps and clicks.
 
 Why this matters:
 
@@ -84,6 +85,31 @@ Why this matters:
 **The shape to aim for:** each rule is a small function that takes the game state
 and returns a new game state. It changes nothing outside itself. This is the
 same idea as a Scratch block that reports a value.
+
+## Two devices, one view
+
+Phase 5 lets people play from a desktop or laptop browser as well as an iPad.
+That changes the view, so we plan for it now. Retrofitting it later is far more
+work.
+
+Two rules, from the first line of view code:
+
+1. **Read pointer events, not touch events.** A pointer event covers a finger, a
+   mouse and a stylus with one piece of code. Touch events only cover the
+   finger. Choosing pointer events costs nothing today and saves a rewrite
+   later.
+2. **Let the map scale.** Draw the map in its own coordinates and scale it to
+   fit whatever screen it lands on. Never write a size in pixels.
+
+Two smaller points to remember:
+
+- A mouse can hover over a territory. A finger cannot. So hover may add
+  information, but it must never be the only way to see something.
+- A desktop screen is wide, an iPad held upright is tall. The panels around the
+  map have to move, not just shrink.
+
+None of this needs building in phase 1. It only needs us to avoid the two
+choices that would block it.
 
 ## The rules
 
@@ -140,10 +166,9 @@ Islands off Queensland, and Rottnest Island off Perth.
 like the real states, but with the small wiggles taken out. Each territory is
 one flat colour.
 
-### A first map to argue about
+### The phase 1 map
 
-This is a proposal for phase 1, not a decision. It has 11 territories in 4
-regions.
+Agreed 2026-09-06. It has 11 territories in 4 regions.
 
 | Region | Territories | Bonus |
 |---|---|---|
@@ -206,12 +231,16 @@ with no internet.
 Load a map from a file, so Australia is one map among many. Later, a companion
 map editor tool for drawing new maps.
 
-### Phase 5 - multiple humans on different iPads
+### Phase 5 - several players on separate devices
+Several people play the same game from separate devices. An iPad, or a web
+browser on a desktop or laptop computer. Computer players can join the same
+game beside the humans.
+
 This is the only phase that needs a server. Cloudflare Workers with Durable
 Objects can hold the game state and pass turns between devices, on the free
 tier, on the Cloudflare account Nick already has.
 
-Phases 1 to 4 need no server at all. The game runs entirely on the iPad.
+Phases 1 to 4 need no server at all. The game runs entirely on the device.
 
 ## What James builds first
 
@@ -259,6 +288,11 @@ Nick is also teaching him Git, using this repository.
   the default.
 - D12. The map is Australia with islands, drawn as simplified coloured regions.
 - D13. James writes the dice roll first.
+- D14. Phase 5 lets several people play one game from separate devices. An
+  iPad, or a web browser on a desktop or laptop computer. Computer players may
+  join the same game beside the humans.
+- D15. The view must work with a mouse and with touch, from the first line of
+  code. See "Two devices, one view" below.
 
 ## Still to decide
 
