@@ -242,11 +242,30 @@ tier, on the Cloudflare account Nick already has.
 
 Phases 1 to 4 need no server at all. The game runs entirely on the device.
 
-## What James builds first
+## Who does what
+
+**Nick and Claude write the code. James watches and learns.** Decided
+2026-09-06. This is not a "child types the program" project.
+
+That changes what the code has to be. It must be readable out loud. A person
+watching should be able to follow what a function does without stopping to
+work it out. Names matter more than usual. Long clever lines are worse than
+several plain ones.
+
+It also changes what James can own. Three parts of the game are data, not
+code, so he can change them himself and see the result at once:
+
+- The balance numbers. Region bonuses, starting armies, card set values.
+- The player colours.
+- The map itself, once phase 4 lands.
+
+Keep all the balance numbers in one file for exactly this reason.
+
+## What we build first
 
 **The dice roll.** It is small, it is testable, and it is the heart of the game.
 
-The attack rule is a good size for a first piece of real code:
+The attack rule is a good size for the first piece of real code:
 
 1. The attacker rolls up to three dice. The defender rolls up to two.
 2. Sort each side's dice from high to low.
@@ -264,8 +283,12 @@ instruction sequences for Vernie, the Lego Boost robot.
 
 Scratch has already taught him events, loops, conditions and variables. This
 game maps straight onto those: a turn is a sequence, a phase is a state, an
-attack is a condition plus dice. The jump to TypeScript is mostly typing and
-spelling rather than new ideas.
+attack is a condition plus dice. So he can follow the shape of the code even
+before he can write it.
+
+He watches rather than types, so the feedback on screen carries the lesson.
+Tests that flick from red to green, and a browser that updates the moment a
+file is saved, show cause and effect without anybody explaining it.
 
 Nick is also teaching him Git, using this repository.
 
@@ -287,17 +310,23 @@ Nick is also teaching him Git, using this repository.
 - D11. Dice display is selectable, one at a time or all at once. All at once is
   the default.
 - D12. The map is Australia with islands, drawn as simplified coloured regions.
-- D13. James writes the dice roll first.
-- D14. Phase 5 lets several people play one game from separate devices. An
+- D13. The dice roll is the first piece of code.
+- D14. Nick and Claude write the code. James watches. So the code must read
+  aloud plainly, and the balance numbers live in one file James can change.
+- D15. Phase 5 lets several people play one game from separate devices. An
   iPad, or a web browser on a desktop or laptop computer. Computer players may
   join the same game beside the humans.
-- D15. The view must work with a mouse and with touch, from the first line of
-  code. See "Two devices, one view" below.
+- D16. The view must work with a mouse and with touch, from the first line of
+  code. See "Two devices, one view" above.
+- D17. Draw the map as SVG, not canvas. The browser then owns the shapes and
+  the tap handling.
+- D18. Build the view with React. The screen is rebuilt from the game state,
+  never patched by hand. Nick already knows React from another project.
+- D19. Test with Vitest, in watch mode.
+- D20. Build and serve with Vite.
 
 ## Still to decide
 
-- The web framework for the view. React, or plain code drawing on a canvas.
-- The test tool. Vitest is the likely choice.
 - How the map file is shaped.
 - The army bonus for each region.
 - How many armies each player starts with.
