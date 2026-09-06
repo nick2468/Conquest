@@ -1,0 +1,21 @@
+# Installed packages. Never commit these. They are re-downloaded by "npm install".
+node_modules/
+
+# Build output.
+dist/
+build/
+.vite/
+
+# Editor and operating system junk.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs.
+*.log
+npm-debug.log*
+
+# Local settings that only apply to one machine.
+.env
+.env.local
