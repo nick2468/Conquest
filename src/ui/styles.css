@@ -4,9 +4,11 @@
  */
 :root {
   --page: #f6f4ef;
+  --panel: #ffffff;
   --ink: #1d1c19;
   --ink-soft: #5d594f;
   --edge: #d9d4c7;
+  --sea: #e8eef1;
 
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -15,9 +17,11 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --page: #17181a;
+    --panel: #202225;
     --ink: #eceae4;
     --ink-soft: #a3a094;
     --edge: #33352f;
+    --sea: #1d2428;
   }
 }
 
@@ -32,33 +36,138 @@ body {
   color: var(--ink);
 }
 
-.scaffold {
+.board-page {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  align-content: start;
+  min-height: 100dvh;
+  padding: 1rem;
+}
+
+/* A wide screen puts the panel beside the map. A tall one stacks them. */
+@media (min-width: 900px) {
+  .board-page {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-template-rows: auto 1fr;
+    padding: 1.5rem;
+  }
+
+  .board-header {
+    grid-column: 1 / -1;
+  }
+}
+
+.board-header h1 {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  letter-spacing: -0.02em;
+}
+
+.board-header p {
+  margin: 0.25rem 0 0;
+  color: var(--ink-soft);
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 78dvh;
+  background: var(--sea);
+  border: 1px solid var(--edge);
+  border-radius: 0.75rem;
+}
+
+.territory-label {
+  pointer-events: none;
+  user-select: none;
+}
+
+.panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 0.75rem;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.controls label {
+  display: flex;
+  flex-direction: column;
   gap: 0.25rem;
-  min-height: 100dvh;
-  padding: 2rem;
-  text-align: center;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
 }
 
-.scaffold h1 {
-  margin: 0;
-  font-size: clamp(2.5rem, 12vw, 5rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+.controls select,
+.controls input,
+.controls button {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--edge);
+  border-radius: 0.5rem;
 }
 
-.scaffold p {
+.controls input {
+  width: 6rem;
+}
+
+.controls button {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.scores {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.scores th,
+.scores td {
+  padding: 0.4rem 0.3rem;
+  text-align: right;
+  border-bottom: 1px solid var(--edge);
+}
+
+.scores thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scores tbody th {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 500;
+  text-align: left;
+}
+
+.swatch {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 1px solid var(--edge);
+  border-radius: 0.2rem;
+}
+
+.turn-note {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 1.05rem;
-}
-
-.scaffold-note {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--edge);
   font-size: 0.9rem;
 }

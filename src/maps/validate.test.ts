@@ -206,20 +206,63 @@ describe('the Australia map', () => {
     }
   })
 
+  // A viewBox is four numbers: left, top, width, height. It does not have
+  // to start at zero, and Australia's does not, so the edges are worked out
+  // rather than assumed.
   it('keeps every shape and label inside the viewBox', () => {
-    const [, , width, height] = AUSTRALIA.viewBox.split(' ').map(Number)
+    const [left, top, width, height] = AUSTRALIA.viewBox
+      .split(' ')
+      .map(Number) as [number, number, number, number]
+
+    const right = left + width
+    const bottom = top + height
+
+    const inside = (x: number, y: number, what: string): void => {
+      expect(x, `${what} x`).toBeGreaterThanOrEqual(left)
+      expect(x, `${what} x`).toBeLessThanOrEqual(right)
+      expect(y, `${what} y`).toBeGreaterThanOrEqual(top)
+      expect(y, `${what} y`).toBeLessThanOrEqual(bottom)
+    }
 
     for (const territory of AUSTRALIA.territories) {
-      expect(territory.labelAt.x).toBeLessThan(width as number)
-      expect(territory.labelAt.y).toBeLessThan(height as number)
+      inside(territory.labelAt.x, territory.labelAt.y, `${territory.id} label`)
 
-      const numbers = territory.shape.match(/[\d.]+/g) ?? []
+      const numbers = (territory.shape.match(/[\d.]+/g) ?? []).map(Number)
 
-      for (const pair of chunkIntoPairs(numbers.map(Number))) {
-        expect(pair[0]).toBeLessThanOrEqual(width as number)
-        expect(pair[1]).toBeLessThanOrEqual(height as number)
+      for (const pair of chunkIntoPairs(numbers)) {
+        inside(pair[0], pair[1], `${territory.id} shape`)
       }
     }
+  })
+
+  // The map should fill its viewBox. If the drawing shrinks into a corner,
+  // the map gets small on screen for no reason and nobody notices why.
+  it('fills at least four fifths of its viewBox', () => {
+    const [left, top, width, height] = AUSTRALIA.viewBox
+      .split(' ')
+      .map(Number) as [number, number, number, number]
+
+    const xs: number[] = []
+    const ys: number[] = []
+
+    for (const territory of AUSTRALIA.territories) {
+      const numbers = (territory.shape.match(/[\d.]+/g) ?? []).map(Number)
+
+      for (const pair of chunkIntoPairs(numbers)) {
+        xs.push(pair[0])
+        ys.push(pair[1])
+      }
+    }
+
+    const used = {
+      across: (Math.max(...xs) - Math.min(...xs)) / width,
+      down: (Math.max(...ys) - Math.min(...ys)) / height,
+    }
+
+    expect(used.across).toBeGreaterThan(0.8)
+    expect(used.down).toBeGreaterThan(0.8)
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(left)
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(top)
   })
 
   // The two territories the spec calls out as interesting. If either changes,

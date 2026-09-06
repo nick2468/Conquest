@@ -98,13 +98,19 @@ with no screen and no real randomness.
 
 ### 2.1 The map on screen
 
-- [ ] 2.1.0 Replace the placeholder shapes with outlines that look like
-      Australia. See spec S18. Do this FIRST, while there is nothing else on
-      screen to distract from the shape of the coast.
-- [ ] 2.1.1 `MapView.tsx`: draw every territory from the map data
-- [ ] 2.1.2 Fill each territory with its owner's colour
-- [ ] 2.1.3 Draw the army count in a circle at `labelAt`
-- [ ] 2.1.4 Make the whole map scale to the window, per spec 11.3
+- [x] 2.1.0 Replace the placeholder shapes with outlines that look like
+      Australia. See spec S18. Coastline points taken from real latitude and
+      longitude, so Cape York, the Gulf of Carpentaria, Shark Bay and the
+      Great Australian Bight are all in the right place.
+- [x] 2.1.1 `MapView.tsx`: draw every territory from the map data
+- [x] 2.1.2 Fill each territory with its owner's colour
+- [x] 2.1.3 Draw the army count in a circle at `labelAt`
+- [x] 2.1.4 Make the whole map scale to the window, per spec 11.3
+- [ ] 2.1.5 A guard that every army count sits on its own territory. Checked
+      by hand in the browser for now, with `isPointInFill`. jsdom does not
+      implement that, so a real guard needs a browser test runner. Until then
+      a moved label can drift onto the wrong territory and no test will say
+      so.
 
 ### 2.2 Taking a turn
 
@@ -225,7 +231,7 @@ something to play with while the interesting part gets built.
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **In progress.** 1.1 to 1.4 done. 1.5 is left. |
-| 2 - the screen | Not started |
+| 2 - the screen | **In progress.** 2.1 the map on screen is done. |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |
 | 5 - maps of your own | Not started |
