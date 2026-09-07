@@ -522,6 +522,7 @@ time, and it improves the game people already play. See spec 11.5.
 - [ ] 7.10 Nick: play a real game on the iPad and check nothing is slower
 - [x] 7.11 Make the sound work on the iPad, not only in a browser
 - [x] 7.12 Make a sound measurable, and turn the hammer into an explosion
+- [x] 7.13 Keep a lorry and a boat the right way up, whichever way they go
 
 ### What was measured, and what had to change
 
@@ -588,7 +589,22 @@ thing is sent through an echo worked out in code. Everything now passes
 through a squeezer, so two explosions close together add up without
 crackling.
 
-Measured after: 319 tests green. The board holds 236 shapes at rest and 252
+**The convoy drove upside down.** Nick again: "the convoy trucks are often
+moving upside down." A lorry is drawn from the side and was turned to face
+its direction of travel, so heading west was half a turn, and half a turn
+puts the wheels in the air.
+
+`facingAlong` replaces it. It mirrors the drawing to face the other way and
+leans it at most 30 degrees, which is what a map application does. The boats
+had the same fault more quietly: they never faced their course at all, so
+one sailing east looked the same as one sailing west. They use the same rule
+now. See spec S29.
+
+The test walks all 360 degrees rather than the four directions that came to
+mind, because this is exactly the kind of bug that hides in the angles
+nobody thought to try.
+
+Measured after: 325 tests green. The board holds 236 shapes at rest and 252
 at the peak of an effect, so an animation adds at most 16 and nothing builds
 up. Battle, parachute, landing and convoy were each driven live and looked
 at frame by frame.

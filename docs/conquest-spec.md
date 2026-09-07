@@ -617,6 +617,18 @@ Every sound is built in code from an oscillator and noise. No audio files.
 That keeps the app small, keeps it working offline, and means there is
 nothing to host.
 
+**S29. Anything drawn from the side is never turned past upright.**
+
+A lorry and a boat are drawn from the side. Turning one to face its
+direction of travel is the obvious answer and it is wrong: heading west is
+half a turn, and half a turn puts the wheels in the air. Nick saw it -
+"the convoy trucks are often moving upside down."
+
+So `facingAlong` mirrors the drawing to face the other way and leans it at
+most 30 degrees. It is the rule a map application follows, and it holds for
+every direction rather than for the ones that happen to be tested. The test
+walks all 360 degrees.
+
 **S28. A sound is built INTO a context, not played at a speaker.**
 
 `soundInto(context, kind)` builds the sound and stops there. `playSound`

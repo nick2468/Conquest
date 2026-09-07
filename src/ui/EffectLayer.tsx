@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import type { Effect } from './effects'
+import { facingAlong } from './effects'
 
 /**
  * Draws what just happened, over the top of the board. Plan tasks 7.3 to 7.6.
@@ -240,6 +241,11 @@ function LandingCraft({ effect, steady }: PartProps) {
   // rather than one behind the other.
   const sideways = { x: -way.y, y: way.x }
 
+  // A boat is drawn from the side, so it has the same problem a lorry has:
+  // sailing west is half a turn, and half a turn capsizes it. `way` points
+  // out to sea, and the boat sails the other way.
+  const facing = facingAlong(-way.x, -way.y)
+
   return (
     <>
       {boats.map((boat) => (
@@ -253,9 +259,13 @@ function LandingCraft({ effect, steady }: PartProps) {
           lasting={effect.lasting}
           delay={boat.delay}
         >
-          <path className="fx-wake" d="M -13 7 L 13 7" />
-          <path className="fx-hull" d="M -11 -1 L 11 -1 L 8 5 L -8 5 Z" />
-          <path className="fx-cabin" d="M -3 -1 L -3 -7 L 4 -7 L 4 -1 Z" />
+          <g
+            transform={`rotate(${facing.turn}) scale(${facing.mirrored ? -1 : 1} 1)`}
+          >
+            <path className="fx-wake" d="M -13 7 L 13 7" />
+            <path className="fx-hull" d="M -11 -1 L 11 -1 L 8 5 L -8 5 Z" />
+            <path className="fx-cabin" d="M -3 -1 L -3 -7 L 4 -7 L 4 -1 Z" />
+          </g>
         </Travelling>
       ))}
     </>
@@ -266,7 +276,10 @@ function LandingCraft({ effect, steady }: PartProps) {
 function Convoy({ effect, steady }: PartProps) {
   const start = effect.from ?? effect.at
   const away = { x: start.x - effect.at.x, y: start.y - effect.at.y }
-  const facing = Math.atan2(-away.y, -away.x) * (180 / Math.PI)
+
+  // Which way they are driving, which is the opposite of where they came
+  // from. Kept upright whatever that direction is. See facingAlong.
+  const facing = facingAlong(-away.x, -away.y)
 
   const lorries = [
     { place: 0, delay: 0 },
@@ -296,7 +309,11 @@ function Convoy({ effect, steady }: PartProps) {
           lasting={effect.lasting}
           delay={lorry.delay}
         >
-          <g transform={`rotate(${facing})`}>
+          {/* Mirrored first, then leaned, so a lorry heading west is a
+              lorry facing west and not a lorry on its roof. */}
+          <g
+            transform={`rotate(${facing.turn}) scale(${facing.mirrored ? -1 : 1} 1)`}
+          >
             <path className="fx-body" d="M -8 -4 L 3 -4 L 3 3 L -8 3 Z" />
             <path className="fx-cab" d="M 3 -2 L 8 -2 L 8 3 L 3 3 Z" />
             <circle className="fx-wheel" cx={-5} cy={4} r={2} />

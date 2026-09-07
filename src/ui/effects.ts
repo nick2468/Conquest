@@ -119,6 +119,46 @@ export function towardsTheSea(map: GameMap, at: Point): Point {
   return { x: x / length, y: y / length }
 }
 
+/** How far a lorry is allowed to lean. */
+const MOST_LEAN = 30
+
+/**
+ * How to point something that is drawn from the side, such as a lorry.
+ *
+ * Turning it to face its direction of travel is the obvious answer and it
+ * is wrong. A lorry heading west needs half a turn, and half a turn puts
+ * its wheels in the air. Nick saw exactly that: "the convoy trucks are
+ * often moving upside down."
+ *
+ * The answer is the one a map application uses. Never turn a vehicle past
+ * upright. Mirror it to face the other way, and lean it a little to suggest
+ * the slope. It stays a lorry from every angle, which a rotated side view
+ * does not.
+ *
+ * `turn` is degrees. `mirrored` means flip it left to right first.
+ */
+export function facingAlong(
+  dx: number,
+  dy: number,
+): { readonly turn: number; readonly mirrored: boolean } {
+  if (dx === 0 && dy === 0) {
+    return { turn: 0, mirrored: false }
+  }
+
+  const mirrored = dx < 0
+  // The same journey, turned round to head right. Its angle is then never
+  // more than a quarter turn from upright, whichever way the lorry goes.
+  const acrossX = mirrored ? -dx : dx
+  const acrossY = mirrored ? -dy : dy
+  const angle = Math.atan2(acrossY, acrossX) * (180 / Math.PI)
+
+  const leaned = Math.max(-MOST_LEAN, Math.min(MOST_LEAN, angle))
+
+  // Due west works out as minus zero, which would be written into the page
+  // as rotate(-0). It draws the same, but it is not a number anybody meant.
+  return { turn: leaned === 0 ? 0 : leaned, mirrored }
+}
+
 /**
  * What to draw for one action, or null for an action with nothing to show.
  *

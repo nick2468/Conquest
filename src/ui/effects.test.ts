@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA_BIG } from '../maps/australia-big'
 import { AUSTRALIA } from '../maps/australia'
-import { crossesWater, effectFor, towardsTheSea } from './effects'
+import { crossesWater, effectFor, facingAlong, towardsTheSea } from './effects'
 import { middleOf, middleOfMap } from './zoom'
 
 /** Plan task 7.2. All of this runs with no browser. */
@@ -174,6 +174,81 @@ describe('armies that have to cross water', () => {
     })
 
     expect(effect?.kind).toBe('convoy')
+  })
+})
+
+describe('pointing a lorry', () => {
+  /**
+   * Nick: "the convoy trucks are often moving upside down." Turning a side
+   * view to face west takes half a turn, and half a turn puts the wheels in
+   * the air. These tests are the rule that replaced it.
+   */
+
+  it('never turns one past upright, whichever way it goes', () => {
+    for (let degrees = 0; degrees < 360; degrees += 5) {
+      const radians = (degrees * Math.PI) / 180
+      const facing = facingAlong(Math.cos(radians), Math.sin(radians))
+
+      expect(Math.abs(facing.turn)).toBeLessThanOrEqual(30)
+    }
+  })
+
+  it('mirrors a lorry heading west rather than rolling it over', () => {
+    const west = facingAlong(-1, 0)
+
+    expect(west.mirrored).toBe(true)
+    expect(west.turn).toBe(0)
+  })
+
+  it('leaves a lorry heading east alone', () => {
+    const east = facingAlong(1, 0)
+
+    expect(east.mirrored).toBe(false)
+    expect(east.turn).toBe(0)
+  })
+
+  it('leans it the right way going down hill, both ways along', () => {
+    // On screen, a larger y is further down. A lorry heading down and to
+    // the right leans nose down, which is a positive turn.
+    expect(facingAlong(1, 1).turn).toBeGreaterThan(0)
+
+    // Heading down and to the LEFT, the same nose-down lean is a negative
+    // turn, because the lorry is mirrored before it is leaned.
+    expect(facingAlong(-1, 1).turn).toBeLessThan(0)
+    expect(facingAlong(-1, 1).mirrored).toBe(true)
+  })
+
+  it('stays upright when there is nowhere to go', () => {
+    expect(facingAlong(0, 0)).toEqual({ turn: 0, mirrored: false })
+  })
+
+  it('keeps the nose pointing the way the lorry travels', () => {
+    // Work the drawing out the way the browser does: mirror, then turn.
+    const noseAfter = (dx: number, dy: number) => {
+      const facing = facingAlong(dx, dy)
+      const mirrored = facing.mirrored ? -1 : 1
+      const radians = (facing.turn * Math.PI) / 180
+
+      return {
+        x: mirrored * Math.cos(radians),
+        y: mirrored * Math.sin(radians),
+      }
+    }
+
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [1, 1],
+      [-1, 1],
+      [1, -1],
+      [-1, -1],
+    ] as const) {
+      const nose = noseAfter(dx, dy)
+
+      // The nose need not lie exactly along the journey, because the lean
+      // is capped. It must never point backwards along it.
+      expect(nose.x * dx + nose.y * dy).toBeGreaterThan(0)
+    }
   })
 })
 
