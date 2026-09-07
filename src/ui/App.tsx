@@ -65,6 +65,16 @@ export function App() {
     null,
   )
 
+  /**
+   * The place being looked at closely, or null for the whole board.
+   *
+   * Nick's idea. On a board of 38 places, Perth and Canberra are a few
+   * millimetres across on an iPad. Tapping the whole board opens a close
+   * view of that place and everywhere it borders, where everything is a
+   * real target and the names are written out in full.
+   */
+  const [lookingAt, setLookingAt] = useState<TerritoryId | null>(null)
+
   // Which computer player, if any, should be moving right now.
   const whoseTurn = state.players.find(
     (each) => each.id === state.turn.playerId,
@@ -80,6 +90,11 @@ export function App() {
   const forget = (): void => {
     setSelectedId(null)
     setPendingFortify(null)
+  }
+
+  const showWholeBoard = (): void => {
+    setLookingAt(null)
+    setSelectedId(null)
   }
 
   /**
@@ -117,6 +132,7 @@ export function App() {
   const start = (chosen: GameSetup): void => {
     setSetup(chosen)
     forget()
+    setLookingAt(null)
     newGame(chosen)
     setScreen('playing')
   }
@@ -140,7 +156,18 @@ export function App() {
   const current = state.players.find((each) => each.id === state.turn.playerId)
   const computer = current !== undefined && current.kind !== 'human'
 
+  // A computer player moves anywhere, so its turn is watched from above.
+  const view = computer ? null : lookingAt
+  const closeUpOn = state.map.territories.find((each) => each.id === view)
+
   const handleTap = (territoryId: TerritoryId): void => {
+    // On the whole board a tap opens the close view. Playing happens in the
+    // close view, where everything is big enough to hit.
+    if (lookingAt === null) {
+      setLookingAt(territoryId)
+      return
+    }
+
     const result = whatATapDoes(state, selectedId, territoryId)
 
     switch (result.kind) {
@@ -156,6 +183,10 @@ export function App() {
 
       case 'select':
         setSelectedId(result.territoryId)
+        // The view follows what you pick up. Choosing somewhere to attack
+        // from and then finding it half off the edge is no use: its targets
+        // are exactly the places that need to be on screen.
+        setLookingAt(result.territoryId)
         break
 
       case 'clear':
@@ -180,7 +211,12 @@ export function App() {
   return (
     <main className="board-page">
       <header className="board-header">
-        <h1>{GAME_NAME}</h1>
+        <h1>
+          {GAME_NAME}
+          {closeUpOn === undefined ? null : (
+            <span className="looking-at">{closeUpOn.name}</span>
+          )}
+        </h1>
         <div className="new-game">
           {state.turn.phase === 'setup' ? (
             <button
@@ -190,6 +226,12 @@ export function App() {
               Place the rest for us
             </button>
           ) : null}
+
+          {closeUpOn === undefined ? null : (
+            <button type="button" className="primary" onClick={showWholeBoard}>
+              Whole map
+            </button>
+          )}
 
           <button type="button" onClick={() => setScreen('newGame')}>
             New game
@@ -202,6 +244,7 @@ export function App() {
         highlights={computer ? EMPTY_HIGHLIGHTS : highlights}
         selectedId={computer ? null : selectedId}
         onTap={computer ? () => undefined : handleTap}
+        lookingAt={view}
       />
 
       <div className="side">

@@ -427,10 +427,28 @@ be. A bigger Australia is what makes strategy mean anything.
       got through on the small map and sat there for days.
 
       The small map stays, and is chosen on the new game screen.
-- [ ] 5.2 **Tap an area to zoom into it.** Nick's idea: show the whole board,
-      and open a larger local view when a place is tapped. On an iPad the
-      cities are small targets, and 38 places on one screen is a lot to read.
-      Not started.
+- [x] 5.2 **Tap an area to zoom into it.** Nick's idea, built 2026-09-07.
+      Tapping the whole board opens a close view of that place and everywhere
+      it borders. Names are written out in full there, and a "Whole map"
+      button steps back out.
+
+      Three things had to be worked out, and each was found by looking at it:
+
+      1. **Frame the PLACE, not the region.** Framing regions was the first
+         try. Western Australia covers a third of the board, so it zoomed by
+         1.1 while containing Perth and Rottnest, the two smallest targets on
+         the map. A small place needs a small frame.
+      2. **Cap the zoom.** Unlimited, tapping Perth filled the screen with
+         three places. That is not a close view of the board, it is a
+         different board, and you stop knowing where you are. Capped at 3.2.
+      3. **Hold the labels steady.** Labels are drawn in map units, so they
+         grew with the land and came out enormous. Dividing by the zoom keeps
+         a count the same size on the glass at any distance.
+
+      The view also follows what you pick up: choosing somewhere to attack
+      from re-frames on it, because its targets are exactly what needs to be
+      on screen. And a computer player's turn is always watched from above,
+      since it moves anywhere on the board.
 - [ ] 5.1 A map file format, and reading it
 - [ ] 5.2 Run `validateMap()` on a loaded map and report faults in plain words
 - [ ] 5.3 Load a map from a file the player picks

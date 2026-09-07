@@ -1,5 +1,6 @@
 import type { GameState, TerritoryDefinition, TerritoryId } from '../engine'
 import type { Highlights } from './taps'
+import { cornersOf, magnification, middleOf, viewBoxFor } from './zoom'
 
 /**
  * The board on screen.
@@ -32,6 +33,13 @@ interface MapViewProps {
   readonly selectedId: TerritoryId | null
   readonly onTap: (territoryId: TerritoryId) => void
   /**
+   * The place being looked at closely, or null for the whole board.
+   *
+   * When it is set the map frames that place and everywhere it borders, and
+   * writes full names rather than short ones, because there is room.
+   */
+  readonly lookingAt: TerritoryId | null
+  /**
    * Territories smaller than this get their count drawn beside them, with
    * a line pointing at them. Measured as the box the shape fits in.
    */
@@ -45,17 +53,6 @@ interface MapViewProps {
  * so the count has to sit beside them rather than on top. This measures the
  * box the shape fits in, which is close enough to decide that.
  */
-function cornersOf(territory: TerritoryDefinition): number[][] {
-  const numbers = (territory.shape.match(/[\d.]+/g) ?? []).map(Number)
-  const corners: number[][] = []
-
-  for (let at = 0; at + 1 < numbers.length; at += 2) {
-    corners.push([numbers[at] as number, numbers[at + 1] as number])
-  }
-
-  return corners
-}
-
 function shapeSize(territory: TerritoryDefinition): number {
   const corners = cornersOf(territory)
 
@@ -63,30 +60,12 @@ function shapeSize(territory: TerritoryDefinition): number {
     return 0
   }
 
-  const xs = corners.map((corner) => corner[0] as number)
-  const ys = corners.map((corner) => corner[1] as number)
+  const xs = corners.map(([x]) => x)
+  const ys = corners.map(([, y]) => y)
 
   return (
     (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys))
   )
-}
-
-/** Roughly the middle of a shape. Good enough to point a line at. */
-function middleOf(territory: TerritoryDefinition): { x: number; y: number } {
-  const corners = cornersOf(territory)
-
-  if (corners.length === 0) {
-    return { x: territory.labelAt.x, y: territory.labelAt.y }
-  }
-
-  return {
-    x:
-      corners.reduce((total, corner) => total + (corner[0] as number), 0) /
-      corners.length,
-    y:
-      corners.reduce((total, corner) => total + (corner[1] as number), 0) /
-      corners.length,
-  }
 }
 
 export function MapView({
@@ -94,9 +73,20 @@ export function MapView({
   highlights,
   selectedId,
   onTap,
+  lookingAt,
   smallTerritoryArea = 400,
 }: MapViewProps) {
   const { map } = state
+  const viewBox = viewBoxFor(map, lookingAt)
+  const closeUp = lookingAt !== null
+
+  /**
+   * Labels are drawn in map units, so zooming in makes them grow with the
+   * land. Dividing by how far the map is zoomed keeps a count the same size
+   * on the glass however close the view is, which is what a person expects.
+   */
+  const closer = magnification(map, lookingAt)
+  const steady = (size: number): number => size / closer
 
   const colourOf = (ownerId: string | null): string => {
     if (ownerId === null) {
@@ -131,7 +121,7 @@ export function MapView({
   return (
     <svg
       className="map"
-      viewBox={map.viewBox}
+      viewBox={viewBox}
       role="group"
       aria-label={`The ${map.name} board`}
     >
@@ -149,7 +139,7 @@ export function MapView({
             d={territory.shape}
             fill={colourOf(state.territories[territory.id]?.ownerId ?? null)}
             stroke={outlineOf(territory.regionId)}
-            strokeWidth={3}
+            strokeWidth={steady(3)}
             strokeLinejoin="round"
             role="button"
             tabIndex={canTap ? 0 : -1}
@@ -189,24 +179,24 @@ export function MapView({
                 x2={middleOf(territory).x}
                 y2={middleOf(territory).y}
                 className="territory-leader"
-                strokeWidth={2}
+                strokeWidth={steady(2)}
               />
             ) : null}
 
             <circle
               cx={territory.labelAt.x}
               cy={territory.labelAt.y}
-              r={15}
+              r={steady(15)}
               fill={fill}
               stroke="#2b2a26"
-              strokeWidth={2}
+              strokeWidth={steady(2)}
             />
             <text
               x={territory.labelAt.x}
               y={territory.labelAt.y}
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize={16}
+              fontSize={steady(16)}
               fontWeight={700}
               fill={readableOn(fill)}
             >
@@ -215,11 +205,11 @@ export function MapView({
             <text
               className="territory-name"
               x={territory.labelAt.x}
-              y={territory.labelAt.y + 30}
+              y={territory.labelAt.y + steady(30)}
               textAnchor="middle"
-              fontSize={15}
+              fontSize={steady(closeUp ? 17 : 15)}
             >
-              {territory.shortName}
+              {closeUp ? territory.name : territory.shortName}
             </text>
           </g>
         )
