@@ -9,6 +9,37 @@ has been played with the server switched off.
 
 ---
 
+## It is live
+
+**https://conquest.datacrafter.net** — published 2026-09-07.
+
+| Thing | Value |
+|---|---|
+| Cloudflare project | `conquest` |
+| Built from | `nick2468/Conquest`, branch `main` |
+| Cloudflare's own URL | `conquest-bih.pages.dev` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
+| Node version | 22.12.0, from `.node-version` and a `NODE_VERSION` variable |
+
+**Every push to `main` now rebuilds and republishes.** Nothing else to run.
+
+Steps 1 to 3 below are kept as a record of how it was set up, and for the
+next time. Step 4 onward is what is left to do.
+
+### What changed in DNS
+
+One record was added. Nothing was edited or removed.
+
+| Type | Name | Content |
+|---|---|---|
+| CNAME | conquest | `conquest-bih.pages.dev` |
+
+`demo`, `test`, `www`, and the mail records were all checked afterwards and
+all still answer.
+
+---
+
 ## What is already done
 
 | Built | Where |
@@ -26,7 +57,7 @@ armies and resolved an attack, with every request to the server refused.
 
 ---
 
-## 1. Put the repository on GitHub
+## 1. Put the repository on GitHub (done)
 
 Cloudflare Pages builds from a Git repository, so it needs one it can read.
 
@@ -48,7 +79,7 @@ Private is fine. Cloudflare can read a private repository once you grant it.
 
 ---
 
-## 2. Make the Cloudflare Pages project
+## 2. Make the Cloudflare Pages project (done)
 
 1. Open the Cloudflare dashboard, then **Workers & Pages**, then **Create**,
    then **Pages**, then **Connect to Git**.
@@ -66,21 +97,33 @@ Private is fine. Cloudflare can read a private repository once you grant it.
 
 **The Node version matters.** Cloudflare's default is older than Vite 8
 accepts, and the build fails with a version error. The repository holds a
-`.node-version` file saying `22.12.0`, which Cloudflare reads. If it is ever
-ignored, add a build environment variable `NODE_VERSION` set to `22.12.0`.
+`.node-version` file saying `22.12.0`, and a `NODE_VERSION` build variable
+was set to the same value as a belt and braces. The build log confirms it
+installed Node 22.12.0.
+
+That log also warns that Node 22 is in maintenance mode and nearing the end
+of its life. Nothing is broken, but the version is worth raising the next
+time this is touched.
 
 The first build takes a couple of minutes. It ends with a URL like
 `conquest-abc.pages.dev`. Open it and check the game runs.
 
 ---
 
-## 3. Point conquest.datacrafter.net at it
+## 3. Point conquest.datacrafter.net at it (done)
 
 1. In the Pages project, open **Custom domains**, then **Set up a custom
    domain**.
 2. Enter `conquest.datacrafter.net`.
 3. Cloudflare already runs DNS for `datacrafter.net`, so it offers to add the
    record itself. Accept.
+
+**One thing that looks wrong but is not.** While the domain says "Verifying",
+Cloudflare shows a panel headed "Complete DNS setup", telling you to add the
+CNAME by hand at your DNS provider. Ignore it. That text appears for everyone,
+including people whose DNS Cloudflare already runs. The record had in fact
+already been created. Check the DNS records list before adding anything, or
+you will end up with two.
 
 The certificate takes a few minutes. **HTTPS is not optional here**: a service
 worker only runs on a secure page. Without it the game still loads, but never
