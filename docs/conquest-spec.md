@@ -125,8 +125,8 @@ runs it against every map we ship.
 7. Every region holds at least one territory.
 8. The map is connected. From any territory you can reach every other territory
    by crossing borders.
-9. No two places claim the same ground. They may share a border. They may not
-   share any land.
+9. No two places claim the same ground. They may share a border. They may
+   stray no more than 2.5 units into one another.
 10. No army count is drawn inside a place that is not its own.
 
 Rule 6 catches the most common mistake by far, which is typing a border on one
@@ -139,7 +139,25 @@ browser thing. Whether a point is inside a shape is arithmetic. Rule 9 found
 a real fault on the day it was written, in a map that had been played for
 days.
 
-**Rule 9 allows exactly one overlap, and the map must declare it.** A city is
+**Rule 9 allows a stray of 2.5 units, and that number was measured.** A map
+built from a shared table of whole numbers can tile exactly, and both
+Australia maps do. A map traced from a drawing cannot: two coastlines drawn
+by eye and then simplified disagree about where the border runs by a
+fraction of a unit all the way along. On the world map the worst such
+disagreement is 0.89 units. The shallowest overlap that MEANS something, a
+city drawn on the place around it, is 3. Nothing lands in between.
+
+The cost is stated rather than hidden: a real mistake shallower than 2.5
+now goes unreported. One such was found and fixed on the Australia map, half
+a unit deep along a border 79 long, and it was invisible. **The maps we
+build ourselves are still held to no stray at all by their own test**, so
+nothing is given up where exactness is possible.
+
+Depth is the measure, not area. Area cannot tell a border-long hairline
+from a small real mistake, because they come out about the same. Depth
+separates them cleanly.
+
+**Rule 9 allows exactly one overlap outright, and the map must declare it.** A city is
 drawn on top of the place around it, and that is deliberate. A city says so
 with `drawnOver`, and the check then makes sure the claim is true: the two
 must border each other, they must really touch, and the city must be the
@@ -792,6 +810,35 @@ The engine touches no browser, no clock and no hidden randomness, so it
 runs in a place that has none of those things, with not one line changed.
 
 ---
+
+**S45. Three weights of line, heaviest first, each drawn UNDER the next.**
+
+Nick asked for "thick fuzzy edges around the continents". The three layers
+are the coast, then a region, then a place, and each shows only where
+nothing heavier covers it.
+
+1. All the land as ONE shape, with a soft dark band spread around it. One
+   shape, not one per region: per region put a dark band around every state
+   of Australia, because the states touch. One shape gives each separate
+   piece of land its own coast.
+2. Each region as one shape, not filled, with a thick line. Half the line
+   is covered by the places on top, so it shows around a region and never
+   through the middle of one.
+3. Each place, filled by owner, with a thin line.
+
+**Nothing underneath may be filled with a solid colour.** A place you
+cannot act on is drawn at 55%, so anything solid below shows through it.
+Filling the coast with a land colour turned every idle place muddy grey and
+took a while to see, because the fill was right and the drawing was wrong.
+The coast is filled with the colour of the SEA, and the region shapes are
+not filled at all. The soft edge comes from the SHAPE, not from the fill.
+
+**S46. Where a traced map comes from is written down, in the game.** The
+world map is traced from "Risk board" by Gr0gmint on Wikimedia Commons,
+shared under CC BY-SA 3.0. That licence asks for credit and asks that the
+result be shared on the same terms, so `world.ts` says so and the new game
+screen says so with a link. The two Australia maps are our own and carry no
+such condition.
 
 **S30. The game says when a set is waiting to be traded.**
 

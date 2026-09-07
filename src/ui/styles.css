@@ -1084,3 +1084,16 @@ button.primary.ready:hover {
   background: #fdf3f2;
   font-size: 0.85rem;
 }
+
+/* The soft band around every coast, drawn under the places. Its own colour
+ * hardly shows: the places cover all of it but the edge. */
+.coast {
+  fill: var(--sea);
+}
+
+/* Where the world map came from. Small, and always there. */
+.setup-credit {
+  margin: 1rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}

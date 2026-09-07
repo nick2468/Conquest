@@ -21,7 +21,7 @@ function twoSquares(): GameMap {
   return {
     id: 'squares',
     name: 'Two squares',
-    viewBox: '0 0 100 100',
+    viewBox: '0 0 1000 1000',
     regions: [{ id: 'r1', name: 'Region one', bonus: 1, outline: '#000000' }],
     territories: [
       {
@@ -30,8 +30,8 @@ function twoSquares(): GameMap {
         shortName: 'L',
         regionId: 'r1',
         borders: ['right'],
-        shape: 'M 0 0 L 10 0 L 10 10 L 0 10 Z',
-        labelAt: { x: 5, y: 5 },
+        shape: 'M 0 0 L 100 0 L 100 100 L 0 100 Z',
+        labelAt: { x: 50, y: 50 },
       },
       {
         id: 'right',
@@ -39,8 +39,8 @@ function twoSquares(): GameMap {
         shortName: 'R',
         regionId: 'r1',
         borders: ['left'],
-        shape: 'M 10 0 L 20 0 L 20 10 L 10 10 Z',
-        labelAt: { x: 15, y: 5 },
+        shape: 'M 100 0 L 200 0 L 200 100 L 100 100 Z',
+        labelAt: { x: 150, y: 50 },
       },
     ],
   }
@@ -73,6 +73,7 @@ describe('the arithmetic underneath', () => {
     [0, 10],
   ]
 
+
   it('knows a point in the middle is inside', () => {
     expect(isWithin([5, 5], square)).toBe(true)
   })
@@ -95,10 +96,10 @@ describe('the arithmetic underneath', () => {
   })
 
   it('reads the corners back out of a drawn shape', () => {
-    expect(cornersOf('M 0 0 L 10 0 L 10 10 Z')).toEqual([
+    expect(cornersOf('M 0 0 L 100 0 L 100 100 Z')).toEqual([
       [0, 0],
-      [10, 0],
-      [10, 10],
+      [100, 0],
+      [100, 100],
     ])
   })
 })
@@ -110,8 +111,8 @@ describe('check 9: no two places claim the same ground', () => {
 
   it('catches two places covering the same ground', () => {
     const broken = changing(twoSquares(), 'right', {
-      shape: 'M 5 0 L 20 0 L 20 10 L 5 10 Z',
-      labelAt: { x: 18, y: 5 },
+      shape: 'M 50 0 L 200 0 L 200 100 L 50 100 Z',
+      labelAt: { x: 180, y: 50 },
     })
 
     const said = complaints(broken, 'no two places overlap')
@@ -130,13 +131,13 @@ describe('check 9: no two places claim the same ground', () => {
       territories: [
         {
           ...(twoSquares().territories[0] as TerritoryDefinition),
-          shape: 'M 0 4 L 20 4 L 20 6 L 0 6 Z',
-          labelAt: { x: 40, y: 40 },
+          shape: 'M 0 40 L 200 40 L 200 60 L 0 60 Z',
+          labelAt: { x: 400, y: 400 },
         },
         {
           ...(twoSquares().territories[1] as TerritoryDefinition),
-          shape: 'M 8 0 L 12 0 L 12 10 L 8 10 Z',
-          labelAt: { x: 60, y: 60 },
+          shape: 'M 80 0 L 120 0 L 120 100 L 80 100 Z',
+          labelAt: { x: 600, y: 600 },
         },
       ],
     }
@@ -146,8 +147,8 @@ describe('check 9: no two places claim the same ground', () => {
 
   it('allows a city that says it is drawn over the place around it', () => {
     const city = changing(twoSquares(), 'right', {
-      shape: 'M 3 3 L 6 3 L 6 6 L 3 6 Z',
-      labelAt: { x: 40, y: 40 },
+      shape: 'M 30 30 L 60 30 L 60 60 L 30 60 Z',
+      labelAt: { x: 400, y: 400 },
       drawnOver: 'left',
     })
 
@@ -157,8 +158,8 @@ describe('check 9: no two places claim the same ground', () => {
 
   it('catches a city drawn over a place it does not border', () => {
     const lonely = changing(twoSquares(), 'right', {
-      shape: 'M 3 3 L 6 3 L 6 6 L 3 6 Z',
-      labelAt: { x: 40, y: 40 },
+      shape: 'M 30 30 L 60 30 L 60 60 L 30 60 Z',
+      labelAt: { x: 400, y: 400 },
       drawnOver: 'left',
       borders: [],
     })
@@ -170,8 +171,8 @@ describe('check 9: no two places claim the same ground', () => {
 
   it('catches a city drawn over a place it does not touch', () => {
     const adrift = changing(twoSquares(), 'right', {
-      shape: 'M 50 50 L 53 50 L 53 53 L 50 53 Z',
-      labelAt: { x: 70, y: 70 },
+      shape: 'M 500 500 L 530 500 L 530 530 L 500 530 Z',
+      labelAt: { x: 700, y: 700 },
       drawnOver: 'left',
     })
 
@@ -181,8 +182,8 @@ describe('check 9: no two places claim the same ground', () => {
   it('catches the claim made the wrong way round', () => {
     const backwards = changing(
       changing(twoSquares(), 'right', {
-        shape: 'M 3 3 L 6 3 L 6 6 L 3 6 Z',
-        labelAt: { x: 40, y: 40 },
+        shape: 'M 30 30 L 60 30 L 60 60 L 30 60 Z',
+        labelAt: { x: 400, y: 400 },
       }),
       'left',
       { drawnOver: 'right' },
@@ -214,7 +215,7 @@ describe('check 10: no army count sits on somebody else', () => {
   })
 
   it('catches a count that has drifted onto the neighbour', () => {
-    const drifted = changing(twoSquares(), 'left', { labelAt: { x: 15, y: 5 } })
+    const drifted = changing(twoSquares(), 'left', { labelAt: { x: 150, y: 50 } })
     const said = complaints(drifted, 'counts are clear')
 
     expect(said).toHaveLength(1)
@@ -224,7 +225,7 @@ describe('check 10: no army count sits on somebody else', () => {
   it('allows a count out past the coast, on nothing at all', () => {
     // Rottnest and the Whitsundays are too small to hold a number, so
     // theirs sit in the sea with a line pointing at them.
-    const atSea = changing(twoSquares(), 'left', { labelAt: { x: 50, y: 50 } })
+    const atSea = changing(twoSquares(), 'left', { labelAt: { x: 500, y: 500 } })
 
     expect(complaints(atSea, 'counts are clear')).toEqual([])
   })
@@ -234,13 +235,13 @@ describe('check 10: no army count sits on somebody else', () => {
     // number sits beside it, on The South West.
     const city = changing(
       changing(twoSquares(), 'right', {
-        shape: 'M 3 3 L 6 3 L 6 6 L 3 6 Z',
-        labelAt: { x: 8, y: 8 },
+        shape: 'M 30 30 L 60 30 L 60 60 L 30 60 Z',
+        labelAt: { x: 80, y: 80 },
         drawnOver: 'left',
       }),
       // Out of the city's way, or Left's own count would be the fault.
       'left',
-      { labelAt: { x: 1, y: 8 } },
+      { labelAt: { x: 10, y: 80 } },
     )
 
     expect(complaints(city, 'counts are clear')).toEqual([])
@@ -256,6 +257,38 @@ describe('the maps we ship', () => {
   it('has every count clear, on either map', () => {
     expect(complaints(AUSTRALIA_BIG, 'counts are clear')).toEqual([])
     expect(complaints(AUSTRALIA, 'counts are clear')).toEqual([])
+  })
+
+  it('holds the maps we BUILD to no stray at all', () => {
+    // Check 9 allows two places to stray a little into one another, which
+    // a map traced from a drawing cannot avoid. A map built from a shared
+    // table of whole numbers can, and both Australia maps are, so they are
+    // held to nothing at all here. That is how the allowance for a traced
+    // map costs nothing on the maps where it is not needed.
+    for (const map of [AUSTRALIA_BIG, AUSTRALIA]) {
+      const strays: string[] = []
+
+      for (let first = 0; first < map.territories.length; first += 1) {
+        for (let second = first + 1; second < map.territories.length; second += 1) {
+          const one = map.territories[first] as TerritoryDefinition
+          const two = map.territories[second] as TerritoryDefinition
+
+          // A city drawn on the place around it is the one allowed
+          // overlap, and it is declared.
+          if (one.drawnOver === two.id || two.drawnOver === one.id) {
+            continue
+          }
+
+          if (
+            overlapBetween(cornersOf(one.shape), cornersOf(two.shape)) !== null
+          ) {
+            strays.push(`${one.name} and ${two.name}`)
+          }
+        }
+      }
+
+      expect(strays).toEqual([])
+    }
   })
 
   it('keeps The Far West and The Riverina apart', () => {

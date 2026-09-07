@@ -11,7 +11,13 @@
  */
 import type { GameMap, TerritoryDefinition, TerritoryId } from '../engine'
 import type { Corner } from './shapes'
-import { cornersOf, isWithin, overlapBetween, roomTakenBy } from './shapes'
+import {
+  cornersOf,
+  isWithin,
+  overlapBetween,
+  overlapDepth,
+  roomTakenBy,
+} from './shapes'
 
 export interface MapProblem {
   /** A short name for the rule that was broken. */
@@ -153,6 +159,27 @@ function round(value: number): string {
 }
 
 /**
+ * How far two places may stray into one another before it counts.
+ *
+ * Nought would be right if every map were built from a shared table of
+ * whole numbers, and the two Australia maps are. A map traced from a
+ * drawing is not: two coastlines drawn by eye and then simplified disagree
+ * about where the border runs by a fraction of a unit, all the way along.
+ *
+ * Set from measurement rather than taste. On the world map the worst such
+ * disagreement is 0.89 units. The shallowest overlap that MEANS something,
+ * a city drawn on the place around it, is 3. Nothing lands between, so 2.5
+ * separates them with room either side.
+ *
+ * The cost, stated plainly: a real mistake shallower than this now goes
+ * unreported. One such was found and fixed on the Australia map, half a
+ * unit deep along a border 79 long, and it was invisible. The maps we
+ * build by hand are still held to nought by their own test, so nothing is
+ * given up there.
+ */
+export const ALLOWED_STRAY = 2.5
+
+/**
  * Check 9. No two places claim the same ground. Plan task 2.2.8.
  *
  * This is the fault that got through on the small map. Queensland and South
@@ -245,22 +272,28 @@ function checkNoOverlap(map: GameMap): MapProblem[] {
         continue
       }
 
-      const where = overlapBetween(
-        shapes.get(one.id) ?? [],
-        shapes.get(two.id) ?? [],
-      )
+      const mine = shapes.get(one.id) ?? []
+      const theirs = shapes.get(two.id) ?? []
+      const where = overlapBetween(mine, theirs)
 
-      if (where !== null) {
-        problems.push({
-          rule: 'no two places overlap',
-          message:
-            `${nameOf(one)} and ${nameOf(two)} both cover the point ` +
-            `${round(where[0])}, ${round(where[1])}. Two places may only ` +
-            `share a border, ` +
-            `never any ground. If one is a city drawn on the other, say so ` +
-            `with drawnOver.`,
-        })
+      if (where === null) {
+        continue
       }
+
+      const deep = overlapDepth(mine, theirs)
+
+      if (deep <= ALLOWED_STRAY) {
+        continue
+      }
+
+      problems.push({
+        rule: 'no two places overlap',
+        message:
+          `${nameOf(one)} and ${nameOf(two)} both cover the ground around ` +
+          `${round(where[0])}, ${round(where[1])}, ${round(deep)} units ` +
+          `deep. Two places may only share a border, never any ground. If ` +
+          `one is a city drawn on the other, say so with drawnOver.`,
+      })
     }
   }
 

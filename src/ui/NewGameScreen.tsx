@@ -429,6 +429,32 @@ export function NewGameScreen({
           </label>
         </section>
 
+        {/*
+          The world map is traced from somebody else's drawing, and that
+          drawing is shared under a licence that asks for credit. Saying so
+          here is the cheapest possible way to keep our side of it, and it
+          is the honest thing anyway.
+        */}
+        <p className="setup-credit">
+          The world map is traced from{' '}
+          <a
+            href="https://commons.wikimedia.org/wiki/File:Risk_board.svg"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Risk board
+          </a>{' '}
+          by Gr0gmint, used and shared under{' '}
+          <a
+            href="https://creativecommons.org/licenses/by-sa/3.0/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            CC BY-SA 3.0
+          </a>
+          . The Australia maps are our own.
+        </p>
+
         <div className="setup-buttons">
           {onCancel === undefined ? null : (
             <button type="button" onClick={onCancel}>
