@@ -45,18 +45,48 @@ interface MapViewProps {
  * so the count has to sit beside them rather than on top. This measures the
  * box the shape fits in, which is close enough to decide that.
  */
-function shapeSize(territory: TerritoryDefinition): number {
+function cornersOf(territory: TerritoryDefinition): number[][] {
   const numbers = (territory.shape.match(/[\d.]+/g) ?? []).map(Number)
-  const xs = numbers.filter((_unused, index) => index % 2 === 0)
-  const ys = numbers.filter((_unused, index) => index % 2 === 1)
+  const corners: number[][] = []
 
-  if (xs.length === 0 || ys.length === 0) {
+  for (let at = 0; at + 1 < numbers.length; at += 2) {
+    corners.push([numbers[at] as number, numbers[at + 1] as number])
+  }
+
+  return corners
+}
+
+function shapeSize(territory: TerritoryDefinition): number {
+  const corners = cornersOf(territory)
+
+  if (corners.length === 0) {
     return 0
   }
+
+  const xs = corners.map((corner) => corner[0] as number)
+  const ys = corners.map((corner) => corner[1] as number)
 
   return (
     (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys))
   )
+}
+
+/** Roughly the middle of a shape. Good enough to point a line at. */
+function middleOf(territory: TerritoryDefinition): { x: number; y: number } {
+  const corners = cornersOf(territory)
+
+  if (corners.length === 0) {
+    return { x: territory.labelAt.x, y: territory.labelAt.y }
+  }
+
+  return {
+    x:
+      corners.reduce((total, corner) => total + (corner[0] as number), 0) /
+      corners.length,
+    y:
+      corners.reduce((total, corner) => total + (corner[1] as number), 0) /
+      corners.length,
+  }
 }
 
 export function MapView({
@@ -150,11 +180,14 @@ export function MapView({
         return (
           <g key={territory.id} className="territory-label">
             {isSmall ? (
+              // The line runs from the count TOWARDS the territory, not
+              // straight down. A label can then be put anywhere there is
+              // room, which on a crowded map is most of the problem.
               <line
                 x1={territory.labelAt.x}
-                y1={territory.labelAt.y + 12}
-                x2={territory.labelAt.x}
-                y2={territory.labelAt.y + 24}
+                y1={territory.labelAt.y}
+                x2={middleOf(territory).x}
+                y2={middleOf(territory).y}
                 className="territory-leader"
                 strokeWidth={2}
               />
@@ -182,7 +215,7 @@ export function MapView({
             <text
               className="territory-name"
               x={territory.labelAt.x}
-              y={territory.labelAt.y + (isSmall ? -22 : 30)}
+              y={territory.labelAt.y + 30}
               textAnchor="middle"
               fontSize={15}
             >

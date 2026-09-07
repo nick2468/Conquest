@@ -1,5 +1,6 @@
 import type { RandomSource } from '../random'
 import type {
+  GameMap,
   GameState,
   PlayerId,
   RegionId,
@@ -158,18 +159,18 @@ export function pressureOn(
  * has two, which makes it the same kind of prize.
  */
 export function entrancesTo(
-  state: GameState,
+  map: GameMap,
   regionId: RegionId,
 ): TerritoryId[] {
   const inside = new Set(
-    state.map.territories
+    map.territories
       .filter((each) => each.regionId === regionId)
       .map((each) => each.id),
   )
 
   const ways = new Set<TerritoryId>()
 
-  for (const territory of state.map.territories) {
+  for (const territory of map.territories) {
     if (inside.has(territory.id)) {
       continue
     }

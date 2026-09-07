@@ -67,7 +67,7 @@ const ON_PLAN = 10
  */
 function chooseGoal(state: GameState, me: string): Plan | null {
   const scored = regionHoldings(state, me).map((holding) => {
-    const entrances = entrancesTo(state, holding.regionId)
+    const entrances = entrancesTo(state.map, holding.regionId)
     const defenders = holding.missing.reduce(
       (total, id) => total + armiesOn(state, id),
       0,

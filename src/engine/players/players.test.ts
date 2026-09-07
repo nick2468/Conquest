@@ -526,8 +526,8 @@ describe('the Planner', () => {
 
     // The West pays 3 and has two ways in. The South pays 2 and has five.
     // Any sensible plan prefers the first.
-    expect(entrancesTo(state, 'west').length).toBeLessThan(
-      entrancesTo(state, 'south').length,
+    expect(entrancesTo(state.map, 'west').length).toBeLessThan(
+      entrancesTo(state.map, 'south').length,
     )
   })
 

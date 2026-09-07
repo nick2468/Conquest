@@ -412,20 +412,25 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 needs.** The computer players are as good as a ten-territory board lets them
 be. A bigger Australia is what makes strategy mean anything.
 
-- [ ] 5.0 **A bigger Australia.** Nick's design: divide the states and
-      territories into several regions each, and make the big cities
-      playable places of their own. Perth, Adelaide, Melbourne, Sydney,
-      Brisbane, Hobart, Darwin, Canberra.
+- [x] 5.0 **A bigger Australia.** Built 2026-09-07. 38 places in 7 regions,
+      the states and territories, with Perth, Darwin, Adelaide, Sydney,
+      Canberra and Melbourne playable in their own right.
 
-      Aim for something near a real Risk board: about 40 territories in 8 to
-      10 regions. That is the size at which the Planner beats Cautious 6 to
-      4, measured in 4.13, and at which a region bonus is worth defending.
+      **Tasmania is the prize.** It has ONE way in, from Melbourne. Every
+      mainland region has four or more. That makes it the same kind of base
+      Australia is on a real Risk board: not rich, but cheap to hold, and a
+      test fails if that ever stops being true.
 
-      A city inside a state is the same shape of idea as the Australian
-      Capital Territory: a small, valuable, one-door place. Those make good
-      prizes and good bases.
+      Built from a shared table of corners rather than free-hand paths, so
+      neighbouring places share exact points. A check over 45,696 sample
+      points found no two shapes overlapping anywhere, which is the bug that
+      got through on the small map and sat there for days.
 
-      The current 10-territory map stays, as the small one to learn on.
+      The small map stays, and is chosen on the new game screen.
+- [ ] 5.2 **Tap an area to zoom into it.** Nick's idea: show the whole board,
+      and open a larger local view when a place is tapped. On an iPad the
+      cities are small targets, and 38 places on one screen is a lot to read.
+      Not started.
 - [ ] 5.1 A map file format, and reading it
 - [ ] 5.2 Run `validateMap()` on a loaded map and report faults in plain words
 - [ ] 5.3 Load a map from a file the player picks

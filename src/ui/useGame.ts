@@ -9,8 +9,10 @@ import type {
 } from '../engine'
 import { applyAction, createGame, seededRandom } from '../engine'
 import { AUSTRALIA } from '../maps/australia'
+import { AUSTRALIA_BIG } from '../maps/australia-big'
 
 export interface NewGameSettings {
+  readonly mapId: 'australia' | 'australia-big'
   readonly players: readonly NewPlayer[]
   readonly seed: number
   readonly options: GameOptions
@@ -48,7 +50,7 @@ function deal(settings: NewGameSettings): Holding {
 
   return {
     state: createGame({
-      map: AUSTRALIA,
+      map: settings.mapId === 'australia' ? AUSTRALIA : AUSTRALIA_BIG,
       players: settings.players,
       random: dealer,
       options: settings.options,

@@ -11,7 +11,10 @@ import {
   playerFor,
 } from '../engine'
 
+export type MapChoice = 'australia' | 'australia-big'
+
 export interface GameSetup {
+  readonly mapId: MapChoice
   readonly players: readonly NewPlayer[]
   readonly options: GameOptions
   readonly seed: number
@@ -32,6 +35,9 @@ function defaultPlayers(count: number): NewPlayer[] {
 }
 
 export const DEFAULT_SETUP: GameSetup = {
+  // The detailed map by default. The small one is there to learn on, but a
+  // plan means nothing on ten territories. See plan task 4.13.
+  mapId: 'australia-big',
   players: defaultPlayers(3),
   options: DEFAULT_OPTIONS,
   /**
@@ -59,6 +65,7 @@ export function NewGameScreen({
 }: NewGameScreenProps) {
   const [players, setPlayers] = useState<NewPlayer[]>([...startWith.players])
   const [options, setOptions] = useState<GameOptions>(startWith.options)
+  const [mapId, setMapId] = useState<MapChoice>(startWith.mapId)
 
   const setCount = (count: number): void => {
     setPlayers((current) =>
@@ -218,6 +225,21 @@ export function NewGameScreen({
           <h2>Rules</h2>
 
           <label className="setup-field">
+            Map
+            <select
+              value={mapId}
+              onChange={(event) =>
+                setMapId(event.target.value as MapChoice)
+              }
+            >
+              <option value="australia-big">
+                Australia in detail, 38 places
+              </option>
+              <option value="australia">Australia, 10 places</option>
+            </select>
+          </label>
+
+          <label className="setup-field">
             First armies
             <select
               value={options.armyPlacement}
@@ -294,6 +316,7 @@ export function NewGameScreen({
             disabled={clash}
             onClick={() =>
               onStart({
+                mapId,
                 players: named,
                 options,
                 seed: startWith.seed + 1,
