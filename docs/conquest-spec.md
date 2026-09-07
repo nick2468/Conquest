@@ -826,6 +826,21 @@ For a tap to reach the board, everything drawn over the sea has to ignore
 taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
+**S48. The full name where there is room, the short one where not.**
+
+Nick: "spell out the country names where there is plenty of room, use a
+small smaller font size to help." Close up there is always room. On the
+whole board it depends on the place, so the game works it out: a name is
+about half the font size per letter, and it is written ACROSS, so it is
+compared with how WIDE the place is. A tall thin place has no room however
+tall it is. On the world map 26 of the 42 names are spelled out.
+
+**S49. A mild grain over the land.** Turbulence, cut to the shape of the
+land, drawn faintly over the top. It stops the map reading as flat paint.
+The roughness is scaled by how far the map is zoomed, so the grain stays
+the same size on the glass however close the view is: without that it goes
+coarse and blotchy at one zoom and vanishes at another.
+
 **S45. Every border is drawn ONCE, by whichever layer owns it.**
 
 Nick asked for "thick fuzzy edges around the continents". The three layers

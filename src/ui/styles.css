@@ -1115,3 +1115,12 @@ button.primary.ready:hover {
   stroke-linecap: round;
   pointer-events: none;
 }
+
+/* The grain over the land. Dark, and nearly transparent, so it shades
+ * rather than colours. */
+.texture {
+  fill: #241f16;
+  opacity: 0.42;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+}

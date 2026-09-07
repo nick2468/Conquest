@@ -122,6 +122,34 @@ export function MapView({
   const outlineOf = (regionId: string): string =>
     map.regions.find((region) => region.id === regionId)?.outline ?? '#000000'
 
+  /** How big a name is drawn. Small, so more of them fit. */
+  const nameSize = closeUp ? 13 : 10.5
+
+  /**
+   * The full name where there is room for it, the short one where not.
+   *
+   * Nick: "spell out the country names where there is plenty of room, use
+   * a small smaller font size to help." Close up there is always room. On
+   * the whole board it depends on the place: Brazil has room for its name
+   * and Iceland has not.
+   *
+   * The width of a name is worked out from how many letters it has, at
+   * roughly half the font size each, which is near enough for this kind of
+   * lettering. It is compared with how WIDE the place is, because a name
+   * is written across. A tall thin place like Chile has no room however
+   * tall it is.
+   */
+  const nameFor = (territory: TerritoryDefinition): string => {
+    if (closeUp) {
+      return territory.name
+    }
+
+    const across = sizeOf.get(territory.id)?.width ?? 0
+    const needs = territory.name.length * nameSize * 0.5
+
+    return across > needs * 1.05 ? territory.name : territory.shortName
+  }
+
   /** What this territory means to the tap that is half way through. */
   const roleOf = (territoryId: TerritoryId): string => {
     if (territoryId === selectedId) {
@@ -162,6 +190,29 @@ export function MapView({
       .filter((each) => each.regionId === regionId)
       .map((each) => each.shape)
       .join(' ')
+
+  /**
+   * How wide and tall each place is, in map units.
+   *
+   * Used to decide whether its full name will fit. Worked out once,
+   * because it depends only on the map.
+   */
+  const sizeOf = useMemo(() => {
+    const found = new Map<TerritoryId, { width: number; height: number }>()
+
+    for (const territory of map.territories) {
+      const corners = cornersOfShape(territory.shape)
+      const xs = corners.map(([x]) => x)
+      const ys = corners.map(([, y]) => y)
+
+      found.set(territory.id, {
+        width: Math.max(...xs) - Math.min(...xs),
+        height: Math.max(...ys) - Math.min(...ys),
+      })
+    }
+
+    return found
+  }, [map])
 
   /**
    * Just the borders INSIDE a region, as one path.
@@ -214,6 +265,22 @@ export function MapView({
           shape back on top. What shows is a soft band the same colour as
           the continent, spread around its coast.
         */}
+        <filter id="grain" x="0%" y="0%" width="100%" height="100%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency={0.19 * closer}
+            numOctaves={3}
+            seed={7}
+            result="rough"
+          />
+          <feColorMatrix in="rough" type="saturate" values="0" result="grey" />
+          <feComponentTransfer in="grey" result="faint">
+            <feFuncA type="linear" slope="0.9" intercept="-0.3" />
+          </feComponentTransfer>
+          {/* Only over the land, never over the sea. */}
+          <feComposite in="faint" in2="SourceAlpha" operator="in" />
+        </filter>
+
         <filter id="coast" x="-12%" y="-12%" width="124%" height="124%">
           <feMorphology
             in="SourceAlpha"
@@ -318,11 +385,18 @@ export function MapView({
         )
       })}
 
+      {/*
+        A mild grain over the land, so it does not read as flat paint. The
+        roughness is scaled by how far the map is zoomed, which keeps the
+        grain the same size on the glass however close the view is.
+      */}
+      <path className="texture" d={allTheLand} filter="url(#grain)" />
+
       {/* The light line between two places in the same region. */}
       <path
         className="inside-border"
         d={insideBorders}
-        strokeWidth={steady(0.9)}
+        strokeWidth={steady(0.45)}
       />
 
       {map.territories.map((territory) => {
@@ -349,7 +423,7 @@ export function MapView({
             <circle
               cx={territory.labelAt.x}
               cy={territory.labelAt.y}
-              r={steady(11)}
+              r={steady(9)}
               fill={fill}
               stroke="#2b2a26"
               strokeWidth={steady(1.5)}
@@ -359,7 +433,7 @@ export function MapView({
               y={territory.labelAt.y}
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize={steady(12.5)}
+              fontSize={steady(10.5)}
               fontWeight={700}
               fill={readableOn(fill)}
             >
@@ -368,11 +442,11 @@ export function MapView({
             <text
               className="territory-name"
               x={territory.labelAt.x}
-              y={territory.labelAt.y + steady(23)}
+              y={territory.labelAt.y + steady(18)}
               textAnchor="middle"
-              fontSize={steady(closeUp ? 15 : 13)}
+              fontSize={steady(nameSize)}
             >
-              {closeUp ? territory.name : territory.shortName}
+              {nameFor(territory)}
             </text>
           </g>
         )
