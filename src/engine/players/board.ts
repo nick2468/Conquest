@@ -1,3 +1,4 @@
+import type { RandomSource } from '../random'
 import type {
   GameState,
   PlayerId,
@@ -147,4 +148,46 @@ export function pressureOn(
     .reduce((total, border) => total + armiesOn(state, border), 0)
 
   return against - armiesOn(state, territoryId)
+}
+
+/** Something to choose, with how good it looks. */
+export interface Scored<Item> {
+  readonly item: Item
+  readonly score: number
+}
+
+/**
+ * How close to the best a choice must be to be considered, as a fraction of
+ * the best score. A tenth: near-ties vary, clear winners do not.
+ */
+export const NEARLY_AS_GOOD = 0.1
+
+/**
+ * Pick at random from among the choices that are NEARLY AS GOOD as the best.
+ *
+ * A player that always takes the single highest-scoring move plays the same
+ * game every time. Same board, same moves, every match. That is dull to
+ * play against and easy to learn, which is a worse fault than losing a few
+ * more games.
+ *
+ * But varying between the top few regardless of score is worse: it throws
+ * away a clearly better move as readily as it swaps two equal ones. So the
+ * shortlist is by SCORE GAP, not by rank. Moves within a tenth of the best
+ * are treated as a tie and chosen between. A move that is plainly better is
+ * always taken.
+ */
+export function pickAmongBest<Item>(
+  random: RandomSource,
+  choices: ReadonlyArray<Scored<Item>>,
+  nearly: number = NEARLY_AS_GOOD,
+): Item | undefined {
+  if (choices.length === 0) {
+    return undefined
+  }
+
+  const best = Math.max(...choices.map((each) => each.score))
+  const margin = Math.max(1, Math.abs(best) * nearly)
+  const shortlist = choices.filter((each) => each.score >= best - margin)
+
+  return shortlist[random.nextInt(shortlist.length)]?.item
 }

@@ -160,6 +160,20 @@ describe('what a set is worth, rising', () => {
     expect(risingValueOf(RISING_SET_VALUES.length + 1)).toBe(last + 10)
   })
 
+  // A ceiling is available but switched off. Measured 2026-09-07: capping
+  // at 12 makes the numbers sane, a biggest stack of 8961 rather than
+  // 1337626, but it does NOT change whether games finish. See plan 4.10.
+  it('can be given a ceiling', () => {
+    expect(risingValueOf(0, 12)).toBe(4)
+    expect(risingValueOf(4, 12)).toBe(12)
+    expect(risingValueOf(5, 12)).toBe(12)
+    expect(risingValueOf(50, 12)).toBe(12)
+  })
+
+  it('has no ceiling by default', () => {
+    expect(risingValueOf(50)).toBeGreaterThan(200)
+  })
+
   it('ignores which symbols the cards carry', () => {
     const cheap = setValue(trio('infantry', 'infantry', 'infantry'), RISING, 3)
     const dear = setValue(trio('infantry', 'cavalry', 'artillery'), RISING, 3)

@@ -353,24 +353,74 @@ describe('the players are ranked, not just different', () => {
   })
 
   /**
-   * Two careful players can deadlock, and it is worth knowing by how much.
+   * Games finish. This is the guard for plan task 4.8.
    *
-   * Greedy against Reckless finishes inside 25 rounds. Greedy against
-   * Cautious has run to 1793. Neither player is at fault: both press, both
-   * refuse losing fights, and the game gives them no reason to break.
+   * Greedy once demanded a two-to-one advantage before attacking, which is
+   * published Risk advice and is right on a full board. On ten territories
+   * it is paralysing: two such players deadlocked 31 games out of 60, one
+   * running to round 1796 with a territory holding 1,337,626 armies.
    *
-   * That points at the balance numbers, spec S5, not at the players. It is
-   * recorded as a measurement rather than fixed, because changing the
-   * numbers is a decision for Nick and James to make by playing.
+   * Reckless against Reckless is left out. Random play wanders, and that is
+   * a fact about random play rather than a fault to guard against.
    */
-  it('a good player finishes a game against a bad one quickly', () => {
+  it('no two thinking players deadlock', { timeout: 200000 }, () => {
+    for (const first of ['cautious', 'greedy'] as const) {
+      for (const second of ['cautious', 'greedy'] as const) {
+        const scores = tournament(first, second, 30)
+
+        expect(
+          scores.unfinished,
+          `${first} vs ${second} left ${scores.unfinished} of 30 unfinished`,
+        ).toBeLessThanOrEqual(2)
+      }
+    }
+  })
+
+  /**
+   * The same board must not play out the same way twice.
+   *
+   * Nick's point, and it matters more than the win rate: a player that
+   * always takes the single best move plays an identical game every time.
+   * That is dull to play against and easy to learn.
+   *
+   * So the dice are held FIXED here and only the player's own choices
+   * vary. Any difference in the story is the player choosing differently,
+   * not the dice falling differently.
+   */
+  it('does not play the same game twice on the same board', () => {
+    const stories = new Set<string>()
+
+    for (const chooserSeed of [1, 2, 3, 4, 5]) {
+      const dice = seededRandom(77)
+      const choices = seededRandom(chooserSeed)
+
+      let state = createGame({
+        map: AUSTRALIA,
+        players: [
+          { name: 'One', kind: 'cautious' },
+          { name: 'Two', kind: 'cautious' },
+        ],
+        random: seededRandom(77),
+      })
+
+      for (let step = 0; step < 120 && state.winnerId === null; step += 1) {
+        state = applyAction(
+          state,
+          playerFor('cautious').chooseAction(state, choices),
+          dice,
+        )
+      }
+
+      stories.add(state.log.map((entry) => entry.text).join('|'))
+    }
+
+    expect(stories.size, 'the same board played out identically').toBe(5)
+  })
+
+  it('a good player beats a bad one quickly', () => {
     const easy = tournament('greedy', 'reckless', 20)
-    const hard = tournament('greedy', 'cautious', 20)
 
     expect(easy.longest, 'greedy vs reckless dragged').toBeLessThan(60)
-    expect(
-      hard.longest,
-      'two careful players no longer deadlock, which is good news worth reading about',
-    ).toBeGreaterThan(easy.longest)
+    expect(easy.firstWins).toBeGreaterThan(15)
   })
 })

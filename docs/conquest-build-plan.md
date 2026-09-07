@@ -256,10 +256,61 @@ player that is trying.
       Greedy is kept as a genuinely DIFFERENT player of the same strength,
       and its description says so. The tournament test now runs four separate
       seed ranges, so it cannot be fooled the same way twice.
-- [ ] 4.9 An idea that would actually make a stronger player, if anyone wants
-      one. Everything tried so far changes WHICH attack to make. Nothing yet
-      changes how armies are SPREAD, and 4.8 suggests that is where the game
-      is really decided.
+- [x] 4.9 **Nick asked whether anyone had looked up how to play Risk well.**
+      Nobody had. Two published rules were found and both were tested:
+
+      1. *"Risk is a card game before it is a map game. Take a territory
+         every turn, to earn a card."* **This transfers.** It is now what
+         Greedy does.
+      2. *"Attack only at two to one."* **This does NOT transfer.** It is
+         right on a 42-territory board and paralysing on ten: 32 to 86
+         against Cautious, and two such players deadlocked 31 games in 60.
+
+      Measured with the card rule kept and the two-to-one rule dropped:
+
+      | Game | Greedy : Cautious | Unfinished |
+      |---|---|---|
+      | Australia, 2 players | 45 : 52 | 3 |
+      | Australia, 3 players | 53 : 45 | 2 |
+      | Australia, 4 players | 50 : 49 | 1 |
+      | Australia, 6 players | 55 : 45 | 0 |
+
+      Greedy is now level, and a little ahead once there are three or more
+      players. Not a landslide, but no longer worse, and it plays a
+      recognisably different game.
+- [x] 4.11 **Nick's idea: sometimes take a fight the odds only just favour**,
+      to break the mirror between two careful players. Measured at 0%, 25%
+      and 40%:
+
+      | Boldness | Greedy vs Greedy, longest game |
+      |---|---|
+      | 0% | 23 rounds |
+      | 25% | 12 rounds |
+      | 40% | 12 rounds |
+
+      It is NOT what cured the deadlock, which was dropping the two-to-one
+      bar. But it roughly halves the longest game, so it is kept at 25%. Its
+      effect on who wins is inside the noise.
+- [x] 4.12 **Nick: "playing deterministically will lead to some dull games."**
+      He was right, and it was a worse fault than any of the win rates. Both
+      thinking players always took the single highest-scoring move, so the
+      same board played out identically every single time. Dull to play
+      against, and learnable.
+
+      They now choose at random between moves that are NEARLY AS GOOD, which
+      means within a tenth of the best score.
+
+      The first attempt was to pick between the best three regardless of
+      score, and a test caught it at once: Greedy stopped reliably finishing
+      a region, because a plainly better move was being swapped for a worse
+      one a third of the time. Shortlisting by SCORE GAP rather than by rank
+      fixes that. Near-ties vary. Clear winners are always taken.
+
+      A test now plays the same board five times with the SAME dice and
+      different player choices, and fails if any two games come out alike.
+
+      The app also picks a fresh starting seed each time it is opened, so the
+      first game of a session is not always the same one.
 - [x] 4.8 Two careful players deadlock. **Cause found, and it is not what it
       looked like.** A deadlocked game was played out and read: seed 60,
       round 1796.
@@ -271,13 +322,19 @@ player that is trying.
 
       Armies in the MILLIONS. Three things combine:
 
-      1. **The rising card value has no ceiling.** After hundreds of trades a
-         set is worth thousands of armies. Real Risk never reaches this,
-         because a real game ends in about twenty sets.
+      1. ~~The rising card value has no ceiling.~~ **WRONG, corrected by the
+         measurements in 4.10.** Capping the value, or fixing it, changes
+         the numbers and not the outcome. It only made the fortress bigger.
       2. **Both players pile every army onto ONE territory.** South Australia
          with 1.3 million armies cannot be taken by anybody, ever.
       3. **So nobody can be eliminated**, because eliminating a player means
          taking every territory they hold, including the fortress.
+
+      **The real cause was Greedy**, found in 4.9. It demanded a two-to-one
+      advantage, which a ten-territory board rarely offers, so it stood
+      still. Cautious against Cautious never deadlocked once, in 60 games,
+      with a longest game of 17 rounds. Greedy against Greedy deadlocked 31
+      times in 60. After 4.9 it deadlocks 0 times in 60.
 
       The players then see-saw over the one-army territories forever.
 
@@ -288,11 +345,23 @@ player that is trying.
       **No human game will ever reach round 1796**, so nothing here is urgent.
       What to do about it is a balance decision, which spec S5 says belongs
       to Nick and James. It is written up as 4.10.
-- [ ] 4.10 Decide what to do about unbounded late games, if anything. The
-      options are to cap what a card set can be worth, to make the deck run
-      out for good rather than recycling, or to leave it: a game between two
-      people ends long before any of this matters. This is a decision to make
-      by playing, not by arguing.
+- [x] 4.10 Decide what to do about unbounded late games. **Nick asked for
+      fixed values and for rising capped at 12. Both were measured, and
+      NEITHER fixes anything:**
+
+      | Card rule | Unfinished /120 | Longest game | Biggest stack |
+      |---|---|---|---|
+      | Rising, no cap | 2 | 1796 rounds | 1,337,626 |
+      | Rising, capped at 12 | 3 | 1796 rounds | 8,961 |
+      | Fixed | 2 | 1794 rounds | 6,617 |
+
+      Capping tames the NUMBERS and changes nothing about whether a game
+      ends. **This corrects the 4.8 write-up**, which named the uncapped
+      card value as a cause. It was not one. The cause was Greedy demanding
+      two to one, and 4.9 fixed that.
+
+      `RISING_SET_CAP` exists in `balance.ts` and is switched off. Turning it
+      on is a taste decision about readable numbers, not a fix.
 
 Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
@@ -354,6 +423,6 @@ something to play with while the interesting part gets built.
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
 | 2 - the screen | **COMPLETE** 2026-09-07, bar the 2.1.5 overlap guard. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
-| 4 - computer players | **4.1 to 4.8 done.** 4.9 and 4.10 are open questions. |
+| 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.11 all done. |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |

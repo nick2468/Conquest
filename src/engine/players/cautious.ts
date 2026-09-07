@@ -2,7 +2,7 @@ import { armyLimitFor, legalActions } from '../game'
 import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
 import type { GameState } from '../types'
-import { armiesOn, frontierOf, pressureOn } from './board'
+import { armiesOn, frontierOf, pickAmongBest, pressureOn } from './board'
 import type { ComputerPlayer } from './types'
 
 /**
@@ -75,20 +75,18 @@ export const CAUTIOUS: ComputerPlayer = {
 
       const choices = onFrontier.length > 0 ? onFrontier : places
 
-      const best = choices.reduce((worst, action) =>
-        pressureOn(
-          state,
-          me,
-          action.type === 'placeArmies' ? action.territoryId : '',
-        ) >
-        pressureOn(
-          state,
-          me,
-          worst.type === 'placeArmies' ? worst.territoryId : '',
-        )
-          ? action
-          : worst,
-      )
+      const best =
+        pickAmongBest(
+          random,
+          choices.map((action) => ({
+            item: action,
+            score: pressureOn(
+              state,
+              me,
+              action.type === 'placeArmies' ? action.territoryId : '',
+            ),
+          })),
+        ) ?? (choices[0] as GameAction)
 
       return best.type === 'placeArmies'
         ? { ...best, count: Math.max(1, state.turn.armiesToPlace) }
@@ -98,7 +96,10 @@ export const CAUTIOUS: ComputerPlayer = {
     const attacks = goodAttacks(state, actions)
 
     if (attacks.length > 0) {
-      return attacks[0]?.action as GameAction
+      return pickAmongBest(
+        random,
+        attacks.map((each) => ({ item: each.action, score: each.advantage })),
+      ) as GameAction
     }
 
     const stop = actions.find((each) => each.type === 'endAttackPhase')
@@ -127,12 +128,15 @@ export const CAUTIOUS: ComputerPlayer = {
       .filter((each) => each.gain > 0)
       .sort((left, right) => right.gain - left.gain)
 
-    const move = fortifies[0]
+    const move = pickAmongBest(
+      random,
+      fortifies.map((each) => ({ item: each.action, score: each.gain })),
+    )
 
     if (move !== undefined) {
       return {
-        ...(move.action as Extract<GameAction, { type: 'fortify' }>),
-        count: armyLimitFor(state, move.action),
+        ...(move as Extract<GameAction, { type: 'fortify' }>),
+        count: armyLimitFor(state, move),
       }
     }
 

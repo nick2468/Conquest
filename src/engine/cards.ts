@@ -8,6 +8,7 @@
 import {
   CARDS_FORCING_A_TRADE,
   FIXED_SET_VALUE,
+  RISING_SET_CAP,
   RISING_SET_INCREMENT,
   RISING_SET_VALUES,
   WILD_CARDS,
@@ -131,17 +132,20 @@ function fixedValueOf(cards: CardTrio): number {
  * The count runs across the whole game, not per player. See spec 6.6. That is
  * what makes late turns big and brings the game to an end.
  */
-export function risingValueOf(setsTradedBefore: number): number {
+export function risingValueOf(
+  setsTradedBefore: number,
+  cap: number = RISING_SET_CAP,
+): number {
   const listed = RISING_SET_VALUES[setsTradedBefore]
 
   if (listed !== undefined) {
-    return listed
+    return Math.min(listed, cap)
   }
 
   const last = RISING_SET_VALUES[RISING_SET_VALUES.length - 1] as number
   const beyond = setsTradedBefore - RISING_SET_VALUES.length + 1
 
-  return last + beyond * RISING_SET_INCREMENT
+  return Math.min(last + beyond * RISING_SET_INCREMENT, cap)
 }
 
 /** What trading this set gives the player, right now. */

@@ -57,6 +57,17 @@ export const RISING_SET_VALUES: readonly number[] = [4, 6, 8, 10, 12, 15]
 /** Every set after the list above is worth this much more than the last. */
 export const RISING_SET_INCREMENT = 5
 
+/**
+ * The most a rising set can ever be worth. Infinity means no ceiling.
+ *
+ * Without a ceiling the value grows forever. A computer-versus-computer
+ * game reached round 1796 with a single territory holding 1,337,626
+ * armies, because every turn handed both sides thousands. No game between
+ * people would ever get there, but it is worth knowing the number exists.
+ * See plan tasks 4.8 and 4.10.
+ */
+export const RISING_SET_CAP = Number.POSITIVE_INFINITY
+
 /** Holding this many cards forces a player to trade a set. */
 export const CARDS_FORCING_A_TRADE = 5
 

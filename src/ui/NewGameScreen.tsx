@@ -34,7 +34,15 @@ function defaultPlayers(count: number): NewPlayer[] {
 export const DEFAULT_SETUP: GameSetup = {
   players: defaultPlayers(3),
   options: DEFAULT_OPTIONS,
-  seed: 1,
+  /**
+   * A different starting point every time the app is opened.
+   *
+   * A fixed seed would deal the same board and play the same computer game
+   * every single session, which is dull. The ENGINE still never calls
+   * Math.random, per spec S10: the seed is chosen out here, once, and
+   * handed in. So a game is still repeatable from its seed.
+   */
+  seed: Math.floor(Math.random() * 1_000_000) + 1,
 }
 
 /**
