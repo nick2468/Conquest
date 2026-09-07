@@ -31,7 +31,7 @@ export type {
   TurnState,
 } from './types'
 
-export type { RandomSource } from './random'
+export type { RandomSource, SavedRandom } from './random'
 export { fixedRandom, scriptedRandom, seededRandom, shuffle } from './random'
 
 export {

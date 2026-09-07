@@ -638,12 +638,100 @@ Renumbering the finished work would have made that comment a lie.
 
 This is the only phase needing a server. See D15.
 
-- [ ] 6.1 A Cloudflare Worker with a Durable Object holding one game
-- [ ] 6.2 Create a game, and a code other people use to join it
-- [ ] 6.3 Send actions to the server and receive the new state
-- [ ] 6.4 Show what other players are doing while you wait
-- [ ] 6.5 Cope with a player closing the lid and coming back
-- [ ] 6.6 Computer players in a game played across devices
+- [x] 6.1 A Cloudflare Worker with a Durable Object holding one game.
+      **Built 2026-09-08.** One Durable Object per game, named by the game
+      code, which is the whole reason for using one: Cloudflare guarantees
+      there is only ONE of them anywhere, so two iPads can never both be the
+      one deciding what happened.
+
+      **It costs nothing.** Durable Objects with SQLite storage are on the
+      Cloudflare free plan: 100,000 requests and 13,000 GB-seconds a day.
+      A family game uses a tiny fraction. The wrangler settings say
+      `new_sqlite_classes` for exactly this reason, because the older
+      key-value kind does need a paid plan.
+
+      **The engine runs on the server unchanged.** Not one line. That is
+      what spec S2 bought two weeks ago: an engine that touches no browser,
+      no clock and no hidden randomness runs in a place that has none of
+      those things.
+
+      One engine change was needed, and only one. The dice now carry how far
+      through they are, so a server shut down between two moves picks up the
+      same numbers. See `SavedRandom` and spec S42.
+- [x] 6.2 Create a game, and a code other people use to join it. **Built
+      2026-09-08.** Four letters, read out across the room. No accounts, no
+      signing in, nothing to install, because every one of those is a place
+      a twelve year old and his friends give up.
+
+      The letters O, I and Z are left out. Somebody reads this code ALOUD,
+      and those three are heard as zero, one and two.
+- [x] 6.3 Send actions to the server and receive the new state. **Built
+      2026-09-08.** A socket each way. The map is sent once and left out of
+      every message after it, and the log is cut to its last 80 lines with
+      the true count beside it. See spec S43.
+- [x] 6.4 Show what other players are doing while you wait. **Built
+      2026-09-08.** The server says what the last MOVE was, not only the new
+      state, so the other iPads can draw it. Watching somebody else's turn
+      looks exactly like watching a computer's: the two places light up, the
+      panel says what happened, and the smoke or the parachutes or the
+      convoy plays.
+
+      Seen live: Nick placed an army on Rottnest Island on one machine, and
+      the other drew the landing craft arriving, having worked that out for
+      itself from the action. See spec S44.
+- [x] 6.5 Cope with a player closing the lid and coming back. **Built
+      2026-09-08.** A person is known by a key they keep, not by the
+      connection they are on, so coming back finds the SAME seat. The seat
+      is held for them and only the light saying they are here goes out.
+
+      This had a real bug. The Worker built a fresh address to hand the
+      socket to the room and forgot to carry the key, so coming back was
+      told the game was full. Caught by `tools/try-server.mjs`.
+- [x] 6.6 Computer players in a game played across devices. **Built
+      2026-09-08.** The SERVER plays them, one step at a time on an alarm,
+      and sends each move out. Every iPad running its own copy would mean
+      four of them all deciding the same move at once.
+
+      Seen live: after both people finished their turns, the computer added
+      four lines to the log with nobody asking it to.
+
+### What was measured, and what had to change
+
+**All of the thinking is in `src/server/room.ts`, which knows nothing about
+Cloudflare.** No sockets, no storage, no network anywhere in it. So the 24
+tests covering who may do what run in under half a second with no server,
+and the Durable Object around them has almost nothing left to be wrong.
+
+The two tests that matter most:
+
+- A move sent by the wrong person is refused. `applyAction` acts on
+  whoever's turn it is, so without that check a move from the wrong iPad
+  would be carried out in the RIGHT person's name.
+- Twenty-five moves played twice, once straight through and once with the
+  room written out and read back before every single move, end with the
+  same state and the same roll count. That is the proof that a server
+  restart mid-game changes nothing.
+
+**Two bugs only driving it could find**, both in `tools/try-server.mjs`:
+
+1. The key was dropped when the Worker handed the socket to the room, so
+   coming back after closing the lid was told the game was full.
+2. "Play together" read the setup from the LAST game rather than what was
+   picked on the screen, so a shared game always opened with three people
+   and the wrong map.
+
+**And one that cost an hour.** Vite replaces `import.meta.env.NAME` written
+with a DOT and quietly leaves `import.meta.env['NAME']` alone. The built
+site simply did not offer playing together, with nothing anywhere to say
+why. The setting is now declared by name in `vite-env.d.ts` so the dot form
+type-checks.
+
+**Not deployed.** The server runs locally and everything above was driven
+against it. Putting it on Cloudflare is a change to Nick's live account,
+which also runs the datacrafter.net DNS and the demo and test instances, so
+that waits for him to say go. Until an address is set at build time, the
+game does not offer playing together at all, which is better than offering
+it and failing.
 
 ---
 
@@ -787,5 +875,5 @@ something to play with while the interesting part gets built.
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
 | 5 - maps of your own | **COMPLETE** 2026-09-08. Three maps, a file format and an editor. |
-| 6 - separate devices | Not started |
+| 6 - separate devices | **Built and driven** 2026-09-08. Not deployed: Nick's call. |
 | 7 - things you can see and hear | **Built** 2026-09-07, bar 7.10 on the iPad, which is Nick's. |

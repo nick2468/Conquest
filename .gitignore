@@ -27,3 +27,6 @@ npm-debug.log*
 # Local settings that only apply to one machine.
 .env
 .env.local
+
+# Wrangler keeps its local server state here. Not ours to commit.
+.wrangler/

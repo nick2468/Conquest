@@ -8,14 +8,18 @@ import { GameLog } from './GameLog'
 import { MapView } from './MapView'
 import type { GameSetup } from './NewGameScreen'
 import { DEFAULT_SETUP, NewGameScreen } from './NewGameScreen'
+import { BUILT_IN } from './map-library'
+import { TogetherScreen } from './TogetherScreen'
 import { TurnPanel } from './TurnPanel'
 import { UpdateBanner } from './UpdateBanner'
 import { WinnerScreen } from './WinnerScreen'
+import { writeMap } from '../maps/format'
 import { effectFor } from './effects'
 import { playSound, rememberSound, soundWasOn, startSound } from './sounds'
 import { setReadyToTrade } from './hand'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
+import { SERVER, useTable } from './useTable'
 import { useUpdate } from './useUpdate'
 
 /** A fortify move waiting for the player to say how many armies. */
@@ -69,8 +73,28 @@ const EMPTY_HIGHLIGHTS = {
 
 export function App() {
   const [setup, setSetup] = useState<GameSetup>(DEFAULT_SETUP)
-  const [screen, setScreen] = useState<'newGame' | 'playing'>('newGame')
-  const { state, chooser, act, actUntilDone, newGame } = useGame(setup)
+  const [screen, setScreen] = useState<'newGame' | 'playing' | 'together'>(
+    'newGame',
+  )
+  const onOneIPad = useGame(setup)
+
+  /**
+   * A game played from several iPads. Plan phase 6.
+   *
+   * The board below does not care which it is drawing. On one iPad the
+   * state lives here and moves are worked out here. Across several, the
+   * state lives on the server and a move is a message. Everything else,
+   * the taps, the highlighting, the effects and the sounds, is the same
+   * code either way.
+   */
+  const table = useTable()
+  const across = table.state !== null && table.map !== null
+
+  const state = across ? (table.state as GameState) : onOneIPad.state
+  const chooser = onOneIPad.chooser
+  const act = across ? table.act : onOneIPad.act
+  const actUntilDone = onOneIPad.actUntilDone
+  const newGame = onOneIPad.newGame
 
   const [selectedId, setSelectedId] = useState<TerritoryId | null>(null)
   const [pendingFortify, setPendingFortify] = useState<PendingFortify | null>(
@@ -98,7 +122,7 @@ export function App() {
    * nothing to watch even when it was slow. Now the two places involved in
    * its move are lit up exactly as they would be for a person.
    */
-  const [lastMove, setLastMove] = useState<GameAction | null>(null)
+  const [myLastMove, setMyLastMove] = useState<GameAction | null>(null)
 
   /**
    * Counts every move made, by anybody.
@@ -107,7 +131,18 @@ export function App() {
    * is the same action twice, so without a number that changes, React would
    * keep the first animation and the second attack would show nothing.
    */
-  const [moveNumber, setMoveNumber] = useState(0)
+  const [myMoveNumber, setMyMoveNumber] = useState(0)
+
+  /**
+   * The move to show, and a number that changes with each one.
+   *
+   * On one iPad the game knows its own last move. Across several, the move
+   * came from the server, and it may be somebody else's. Either way the
+   * smoke, the parachutes and the narration are worked out from it. See
+   * plan task 6.4.
+   */
+  const lastMove = across ? table.lastAction : myLastMove
+  const moveNumber = across ? table.logLength : myMoveNumber
 
   /**
    * Whether the game makes a noise. Off until asked. See spec S25.
@@ -134,6 +169,10 @@ export function App() {
   )
   const playing: Skill | null =
     screen === 'playing' &&
+    // In a game across iPads the SERVER plays the computers, one step at a
+    // time, and sends each move out. Every iPad running its own copy would
+    // mean four of them all deciding the same move at once.
+    !across &&
     state.winnerId === null &&
     whoseTurn !== undefined &&
     whoseTurn.kind !== 'human'
@@ -155,6 +194,8 @@ export function App() {
     state.winnerId === null &&
     whoseTurn !== undefined &&
     whoseTurn.kind === 'human' &&
+    // Across iPads, only ring for the person whose cards they are.
+    (!across || whoseTurn.id === table.you) &&
     setReadyToTrade(state) !== null
 
   const alreadyRung = useRef(false)
@@ -182,8 +223,8 @@ export function App() {
    * and the effect is drawn over the top. Nothing waits for it. Spec S24.
    */
   const perform = (action: GameAction): void => {
-    setLastMove(action)
-    setMoveNumber((counted) => counted + 1)
+    setMyLastMove(action)
+    setMyMoveNumber((counted) => counted + 1)
 
     if (soundOn) {
       const effect = effectFor(state.map, action)
@@ -282,8 +323,8 @@ export function App() {
   const start = (chosen: GameSetup): void => {
     setSetup(chosen)
     forget()
-    setLastMove(null)
-    setMoveNumber(0)
+    setMyLastMove(null)
+    setMyMoveNumber(0)
     setLookingAt(null)
     newGame(chosen)
     setScreen('playing')
@@ -304,6 +345,43 @@ export function App() {
     />
   ) : null
 
+  // Once everybody has joined and somebody presses start, every iPad moves
+  // to the board on its own.
+  if (across && screen !== 'playing') {
+    setScreen('playing')
+  }
+
+  if (screen === 'together') {
+    return (
+      <>
+        <TogetherScreen
+          table={table}
+          onBack={() => setScreen('newGame')}
+          onOpen={(name) =>
+            void table.open(
+              {
+                mapId: setup.map.id,
+                // A map of your own goes to the server as the file itself,
+                // so the others do not need it on their iPad first.
+                mapFile: BUILT_IN.some((each) => each.id === setup.map.id)
+                  ? null
+                  : writeMap(setup.map),
+                options: setup.options,
+                players: setup.players.map((player) => ({
+                  name: player.name,
+                  colour: player.colour ?? '#c8453b',
+                  kind: player.kind,
+                })),
+              },
+              name,
+            )
+          }
+        />
+        {banner}
+      </>
+    )
+  }
+
   if (screen === 'newGame') {
     return (
       <>
@@ -315,6 +393,14 @@ export function App() {
               ? () => setScreen('playing')
               : undefined
           }
+          onPlayTogether={
+            SERVER === ''
+              ? undefined
+              : (chosen) => {
+                  setSetup(chosen)
+                  setScreen('together')
+                }
+          }
         />
         {banner}
       </>
@@ -324,15 +410,26 @@ export function App() {
   const highlights = highlightsFor(state, selectedId)
   const occupation = state.turn.pendingOccupation
   const current = state.players.find((each) => each.id === state.turn.playerId)
-  const computer = current !== undefined && current.kind !== 'human'
+  const isAComputer = current !== undefined && current.kind !== 'human'
 
-  // A computer player moves anywhere, so its turn is watched from above.
+  /**
+   * Am I watching rather than playing, right now?
+   *
+   * True on a computer's turn, and true on somebody else's turn in a game
+   * across iPads. Both look the same from here, and both should: the board
+   * lights up the move and says what happened, and taps do nothing.
+   */
+  const computer = isAComputer || (across && current?.id !== table.you)
+
+  // Somebody being watched moves anywhere, so their turn is watched from
+  // above rather than through a close view of one corner.
   const view = computer ? null : lookingAt
 
   const watching = computer ? showing(lastMove) : null
 
   // What to draw over the board for the move just made. See spec S23.
   const effect = lastMove === null ? null : effectFor(state.map, lastMove)
+
   const closeUpOn = state.map.territories.find((each) => each.id === view)
 
   const handleTap = (territoryId: TerritoryId): void => {

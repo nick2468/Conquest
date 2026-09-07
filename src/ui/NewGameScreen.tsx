@@ -33,6 +33,11 @@ interface NewGameScreenProps {
   readonly startWith: GameSetup
   readonly onStart: (setup: GameSetup) => void
   readonly onCancel?: (() => void) | undefined
+  /**
+   * Play this game from several iPads. Left out when there is no server to
+   * play it on, so nothing is offered that cannot work. See plan task 6.2.
+   */
+  readonly onPlayTogether?: ((setup: GameSetup) => void) | undefined
 }
 
 function defaultPlayers(count: number): NewPlayer[] {
@@ -71,6 +76,7 @@ export function NewGameScreen({
   startWith,
   onStart,
   onCancel,
+  onPlayTogether,
 }: NewGameScreenProps) {
   const [players, setPlayers] = useState<NewPlayer[]>([...startWith.players])
   const [options, setOptions] = useState<GameOptions>(startWith.options)
@@ -177,6 +183,20 @@ export function NewGameScreen({
   // Two players cannot share a colour, or the board becomes unreadable.
   const colours = named.map((player) => player.colour)
   const clash = new Set(colours).size !== colours.length
+
+  /**
+   * Everything picked on this screen.
+   *
+   * Both buttons use it. "Play together" used to read App's saved setup
+   * instead, which is what the LAST game was, so a shared game opened with
+   * three people and the wrong map however you set this screen.
+   */
+  const asChosen = (): GameSetup => ({
+    map: chosenMap,
+    players: named,
+    options,
+    seed: startWith.seed + 1,
+  })
 
   return (
     <main className="setup-page">
@@ -415,18 +435,21 @@ export function NewGameScreen({
               Back to the game
             </button>
           )}
+          {onPlayTogether === undefined ? null : (
+            <button
+              type="button"
+              disabled={clash}
+              onClick={() => onPlayTogether(asChosen())}
+            >
+              Play together on separate iPads
+            </button>
+          )}
+
           <button
             type="button"
             className="primary"
             disabled={clash}
-            onClick={() =>
-              onStart({
-                map: chosenMap,
-                players: named,
-                options,
-                seed: startWith.seed + 1,
-              })
-            }
+            onClick={() => onStart(asChosen())}
           >
             Start
           </button>

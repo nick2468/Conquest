@@ -1019,3 +1019,68 @@ button.primary.ready:hover {
 .map-faults li {
   margin-bottom: 0.3rem;
 }
+
+/* ------------------------------------- playing together, plan phase 6 */
+
+/* The code somebody reads out across the room. Big, and spaced, because
+ * that is exactly what it is for. */
+.table-code {
+  margin: 0.6rem 0 1rem;
+  padding: 0.6rem;
+  border: 2px dashed var(--edge);
+  border-radius: 8px;
+  font-size: clamp(2rem, 12vw, 3.5rem);
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-indent: 0.35em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.table-seats {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.table-seats li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--edge);
+}
+
+.table-who {
+  font-weight: 600;
+}
+
+.table-doing {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.table-you {
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  background: var(--edge);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-note {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.table-trouble {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #c8453b;
+  border-radius: 6px;
+  background: #fdf3f2;
+  font-size: 0.85rem;
+}

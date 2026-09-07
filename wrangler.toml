@@ -1,0 +1,22 @@
+# The server for a game played from several iPads. Plan phase 6.
+#
+# Durable Objects with SQLite storage are on the Cloudflare FREE plan, so
+# this costs nothing: 100,000 requests and 13,000 GB-seconds a day. A family
+# game uses a tiny fraction of that.
+
+name = "conquest-rooms"
+main = "worker/index.ts"
+compatibility_date = "2026-05-01"
+
+[[durable_objects.bindings]]
+name = "ROOMS"
+class_name = "GameRoom"
+
+# new_sqlite_classes, NOT new_classes. The key-value backed kind needs a
+# paid plan; the SQLite backed kind does not.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["GameRoom"]
+
+[observability]
+enabled = true

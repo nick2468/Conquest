@@ -3,6 +3,53 @@ import { describe, expect, it } from 'vitest'
 import { rollDice, scriptedDice } from './dice'
 import { fixedRandom, scriptedRandom, seededRandom } from './random'
 
+describe('a source that can be saved and taken up again', () => {
+  it('gives the same numbers as one that never stopped', () => {
+    // A game held by a server is played across restarts. If the dice did
+    // not carry on from where they were, the same seed would stop meaning
+    // the same game. See plan task 6.1.
+    const straightThrough = seededRandom(1234)
+    const first: number[] = []
+
+    for (let step = 0; step < 30; step += 1) {
+      first.push(straightThrough.nextInt(6))
+    }
+
+    const stopped = seededRandom(1234)
+    const before: number[] = []
+
+    for (let step = 0; step < 12; step += 1) {
+      before.push(stopped.nextInt(6))
+    }
+
+    const takenUp = seededRandom(1234, stopped.drawn)
+    const after: number[] = []
+
+    for (let step = 0; step < 18; step += 1) {
+      after.push(takenUp.nextInt(6))
+    }
+
+    expect([...before, ...after]).toEqual(first)
+  })
+
+  it('counts every number it gives out', () => {
+    const random = seededRandom(7)
+
+    expect(random.drawn).toBe(0)
+    random.nextInt(6)
+    random.nextInt(6)
+    expect(random.drawn).toBe(2)
+  })
+
+  it('counts from where it was taken up', () => {
+    const random = seededRandom(7, 40)
+
+    expect(random.drawn).toBe(40)
+    random.nextInt(6)
+    expect(random.drawn).toBe(41)
+  })
+})
+
 describe('the seeded source', () => {
   it('gives the same numbers every time for the same seed', () => {
     const first = seededRandom(42)

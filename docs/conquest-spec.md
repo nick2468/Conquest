@@ -741,6 +741,58 @@ Every sound is built in code from an oscillator and noise. No audio files.
 That keeps the app small, keeps it working offline, and means there is
 nothing to host.
 
+## 11.6 Playing from separate iPads
+
+See plan phase 6. The server is a Cloudflare Worker with one Durable
+Object per game: a small box Cloudflare guarantees there is only ONE of,
+anywhere, for a given name. The name is the game code.
+
+**S39. The server decides what happened. It never takes a state from a
+player.** A player sends what they want to do and the server works out the
+result. This is not about mistrust between Nick and James. Two iPads acting
+at once would otherwise hold two different games, and there would be no way
+to say which was right.
+
+Two checks, in this order. First that it is that person's turn, because
+`applyAction` acts on whoever's turn it is: a move sent by the wrong person
+would otherwise be carried out in the RIGHT person's name. Then whether the
+rules allow it, which the engine decides.
+
+**S40. All of the thinking lives in `src/server/room.ts`, which knows
+nothing about Cloudflare.** No sockets, no storage, no network. So every
+rule about who may do what runs on the ordinary test bar in milliseconds,
+and the Durable Object around it has almost nothing left in it to be wrong.
+
+**S41. A person is known by a KEY they keep, not by the connection they are
+on.** That is what lets somebody close the lid, come back, and find their
+own seat still theirs. It is not a lock: somebody who knew both the key and
+the game code could take the seat. For a family game that is the right
+trade, and saying so is better than pretending otherwise.
+
+**S42. The dice carry how far through they are.** A server can be shut down
+between one move and the next. The seed and the count are both saved, and
+the source is built again from both, so the numbers that follow are exactly
+the ones that would have followed. Without this the same seed would stop
+meaning the same game. See `SavedRandom`.
+
+**S43. The map is sent ONCE.** The world map is 23 kB, and sending it again
+with every army placed would be most of the traffic in a game. The log is
+cut to its last 80 lines for sending, with the true count beside it, so the
+screen can still say "and 3,997 earlier" truthfully.
+
+**S44. The server says what the last MOVE was, not only the new state.**
+Without it, somebody on another iPad would read that an attack happened and
+see nothing. The smoke, the parachutes and the convoy of section 11.5 are
+worked out from the action, so the action has to travel. Watching somebody
+else's turn then looks exactly like watching a computer's, which is what it
+is.
+
+**The engine runs unchanged on the server.** That is what spec S2 bought.
+The engine touches no browser, no clock and no hidden randomness, so it
+runs in a place that has none of those things, with not one line changed.
+
+---
+
 **S30. The game says when a set is waiting to be traded.**
 
 Nick, after losing games: "sometimes we've lost a game and realised that we
