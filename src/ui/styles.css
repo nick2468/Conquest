@@ -327,6 +327,152 @@ button.primary {
   border-color: #33608f;
 }
 
+/* -------------------------------------------------- the new game screen */
+
+.setup-page {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 1rem;
+}
+
+.setup-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: min(34rem, 100%);
+  padding: 1.5rem;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 0.9rem;
+}
+
+.setup-card h1 {
+  margin: 0;
+  font-size: clamp(2rem, 7vw, 3rem);
+  letter-spacing: -0.03em;
+}
+
+.setup-card h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.setup-lead {
+  margin: -1rem 0 0;
+  color: var(--ink-soft);
+}
+
+.setup-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  font-size: 0.92rem;
+}
+
+.setup-field select {
+  flex: 1 1 12rem;
+  max-width: 20rem;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.player-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.player-name {
+  flex: 1 1 8rem;
+  min-height: 2.75rem;
+  padding: 0 0.7rem;
+  font: inherit;
+  color: var(--ink);
+  background: var(--page);
+  border: 1px solid var(--edge);
+  border-radius: 0.5rem;
+}
+
+.colour-choices {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.colour {
+  width: 1.9rem;
+  min-height: 1.9rem;
+  height: 1.9rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 0.4rem;
+}
+
+.colour-picked {
+  border-color: var(--pick);
+  box-shadow: inset 0 0 0 2px var(--panel);
+}
+
+.setup-warning {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--target);
+}
+
+.setup-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ----------------------------------------------------- the winner screen */
+
+.winner-swatch {
+  display: block;
+  width: 2.5rem;
+  height: 0.4rem;
+  margin-bottom: 0.6rem;
+  border-radius: 0.2rem;
+}
+
+.winner h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.35rem;
+}
+
+.winner-order {
+  margin: 0.75rem 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.winner-order li {
+  padding: 0.1rem 0;
+}
+
+.winner-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
 /* ------------------------------------------------------------- the cards */
 
 .cards {
@@ -499,4 +645,29 @@ button.primary {
 
 .log li:first-child {
   color: var(--ink);
+}
+
+.log-round {
+  display: block;
+  margin: 0.4rem 0 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.log-older {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.log-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  vertical-align: baseline;
 }

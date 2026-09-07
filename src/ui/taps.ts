@@ -1,5 +1,6 @@
 import type { GameAction, GameState, TerritoryId } from '../engine'
 import { legalActions, mustTradeASet } from '../engine'
+import { armies as armiesWord, cards as cardsWord } from './plurals'
 
 /**
  * What a tap on the map should do.
@@ -94,6 +95,9 @@ export function whatATapDoes(
   const { canStart, canFinish } = highlightsFor(state, selectedId)
 
   switch (state.turn.phase) {
+    // Placing your first armies works exactly like reinforcing: tap one of
+    // your own territories. Only the number of armies differs.
+    case 'setup':
     case 'reinforce': {
       const place = actions.find(
         (action) =>
@@ -156,6 +160,14 @@ export function whatToDoNow(
     'Somebody'
 
   switch (state.turn.phase) {
+    case 'setup': {
+      const reserve =
+        state.players.find((each) => each.id === state.turn.playerId)
+          ?.reserve ?? 0
+
+      return `${player}, place one army. ${armiesWord(reserve)} still to go.`
+    }
+
     case 'reinforce': {
       // Five cards blocks everything else, so say that rather than asking
       // for taps the engine is about to refuse.
@@ -164,10 +176,10 @@ export function whatToDoNow(
         []
 
       if (mustTradeASet(cards)) {
-        return `${player}, you hold ${cards.length} cards. Trade a set before anything else.`
+        return `${player}, you hold ${cardsWord(cards.length)}. Trade a set before anything else.`
       }
 
-      return `${player}, tap your territories to place ${state.turn.armiesToPlace} armies.`
+      return `${player}, tap your territories to place ${armiesWord(state.turn.armiesToPlace)}.`
     }
 
     case 'attack':

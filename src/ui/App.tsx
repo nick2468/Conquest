@@ -1,11 +1,15 @@
 import { useState } from 'react'
 
-import type { GameAction, GameOptions, TerritoryId } from '../engine'
-import { DEFAULT_OPTIONS, GAME_NAME, armyLimitFor } from '../engine'
+import type { GameAction, GameState, TerritoryId } from '../engine'
+import { GAME_NAME, armyLimitFor, legalActions } from '../engine'
 import { ArmyChooser } from './ArmyChooser'
 import { CardsPanel } from './CardsPanel'
+import { GameLog } from './GameLog'
 import { MapView } from './MapView'
+import type { GameSetup } from './NewGameScreen'
+import { DEFAULT_SETUP, NewGameScreen } from './NewGameScreen'
 import { TurnPanel } from './TurnPanel'
+import { WinnerScreen } from './WinnerScreen'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
 
@@ -15,27 +19,77 @@ interface PendingFortify {
   readonly toId: TerritoryId
 }
 
+/**
+ * Put one army wherever this player is thinnest.
+ *
+ * Used by "place the rest for me", so a player who does not want a hundred
+ * taps still gets a spread board rather than one huge stack.
+ */
+function thinnestPlacement(state: GameState): GameAction | null {
+  const choices = legalActions(state).filter(
+    (action) => action.type === 'placeArmies',
+  )
+
+  if (state.turn.phase !== 'setup' || choices.length === 0) {
+    return null
+  }
+
+  return choices.reduce((thinnest, action) =>
+    (state.territories[
+      action.type === 'placeArmies' ? action.territoryId : ''
+    ]?.armies ?? 0) <
+    (state.territories[
+      thinnest.type === 'placeArmies' ? thinnest.territoryId : ''
+    ]?.armies ?? 0)
+      ? action
+      : thinnest,
+  )
+}
+
 export function App() {
-  const [playerCount, setPlayerCount] = useState(3)
-  const [seed, setSeed] = useState(1)
-  // Options are picked before a game starts, per spec section 7, so this
-  // is what the NEXT game will use.
-  const [options, setOptions] = useState<GameOptions>(DEFAULT_OPTIONS)
-  const { state, act, newGame } = useGame({ playerCount, seed, options })
+  const [setup, setSetup] = useState<GameSetup>(DEFAULT_SETUP)
+  const [screen, setScreen] = useState<'newGame' | 'playing'>('newGame')
+  const { state, act, actUntilDone, newGame } = useGame(setup)
 
   const [selectedId, setSelectedId] = useState<TerritoryId | null>(null)
   const [pendingFortify, setPendingFortify] = useState<PendingFortify | null>(
     null,
   )
 
-  const highlights = highlightsFor(state, selectedId)
-  const occupation = state.turn.pendingOccupation
-
-  const run = (action: GameAction): void => {
-    act(action)
+  const forget = (): void => {
     setSelectedId(null)
     setPendingFortify(null)
   }
+
+  const run = (action: GameAction): void => {
+    act(action)
+    forget()
+  }
+
+  const start = (chosen: GameSetup): void => {
+    setSetup(chosen)
+    forget()
+    newGame(chosen)
+    setScreen('playing')
+  }
+
+  if (screen === 'newGame') {
+    return (
+      <NewGameScreen
+        startWith={setup}
+        onStart={start}
+        onCancel={
+          state.round > 1 || state.turn.phase !== 'setup'
+            ? () => setScreen('playing')
+            : undefined
+        }
+      />
+    )
+  }
+
+  const highlights = highlightsFor(state, selectedId)
+  const occupation = state.turn.pendingOccupation
+  const current = state.players.find((each) => each.id === state.turn.playerId)
 
   const handleTap = (territoryId: TerritoryId): void => {
     const result = whatATapDoes(state, selectedId, territoryId)
@@ -68,67 +122,27 @@ export function App() {
     }
   }
 
-  const startNewGame = (
-    players: number,
-    nextSeed: number,
-    nextOptions: GameOptions,
-  ): void => {
-    setPlayerCount(players)
-    setSeed(nextSeed)
-    setOptions(nextOptions)
-    setSelectedId(null)
-    setPendingFortify(null)
-    newGame({ playerCount: players, seed: nextSeed, options: nextOptions })
-  }
-
   const nameOf = (territoryId: TerritoryId): string =>
     state.map.territories.find((each) => each.id === territoryId)?.name ??
     territoryId
 
-  const winner = state.players.find((each) => each.id === state.winnerId)
+  const over = state.winnerId !== null
 
   return (
     <main className="board-page">
       <header className="board-header">
         <h1>{GAME_NAME}</h1>
         <div className="new-game">
-          <label>
-            Players
-            <select
-              value={playerCount}
-              onChange={(event) =>
-                startNewGame(Number(event.target.value), seed, options)
-              }
+          {state.turn.phase === 'setup' ? (
+            <button
+              type="button"
+              onClick={() => actUntilDone(thinnestPlacement)}
             >
-              {[2, 3, 4, 5, 6].map((count) => (
-                <option key={count} value={count}>
-                  {count}
-                </option>
-              ))}
-            </select>
-          </label>
+              Place the rest for us
+            </button>
+          ) : null}
 
-          <label>
-            Dice
-            <select
-              value={options.diceDisplay}
-              onChange={(event) =>
-                startNewGame(playerCount, seed, {
-                  ...options,
-                  diceDisplay: event.target
-                    .value as GameOptions['diceDisplay'],
-                })
-              }
-            >
-              <option value="allAtOnce">All at once</option>
-              <option value="oneByOne">One at a time</option>
-            </select>
-          </label>
-
-          <button
-            type="button"
-            onClick={() => startNewGame(playerCount, seed + 1, options)}
-          >
+          <button type="button" onClick={() => setScreen('newGame')}>
             New game
           </button>
         </div>
@@ -142,25 +156,19 @@ export function App() {
       />
 
       <div className="side">
-        {winner === undefined ? (
+        {over ? (
+          <WinnerScreen
+            state={state}
+            onPlayAgain={() => start({ ...setup, seed: setup.seed + 1 })}
+            onNewGame={() => setScreen('newGame')}
+          />
+        ) : (
           <TurnPanel
             state={state}
             selectedId={selectedId}
             onEndAttacks={() => run({ type: 'endAttackPhase' })}
             onSkipFortify={() => run({ type: 'skipFortify' })}
           />
-        ) : (
-          <section className="winner">
-            <h2>{winner.name} has won</h2>
-            <p>Every territory on the map is theirs.</p>
-            <button
-              type="button"
-              className="primary"
-              onClick={() => startNewGame(playerCount, seed + 1, options)}
-            >
-              Play again
-            </button>
-          </section>
         )}
 
         {occupation === null ? null : (
@@ -186,10 +194,7 @@ export function App() {
               count: 1,
             })}
             confirmLabel="Move and end turn"
-            onCancel={() => {
-              setPendingFortify(null)
-              setSelectedId(null)
-            }}
+            onCancel={forget}
             onConfirm={(count) =>
               run({
                 type: 'fortify',
@@ -201,12 +206,12 @@ export function App() {
           />
         )}
 
-        {winner === undefined ? (
+        {over || state.turn.phase === 'setup' ? null : (
           <CardsPanel
             state={state}
             onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}
           />
-        ) : null}
+        )}
 
         <table className="scores">
           <thead>
@@ -233,11 +238,12 @@ export function App() {
                       style={{ background: player.colour }}
                     />
                     {player.name}
-                    {player.id === state.turn.playerId ? ' •' : ''}
+                    {player.id === current?.id ? ' •' : ''}
                   </th>
                   <td>{mine.length}</td>
                   <td>
-                    {mine.reduce((total, each) => total + each.armies, 0)}
+                    {mine.reduce((total, each) => total + each.armies, 0) +
+                      player.reserve}
                   </td>
                 </tr>
               )
@@ -245,17 +251,7 @@ export function App() {
           </tbody>
         </table>
 
-        <section className="log" aria-label="What has happened">
-          <h2>History</h2>
-          <ol>
-            {state.log
-              .slice(-12)
-              .reverse()
-              .map((entry, index) => (
-                <li key={state.log.length - index}>{entry.text}</li>
-              ))}
-          </ol>
-        </section>
+        <GameLog state={state} />
       </div>
     </main>
   )

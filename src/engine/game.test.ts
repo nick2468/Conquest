@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA } from '../maps/australia'
+import { STARTING_ARMIES } from './balance'
+import { chooseSimpleAction } from './testing/simplePlayer'
 import { scriptedDice } from './dice'
 import type { GameAction } from './game'
 import {
@@ -10,7 +12,7 @@ import {
   legalActions,
 } from './game'
 import { fixedRandom, seededRandom } from './random'
-import { createGame } from './setup'
+import { DEFAULT_OPTIONS, createGame } from './setup'
 import type { Board, Card, GameState, TerritoryId } from './types'
 
 /**
@@ -676,88 +678,12 @@ describe('armyLimitFor', () => {
 
 // ------------------------------------------------------------ a whole game
 
-/**
- * A player good enough to finish a game. Not a real computer player, which
- * is phase 4. It attacks when it has the advantage and stops when it does
- * not, which is enough to reach a winner.
- */
-function chooseAction(state: GameState, random: () => number): GameAction {
-  const actions = legalActions(state)
-
-  const places = actions.filter((each) => each.type === 'placeArmies')
-
-  if (places.length > 0) {
-    // Put them where they can be used. The first version always chose the
-    // first territory on the list, which buried every army in the middle of
-    // its own land and left the player unable to attack anybody. One seed
-    // then ran forever.
-    const frontier = places.filter((action) => {
-      if (action.type !== 'placeArmies') {
-        return false
-      }
-
-      const borders =
-        state.map.territories.find(
-          (each) => each.id === action.territoryId,
-        )?.borders ?? []
-
-      return borders.some(
-        (border) =>
-          state.territories[border]?.ownerId !== state.turn.playerId,
-      )
-    })
-
-    const chosen = (frontier.length > 0 ? frontier : places)[
-      Math.floor(random() * (frontier.length > 0 ? frontier.length : places.length))
-    ] as GameAction
-
-    if (chosen.type === 'placeArmies') {
-      return { ...chosen, count: state.turn.armiesToPlace }
-    }
-  }
-
-  const occupy = actions.find((each) => each.type === 'occupy')
-
-  if (occupy !== undefined && occupy.type === 'occupy') {
-    return { ...occupy, count: armyLimitFor(state, occupy) }
-  }
-
-  const trade = actions.find((each) => each.type === 'tradeCards')
-
-  if (trade !== undefined) {
-    return trade
-  }
-
-  const worthwhile = actions.filter((action) => {
-    if (action.type !== 'attack') {
-      return false
-    }
-
-    const mine = state.territories[action.fromId]?.armies ?? 0
-    const theirs = state.territories[action.toId]?.armies ?? 0
-
-    return mine > theirs + 1
-  })
-
-  if (worthwhile.length > 0) {
-    return worthwhile[Math.floor(random() * worthwhile.length)] as GameAction
-  }
-
-  const stop = actions.find((each) => each.type === 'endAttackPhase')
-
-  if (stop !== undefined) {
-    return stop
-  }
-
-  return { type: 'skipFortify' }
-}
-
 function playToTheEnd(
   seed: number,
   playerCount: number,
 ): { readonly state: GameState; readonly steps: number } {
   const random = seededRandom(seed)
-  const pick = seededRandom(seed + 1000)
+  const choices = seededRandom(seed + 1000)
 
   let state = createGame({
     map: AUSTRALIA,
@@ -771,11 +697,7 @@ function playToTheEnd(
   let steps = 0
 
   while (state.winnerId === null && steps < 40000) {
-    state = applyAction(
-      state,
-      chooseAction(state, () => pick.nextInt(1000) / 1000),
-      random,
-    )
+    state = applyAction(state, chooseSimpleAction(state, choices), random)
     steps += 1
 
     checkNothingImpossible(state)
@@ -849,5 +771,180 @@ describe('a whole game', () => {
     expect(words).toContain('attacks')
     expect(words).toContain('takes')
     expect(words).toContain('has won')
+  })
+})
+
+// ------------------------------------------------- placing armies by hand
+
+describe('the setup phase', () => {
+  function byHand(playerCount = 3): GameState {
+    return createGame({
+      map: AUSTRALIA,
+      players: Array.from({ length: playerCount }, (_u, index) => ({
+        name: `Player ${index + 1}`,
+        kind: 'human' as const,
+      })),
+      random: seededRandom(1),
+      options: { ...DEFAULT_OPTIONS, armyPlacement: 'byHand' },
+    })
+  }
+
+  /** The first territory the player whose turn it is may place on. */
+  function anywhereMine(state: GameState): GameAction {
+    const first = legalActions(state)[0]
+
+    if (first === undefined) {
+      throw new Error('There is nowhere to place an army.')
+    }
+
+    return first
+  }
+
+  it('offers only your own territories, one army at a time', () => {
+    const state = byHand()
+    const actions = legalActions(state)
+
+    expect(actions.length).toBeGreaterThan(0)
+
+    for (const action of actions) {
+      expect(action.type).toBe('placeArmies')
+
+      if (action.type === 'placeArmies') {
+        expect(action.count).toBe(1)
+        expect(state.territories[action.territoryId]?.ownerId).toBe(
+          state.turn.playerId,
+        )
+      }
+    }
+  })
+
+  // Alternating is the point. It lets each player answer where the others
+  // are building up, which is the first real decision of a game.
+  it('passes to the next player after every single army', () => {
+    const state = byHand()
+    const after = applyAction(state, anywhereMine(state), NO_DICE)
+
+    expect(after.turn.playerId).toBe('p2')
+    expect(after.turn.phase).toBe('setup')
+  })
+
+  it('takes the army out of that player hand and puts it on the board', () => {
+    const state = byHand()
+    const action = anywhereMine(state)
+    const before = state.players[0]?.reserve ?? 0
+    const after = applyAction(state, action, NO_DICE)
+
+    expect(after.players[0]?.reserve).toBe(before - 1)
+
+    if (action.type === 'placeArmies') {
+      expect(armiesOn(after, action.territoryId)).toBe(2)
+    }
+  })
+
+  it('refuses more than one army at a time', () => {
+    const state = byHand()
+    const owned = legalActions(state)[0]
+
+    if (owned?.type === 'placeArmies') {
+      expect(() =>
+        applyAction(state, { ...owned, count: 3 }, NO_DICE),
+      ).toThrow(/one at a time/)
+    }
+  })
+
+  it('refuses a territory somebody else owns', () => {
+    const state = byHand()
+    const theirs = Object.keys(state.territories).find(
+      (id) => state.territories[id]?.ownerId !== state.turn.playerId,
+    )
+
+    expect(() =>
+      applyAction(
+        state,
+        { type: 'placeArmies', territoryId: theirs as string, count: 1 },
+        NO_DICE,
+      ),
+    ).toThrow(/does not own/)
+  })
+
+  it('refuses attacking before every army is down', () => {
+    const state = byHand()
+
+    expect(() =>
+      applyAction(state, { type: 'attack', fromId: 'wa', toId: 'nt' }, NO_DICE),
+    ).toThrow()
+  })
+
+  it('starts the real game once every army is placed', () => {
+    let state = byHand()
+    let steps = 0
+
+    while (state.turn.phase === 'setup' && steps < 500) {
+      state = applyAction(state, anywhereMine(state), NO_DICE)
+      steps += 1
+    }
+
+    expect(state.turn.phase).toBe('reinforce')
+    expect(state.turn.playerId).toBe('p1')
+    expect(state.turn.armiesToPlace).toBeGreaterThanOrEqual(3)
+
+    for (const player of state.players) {
+      expect(player.reserve).toBe(0)
+    }
+  })
+
+  it('places exactly the armies the players were given', () => {
+    let state = byHand()
+    const armiesEach = STARTING_ARMIES[3] as number
+    let steps = 0
+
+    while (state.turn.phase === 'setup' && steps < 500) {
+      state = applyAction(state, anywhereMine(state), NO_DICE)
+      steps += 1
+    }
+
+    for (const player of state.players) {
+      const onBoard = Object.values(state.territories)
+        .filter((each) => each.ownerId === player.id)
+        .reduce((total, each) => total + each.armies, 0)
+
+      expect(onBoard).toBe(armiesEach)
+    }
+  })
+
+  it('skips a player who runs out before the others', () => {
+    // With 3 players on 10 territories one player holds 4 territories, so
+    // that player starts with one army fewer in hand than the other two.
+    // Everyone must still finish, and nobody may place after they run out.
+    let state = byHand()
+    let steps = 0
+
+    while (state.turn.phase === 'setup' && steps < 500) {
+      const player = state.players.find(
+        (each) => each.id === state.turn.playerId,
+      )
+
+      expect(player?.reserve, 'a player with nothing in hand got a turn')
+        .toBeGreaterThan(0)
+
+      state = applyAction(state, anywhereMine(state), NO_DICE)
+      steps += 1
+    }
+
+    expect(state.turn.phase).toBe('reinforce')
+  })
+
+  it('says in the log when play begins', () => {
+    let state = byHand()
+    let steps = 0
+
+    while (state.turn.phase === 'setup' && steps < 500) {
+      state = applyAction(state, anywhereMine(state), NO_DICE)
+      steps += 1
+    }
+
+    expect(state.log.map((entry) => entry.text).join(' ')).toContain(
+      'Play begins',
+    )
   })
 })

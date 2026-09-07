@@ -10,6 +10,7 @@ interface TurnPanelProps {
 }
 
 const PHASE_NAMES: Readonly<Record<GameState['turn']['phase'], string>> = {
+  setup: 'First armies',
   reinforce: 'Reinforce',
   attack: 'Attack',
   occupy: 'Move in',
@@ -49,6 +50,12 @@ export function TurnPanel({
       {state.turn.phase === 'reinforce' ? (
         <p className="turn-armies">
           <strong>{state.turn.armiesToPlace}</strong> armies left to place
+        </p>
+      ) : null}
+
+      {state.turn.phase === 'setup' ? (
+        <p className="turn-armies">
+          <strong>{player?.reserve ?? 0}</strong> armies still in hand
         </p>
       ) : null}
 

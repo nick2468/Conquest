@@ -4,7 +4,7 @@ import { AUSTRALIA } from '../maps/australia'
 import { MAX_PLAYERS, MIN_PLAYERS, STARTING_ARMIES } from './balance'
 import { seededRandom } from './random'
 import type { GameState, PlayerId } from './types'
-import { createGame } from './setup'
+import { DEFAULT_OPTIONS, createGame } from './setup'
 import type { NewPlayer } from './setup'
 
 function somePlayers(count: number): NewPlayer[] {
@@ -192,5 +192,74 @@ describe('setting up refuses a game that cannot be played', () => {
         random: seededRandom(1),
       }),
     ).toThrow(/not enough for 3 players/)
+  })
+})
+
+// ------------------------------------------------- placing armies by hand
+
+describe('a game where players place their first armies', () => {
+  function byHand(playerCount: number, seed = 1): GameState {
+    return createGame({
+      map: AUSTRALIA,
+      players: somePlayers(playerCount),
+      random: seededRandom(seed),
+      options: { ...DEFAULT_OPTIONS, armyPlacement: 'byHand' },
+    })
+  }
+
+  it('starts in the setup phase, not reinforcing', () => {
+    expect(byHand(3).turn.phase).toBe('setup')
+  })
+
+  it('puts one army on every territory and holds the rest back', () => {
+    const state = byHand(3)
+
+    for (const territory of Object.values(state.territories)) {
+      expect(territory.armies).toBe(1)
+    }
+  })
+
+  it('leaves each player holding what they have not placed', () => {
+    for (let players = MIN_PLAYERS; players <= MAX_PLAYERS; players += 1) {
+      const state = byHand(players)
+
+      for (const player of state.players) {
+        const owned = Object.values(state.territories).filter(
+          (each) => each.ownerId === player.id,
+        ).length
+
+        expect(player.reserve).toBe((STARTING_ARMIES[players] as number) - owned)
+      }
+    }
+  })
+
+  it('still adds up to the right number of armies for each player', () => {
+    const state = byHand(4)
+
+    for (const player of state.players) {
+      expect(armiesOwnedBy(state, player.id) + player.reserve).toBe(
+        STARTING_ARMIES[4] as number,
+      )
+    }
+  })
+
+  it('spreads them itself when the option says automatic', () => {
+    const state = createGame({
+      map: AUSTRALIA,
+      players: somePlayers(3),
+      random: seededRandom(1),
+      options: { ...DEFAULT_OPTIONS, armyPlacement: 'automatic' },
+    })
+
+    expect(state.turn.phase).toBe('reinforce')
+
+    for (const player of state.players) {
+      expect(player.reserve).toBe(0)
+    }
+  })
+
+  it('says in the log which way the game was set up', () => {
+    expect(byHand(3).log[0]?.text).toContain('by hand')
+    expect(newGame(3).log[0]?.text).not.toContain('by hand')
   })
 })

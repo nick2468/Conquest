@@ -95,6 +95,13 @@ export interface Player {
   readonly kind: PlayerKind
   readonly cards: readonly Card[]
   readonly isEliminated: boolean
+  /**
+   * Armies this player still has to put on the board before play begins.
+   *
+   * Only ever above zero during the 'setup' phase, when players place their
+   * first armies by hand. It is zero for the whole of the rest of the game.
+   */
+  readonly reserve: number
 }
 
 // -------------------------------------------------------------- the board
@@ -110,6 +117,8 @@ export type Board = Readonly<Record<TerritoryId, TerritoryState>>
 // --------------------------------------------------------------- the turn
 
 export type TurnPhase =
+  /** Before play begins, players take turns placing their first armies. */
+  | 'setup'
   | 'reinforce'
   | 'attack'
   | 'occupy'
@@ -161,6 +170,14 @@ export interface LogEntry {
 export interface GameOptions {
   readonly cardSetValue: 'fixed' | 'rising'
   readonly fortifyDistance: 'adjacent' | 'connected'
+  /**
+   * How the first armies reach the board.
+   *
+   * 'automatic' spreads them, which gets a game started fast.
+   * 'byHand' makes players take turns placing one army each, which is how
+   * the board game does it and is the first real decision of a game.
+   */
+  readonly armyPlacement: 'automatic' | 'byHand'
   /** The screen uses this. The engine ignores it. */
   readonly diceDisplay: 'oneByOne' | 'allAtOnce'
 }

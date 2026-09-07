@@ -315,11 +315,97 @@ function doTradeCards(state: GameState, cardIds: readonly string[]): GameState {
   return noted(traded, `${player.name} trades a set for ${value} armies.`)
 }
 
+/**
+ * Placing one of your first armies, before play begins.
+ *
+ * Players take turns placing ONE army each, going round, which is how the
+ * board game does it. Alternating matters: it lets each player answer where
+ * the others are building up, which is the first real decision of a game.
+ */
+function doSetupPlacement(
+  state: GameState,
+  territoryId: TerritoryId,
+  count: number,
+): GameState {
+  const player = currentPlayer(state)
+
+  if (count !== 1) {
+    refuse(
+      `Before play begins the armies go down one at a time, not ${count}.`,
+    )
+  }
+
+  if (player.reserve < 1) {
+    refuse(`${player.name} has no armies left to place.`)
+  }
+
+  const target = territory(state, territoryId)
+
+  if (target.ownerId !== player.id) {
+    refuse(`${player.name} does not own ${nameOf(state, territoryId)}.`)
+  }
+
+  const players = state.players.map((each) =>
+    each.id === player.id ? { ...each, reserve: each.reserve - 1 } : each,
+  )
+
+  const placed: GameState = {
+    ...state,
+    players,
+    territories: withBoard(state, {
+      [territoryId]: { ...target, armies: target.armies + 1 },
+    }),
+  }
+
+  const noted1 = noted(
+    placed,
+    `${player.name} places 1 on ${nameOf(state, territoryId)}.`,
+  )
+
+  // Pass to the next player who still has armies in hand.
+  const startedAt = players.findIndex((each) => each.id === player.id)
+
+  for (let step = 1; step <= players.length; step += 1) {
+    const next = players[(startedAt + step) % players.length] as Player
+
+    if (next.reserve > 0) {
+      return {
+        ...noted1,
+        turn: { ...noted1.turn, playerId: next.id },
+      }
+    }
+  }
+
+  // Nobody has any left, so the game proper begins.
+  const first = players[0] as Player
+
+  return noted(
+    {
+      ...noted1,
+      turn: {
+        ...noted1.turn,
+        playerId: first.id,
+        phase: 'reinforce',
+        armiesToPlace: reinforcementsFor(
+          noted1.map,
+          noted1.territories,
+          first.id,
+        ),
+      },
+    },
+    'Every army is on the board. Play begins.',
+  )
+}
+
 function doPlaceArmies(
   state: GameState,
   territoryId: TerritoryId,
   count: number,
 ): GameState {
+  if (state.turn.phase === 'setup') {
+    return doSetupPlacement(state, territoryId, count)
+  }
+
   if (state.turn.phase !== 'reinforce') {
     refuse('Armies may only be placed while reinforcing.')
   }
@@ -643,6 +729,16 @@ export function legalActions(state: GameState): GameAction[] {
   )
 
   switch (state.turn.phase) {
+    case 'setup':
+      // One army at a time, on any territory you already hold.
+      return player.reserve < 1
+        ? []
+        : mine.map<GameAction>((territoryId) => ({
+            type: 'placeArmies',
+            territoryId,
+            count: 1,
+          }))
+
     case 'reinforce': {
       const trades: GameAction[] = setsInHand(player.cards).map((trio) => ({
         type: 'tradeCards',
@@ -724,7 +820,7 @@ export function legalActions(state: GameState): GameAction[] {
 export function armyLimitFor(state: GameState, action: GameAction): number {
   switch (action.type) {
     case 'placeArmies':
-      return state.turn.armiesToPlace
+      return state.turn.phase === 'setup' ? 1 : state.turn.armiesToPlace
     case 'occupy':
       return state.turn.pendingOccupation?.maximumArmies ?? 0
     case 'fortify':

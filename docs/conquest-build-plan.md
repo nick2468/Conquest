@@ -138,10 +138,18 @@ with no screen and no real randomness.
 
 ### 2.4 Around the game
 
-- [ ] 2.4.1 A new game screen: how many players, names, colours, the options
-- [ ] 2.4.2 The event log on screen
-- [ ] 2.4.3 A winner screen
-- [ ] 2.4.4 Placing your first armies by hand, from spec section 14
+- [x] 2.4.1 A new game screen: how many players, names, colours, the options
+- [x] 2.4.2 The event log on screen, with a heading for each round. Only the
+      most recent 60 entries are drawn: a real game reached 4057.
+- [x] 2.4.3 A winner screen, with who finished where. The ordering is tested
+      against games really played. The screen ITSELF has not been seen live,
+      because the browser player could not finish a game. See 2.4.5.
+- [x] 2.4.4 Placing your first armies by hand, from spec section 14. Players
+      alternate one army each, with a "place the rest for us" button for
+      anyone who does not want a hundred taps.
+- [ ] 2.4.5 See the winner screen live. It needs a player good enough to
+      finish a game in a browser, which is phase 4. Its logic is tested; its
+      layout is not.
 
 **Done when:** Nick and James play a full game on the iPad, start to finish, and
 nothing on the screen disagrees with the rules.
@@ -169,6 +177,26 @@ nothing on the screen disagrees with the rules.
 
 Built in steps, so the difference between each step is easy to see. That is the
 point of doing it this way, not an accident of ordering.
+
+**What a bad player looks like, seen 2026-09-07.** The throwaway player used
+to drive the browser during phase 2 showed three faults at once, and Nick
+named all three from watching it:
+
+1. **Too hesitant.** It attacked only when it held two more armies than the
+   defender, so it almost never pressed an advantage.
+2. **Hoarding.** It put every reinforcement on one territory, which grew into
+   a huge stack that did nothing.
+3. **Every player the same.** With one strategy playing itself, no game ever
+   broke open.
+
+The result was games running past round 200 with hundreds of armies standing
+still. Any player built in 4.2 to 4.4 should be measured against those three
+faults, not just against each other.
+
+**This is also weak evidence about balance.** Games ran long, which might mean
+the region bonuses or the card values are wrong, per spec S5. It is weak
+because a bad player makes any game run long. Judge the numbers against a
+player that is trying.
 
 - [ ] 4.1 The seam: a computer player is asked for one action and returns one,
       chosen from `legalActions`
@@ -238,7 +266,7 @@ something to play with while the interesting part gets built.
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
-| 2 - the screen | **In progress.** 2.1, 2.2 and 2.3 done. 2.4 is left. |
+| 2 - the screen | **In progress.** 2.1 to 2.4 done, bar 2.4.5. |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |
 | 5 - maps of your own | Not started |

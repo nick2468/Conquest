@@ -36,6 +36,7 @@ export interface NewPlayer {
 export const DEFAULT_OPTIONS: GameOptions = {
   cardSetValue: 'rising',
   fortifyDistance: 'connected',
+  armyPlacement: 'automatic',
   diceDisplay: 'allAtOnce',
 }
 
@@ -141,6 +142,7 @@ export function createGame(game: NewGame): GameState {
     kind: newPlayer.kind,
     cards: [],
     isEliminated: false,
+    reserve: 0,
   }))
 
   const armiesEach = STARTING_ARMIES[players.length]
@@ -150,20 +152,37 @@ export function createGame(game: NewGame): GameState {
   }
 
   const board = dealTerritories(map, players, random)
-  spreadRemainingArmies(board, players, armiesEach, random)
+  const byHand = options.armyPlacement === 'byHand'
 
-  const firstPlayer = players[0] as Player
+  if (!byHand) {
+    spreadRemainingArmies(board, players, armiesEach, random)
+  }
+
+  // Every player was dealt one army on each territory. Whatever is left is
+  // what they still have to place by hand.
+  const withReserves: Player[] = players.map((player) => ({
+    ...player,
+    reserve: byHand
+      ? armiesEach -
+        Object.values(board).filter((each) => each.ownerId === player.id)
+          .length
+      : 0,
+  }))
+
+  const firstPlayer = withReserves[0] as Player
 
   return {
     options,
     map,
-    players,
+    players: withReserves,
     territories: board,
     round: 1,
     turn: {
       playerId: firstPlayer.id,
-      phase: 'reinforce',
-      armiesToPlace: reinforcementsFor(map, board, firstPlayer.id),
+      phase: byHand ? 'setup' : 'reinforce',
+      armiesToPlace: byHand
+        ? 0
+        : reinforcementsFor(map, board, firstPlayer.id),
       hasConquered: false,
       hasFortified: false,
       pendingOccupation: null,
@@ -177,7 +196,8 @@ export function createGame(game: NewGame): GameState {
         playerId: null,
         text:
           `A new game on ${map.name} with ${players.length} players, ` +
-          `${armiesEach} armies each.`,
+          `${armiesEach} armies each.` +
+          (byHand ? ' Players place their first armies by hand.' : ''),
       },
     ],
   }

@@ -1,13 +1,19 @@
 import { useCallback, useState } from 'react'
 
-import type { GameAction, GameOptions, GameState, RandomSource } from '../engine'
+import type {
+  GameAction,
+  GameOptions,
+  GameState,
+  NewPlayer,
+  RandomSource,
+} from '../engine'
 import { applyAction, createGame, seededRandom } from '../engine'
 import { AUSTRALIA } from '../maps/australia'
 
 export interface NewGameSettings {
-  readonly playerCount: number
+  readonly players: readonly NewPlayer[]
   readonly seed: number
-  readonly options?: GameOptions
+  readonly options: GameOptions
 }
 
 /**
@@ -33,12 +39,9 @@ function deal(settings: NewGameSettings): Holding {
   return {
     state: createGame({
       map: AUSTRALIA,
-      players: Array.from({ length: settings.playerCount }, (_u, index) => ({
-        name: `Player ${index + 1}`,
-        kind: 'human' as const,
-      })),
+      players: settings.players,
       random: dealer,
-      ...(settings.options === undefined ? {} : { options: settings.options }),
+      options: settings.options,
     }),
     random,
   }
@@ -65,9 +68,40 @@ export function useGame(initial: NewGameSettings) {
     [holding],
   )
 
+  /**
+   * Keep acting until there is nothing more to do.
+   *
+   * `chooseNext` is asked for an action, and returns null to stop. It sees
+   * the state after each step, which a loop of `act` calls could not: React
+   * only hands over the new state on the next render.
+   *
+   * Used by "place the rest for me" during setup, where a player would
+   * otherwise face a hundred taps.
+   */
+  const actUntilDone = useCallback(
+    (chooseNext: (state: GameState) => GameAction | null) => {
+      let state = holding.state
+
+      // A guard, not a rule. It stops a chooser that never returns null from
+      // hanging the page, and 2000 is far more than any real run needs.
+      for (let step = 0; step < 2000; step += 1) {
+        const action = chooseNext(state)
+
+        if (action === null) {
+          break
+        }
+
+        state = applyAction(state, action, holding.random)
+      }
+
+      setHolding({ state, random: holding.random })
+    },
+    [holding],
+  )
+
   const newGame = useCallback((settings: NewGameSettings) => {
     setHolding(deal(settings))
   }, [])
 
-  return { state: holding.state, act, newGame }
+  return { state: holding.state, act, actUntilDone, newGame }
 }
