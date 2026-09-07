@@ -233,14 +233,66 @@ player that is trying.
       evenly matched rather than claiming a ranking that is not there. A
       40-game run had come out 21-19 in Greedy's favour and would have let the
       claim through. The number of games is part of the test.
-- [ ] 4.7 Make Greedy actually stronger, or drop it. Playing for the regions
-      was a good idea that did not pay. Needs a real idea, not a new weight,
-      and the tournament will say whether it worked.
-- [ ] 4.8 Two careful players deadlock. Greedy against Reckless ends inside 25
-      rounds; Greedy against Cautious has run to 1793 and sometimes never
-      ends. Neither player is at fault: the game gives them no reason to
-      break. Look at the balance numbers, spec S5, and at the rules left out
-      in spec section 14, especially taking a beaten player's cards.
+- [x] 4.7 Make Greedy actually stronger, or drop it. **It could not be made
+      stronger.** Six ideas were tried and measured, and every one failed:
+
+      | Idea tried | Greedy : Cautious |
+      |---|---|
+      | Prefer region-completing attacks | 94 : 100 |
+      | Attack at the exact 50% odds line | 79 : 110 |
+      | Attack only at the 70% odds line | 61 : 127 |
+      | Attack only at the 85% odds line | 58 : 130 |
+      | Reinforce where the enemy is thinnest | no change |
+      | Bigger maps, 12 to 64 territories | no change |
+
+      The trend was the clearest finding: **the more careful the attack rule,
+      the worse it played.** Following that, "attack when at most one army
+      behind" scored 108 to 88 and looked like the answer.
+
+      **It was not.** Those 200 games were the same seeds used to CHOOSE the
+      rule. On three fresh seed ranges it went 93-107, 97-102 and 103-96.
+      Across 800 games: 401 to 393. A coin flip.
+
+      Greedy is kept as a genuinely DIFFERENT player of the same strength,
+      and its description says so. The tournament test now runs four separate
+      seed ranges, so it cannot be fooled the same way twice.
+- [ ] 4.9 An idea that would actually make a stronger player, if anyone wants
+      one. Everything tried so far changes WHICH attack to make. Nothing yet
+      changes how armies are SPREAD, and 4.8 suggests that is where the game
+      is really decided.
+- [x] 4.8 Two careful players deadlock. **Cause found, and it is not what it
+      looked like.** A deadlocked game was played out and read: seed 60,
+      round 1796.
+
+      ```
+      p1: WA:447160  ROT:1  NT:444388  NSW:893724  ACT:4
+      p2: QLD:1      WHIT:1 SA:1337626 VIC:447175  TAS:8
+      ```
+
+      Armies in the MILLIONS. Three things combine:
+
+      1. **The rising card value has no ceiling.** After hundreds of trades a
+         set is worth thousands of armies. Real Risk never reaches this,
+         because a real game ends in about twenty sets.
+      2. **Both players pile every army onto ONE territory.** South Australia
+         with 1.3 million armies cannot be taken by anybody, ever.
+      3. **So nobody can be eliminated**, because eliminating a player means
+         taking every territory they hold, including the fortress.
+
+      The players then see-saw over the one-army territories forever.
+
+      It is NOT a stalemate of inaction, which is what "deadlock" suggested,
+      and it is NOT the map: grid maps of 12, 42 and 64 territories never
+      produced one, and Australia produces about 2 in 200.
+
+      **No human game will ever reach round 1796**, so nothing here is urgent.
+      What to do about it is a balance decision, which spec S5 says belongs
+      to Nick and James. It is written up as 4.10.
+- [ ] 4.10 Decide what to do about unbounded late games, if anything. The
+      options are to cap what a card set can be worth, to make the deck run
+      out for good rather than recycling, or to leave it: a game between two
+      people ends long before any of this matters. This is a decision to make
+      by playing, not by arguing.
 
 Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
@@ -302,6 +354,6 @@ something to play with while the interesting part gets built.
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
 | 2 - the screen | **COMPLETE** 2026-09-07, bar the 2.1.5 overlap guard. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
-| 4 - computer players | **4.1 to 4.6 done.** 4.7 and 4.8 came out of them. |
+| 4 - computer players | **4.1 to 4.8 done.** 4.9 and 4.10 are open questions. |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |

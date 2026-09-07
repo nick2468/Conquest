@@ -63,7 +63,12 @@ function playMatch(skills: readonly Skill[], seed: number): MatchResult {
  * so a match where one side always started would measure the seat as much
  * as the player.
  */
-function tournament(first: Skill, second: Skill, games: number) {
+function tournament(
+  first: Skill,
+  second: Skill,
+  games: number,
+  from = 1,
+) {
   let firstWins = 0
   let secondWins = 0
   let unfinished = 0
@@ -71,7 +76,7 @@ function tournament(first: Skill, second: Skill, games: number) {
 
   for (let game = 0; game < games; game += 1) {
     const order = game % 2 === 0 ? [first, second] : [second, first]
-    const result = playMatch(order, game + 1)
+    const result = playMatch(order, from + game)
 
     longest = Math.max(longest, result.rounds)
 
@@ -322,14 +327,29 @@ describe('the players are ranked, not just different', () => {
    * evenly matched, and neither collapses. If one ever starts winning three
    * games in four, something changed and somebody should know why.
    */
-  it('greedy and cautious are evenly matched', { timeout: 120000 }, () => {
-    const scores = tournament('greedy', 'cautious', 100)
-    const decided = scores.firstWins + scores.secondWins
-    const report = `greedy ${scores.firstWins} : ${scores.secondWins} cautious`
+  it('greedy and cautious are evenly matched', { timeout: 200000 }, () => {
+    // FOUR SEPARATE SEED RANGES, not one long run.
+    //
+    // This test was fooled once. A rule tuned on seeds 1 to 200 scored
+    // 108 to 88 and looked like a real improvement. On seeds 5000, 20000
+    // and 90000 it scored 93-107, 97-102 and 103-96. Across all four it
+    // was 401 to 393, which is a coin flip. The first range had been used
+    // to CHOOSE the rule, so of course the rule did well on it.
+    let greedy = 0
+    let cautious = 0
 
-    expect(decided, 'too many games never finished').toBeGreaterThan(85)
-    expect(scores.firstWins / decided, report).toBeGreaterThan(0.3)
-    expect(scores.firstWins / decided, report).toBeLessThan(0.7)
+    for (const from of [1, 5000, 20000, 90000]) {
+      const scores = tournament('greedy', 'cautious', 50, from)
+      greedy += scores.firstWins
+      cautious += scores.secondWins
+    }
+
+    const decided = greedy + cautious
+    const report = `greedy ${greedy} : ${cautious} cautious`
+
+    expect(decided, 'too many games never finished').toBeGreaterThan(180)
+    expect(greedy / decided, report).toBeGreaterThan(0.35)
+    expect(greedy / decided, report).toBeLessThan(0.65)
   })
 
   /**

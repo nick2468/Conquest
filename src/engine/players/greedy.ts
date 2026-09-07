@@ -12,22 +12,20 @@ import {
 import type { ComputerPlayer } from './types'
 
 /**
- * Plays for the regions. Plan task 4.4.
+ * A bolder player that plays for the regions. Plan task 4.4.
  *
- * Everything Cautious does, plus the one idea that changes how the game is
- * won: a region bonus pays EVERY TURN, so taking the last territory of a
- * region is worth far more than the territory itself. Cautious counts
- * armies. Greedy counts armies and bonuses.
+ * Two differences from Cautious, and only two:
  *
- * Both refuse a fight they are not ahead in, because the defender wins
- * ties and an even fight is a losing one. The difference is which of the
- * winnable fights they pick, and where they put their armies to set the
- * next one up. Cautious reinforces where it is most threatened. Greedy
- * reinforces where the enemy is thinnest, looking for a way through.
+ * 1. It attacks when it is level or ONE army behind, where Cautious wants a
+ *    clear lead. With three dice against two the attacker is favoured per
+ *    exchange, so a level fight is not the losing proposition it looks.
+ * 2. Among the fights worth taking, it prefers the one that completes a
+ *    region, because a region bonus is paid every turn from then on.
  *
- * BE HONEST ABOUT WHAT THIS IS WORTH. Measured over 200 games it wins 94
- * and loses 100 against Cautious. It is a different player, not a better
- * one. Both crush Reckless about 199 to 1.
+ * IT IS NOT STRONGER THAN CAUTIOUS, and plan task 4.7 records the many ways
+ * that was tried and failed. Measured over 800 games on four separate seed
+ * ranges it wins 401 and loses 393. It is a different player, not a better
+ * one, and the description on the new game screen says so.
  */
 
 /** What a region bonus is worth compared to one army, roughly. */
@@ -47,29 +45,25 @@ function scoreAttack(
 ): number {
   const mine = armiesOn(state, fromId)
   const theirs = armiesOn(state, toId)
-  const advantage = mine - theirs
 
-  // Never take a fight it is not ahead in, region or no region.
-  //
-  // The first version of this let a region bonus buy a losing fight, on the
-  // reasoning that a bonus paid every turn is worth a bad roll. Measured
-  // over 40 games it lost to Cautious 13 to 27. Chasing regions into fights
-  // it could not win cost it more armies than the bonuses ever paid back.
-  //
-  // A defender wins ties, so an even fight is a losing fight. Playing for
-  // the regions has to mean choosing BETWEEN good attacks, not taking bad
-  // ones.
-  if (advantage <= 0) {
+  // Bolder than Cautious by exactly one army.
+  if (mine + 1 < theirs) {
     return -1
   }
 
-  return (mine / theirs) * RATIO_IS_WORTH + bonusForTaking(state, me, toId) * BONUS_IS_WORTH
+  // Among the fights worth taking, prefer the lopsided ones, and prefer the
+  // one that finishes a region above all.
+  return (
+    (mine / theirs) * RATIO_IS_WORTH +
+    bonusForTaking(state, me, toId) * BONUS_IS_WORTH
+  )
 }
 
 export const GREEDY: ComputerPlayer = {
   skill: 'greedy',
   name: 'Greedy',
-  describe: 'Plays for the regions and pushes where you are thinnest.',
+  describe:
+    'Bolder than Cautious, and plays for the regions. About as strong.',
 
   chooseAction(state: GameState, random: RandomSource): GameAction {
     const actions = legalActions(state)
@@ -166,16 +160,12 @@ function bestPlacement(
         ?.borders ?? []
     ).filter((border) => state.territories[border]?.ownerId !== me)
 
-    const weakest = Math.min(
-      ...neighbours.map((border) => armiesOn(state, border)),
-    )
-
     const nextToAPrize = neighbours.some((border) => nearlyMine.has(border))
 
     // Put the armies where they can BREAK THROUGH, not where the pressure
     // is worst. A thin enemy beside you is an opening.
     return (
-      -weakest * 2 +
+      pressureOn(state, me, action.territoryId) +
       (nextToAPrize ? NEARLY_MINE * BONUS_IS_WORTH : 0)
     )
   }

@@ -604,9 +604,43 @@ games and reports the score. Measured 2026-09-07:
 | Cautious vs Reckless | 198 - 2 |
 | Greedy vs Cautious | 94 - 100 |
 
-Greedy is NOT stronger than Cautious, and the tests say so. An earlier
-40-game run read 21-19 the other way, which would have let a false claim
-through. How many games you play is part of what the test means.
+Greedy is NOT stronger than Cautious, and the tests say so.
+
+**S22. A tournament runs several SEPARATE seed ranges, never one long run.**
+
+This was learned the hard way, twice. A 40-game run read 21-19 in Greedy's
+favour and would have let a false claim through. Later, a rule tuned on
+seeds 1 to 200 scored 108 to 88 and looked like a real improvement. On
+seeds starting at 5000, 20000 and 90000 it scored 93-107, 97-102 and
+103-96. Across all 800 games it was 401 to 393.
+
+The first range had been used to CHOOSE the rule, so of course the rule did
+well on it. A rule must be judged on games it was not tuned against, or the
+measurement only tells you what you already did.
+
+### The odds a Conquest attack really has
+
+Worked out exactly, by counting every outcome rather than by simulating.
+Kept here because it is easy to get wrong and easy to check.
+
+With three dice against two, per exchange, the attacker loses 0.921 armies
+and the defender 1.079. **The attacker is favoured.**
+
+Over a whole conquest that reverses, because a shrinking attacking stack
+rolls fewer dice. The armies needed to take a territory:
+
+| Defenders | For an even chance | For 70% | For 85% |
+|---|---|---|---|
+| 1 | 3 | 3 | 4 |
+| 2 | 4 | 5 | 6 |
+| 5 | 6 | 8 | 10 |
+| 10 | 11 | 13 | 16 |
+| 20 | 19 | 23 | 26 |
+
+So "attack when you have more armies than them" is roughly an even chance,
+not the safe rule it sounds like. Curiously, players built to demand better
+odds than that played WORSE, because they attacked too rarely. See plan
+task 4.7.
 
 ---
 
