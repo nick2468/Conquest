@@ -107,11 +107,18 @@ with no screen and no real randomness.
 - [x] 2.1.2 Fill each territory with its owner's colour
 - [x] 2.1.3 Draw the army count in a circle at `labelAt`
 - [x] 2.1.4 Make the whole map scale to the window, per spec 11.3
-- [ ] 2.1.5 A guard that every army count sits on its own territory. Checked
-      by hand in the browser for now, with `isPointInFill`. jsdom does not
-      implement that, so a real guard needs a browser test runner. Until then
-      a moved label can drift onto the wrong territory and no test will say
-      so.
+- [ ] 2.1.5 A guard that no army count sits on somebody else's territory.
+
+      **Parked for the wrong reason, corrected 2026-09-07.** The note here
+      used to say this needed a browser, because `isPointInFill` is a browser
+      thing and jsdom has not got it. That was giving up too early. Whether
+      a point is inside a shape is arithmetic, and phase 7 did it in plain
+      code to work out which places are islands.
+
+      The rule is not "the count sits on its own land". Rottnest and the
+      Whitsundays are too small to hold a number, so theirs sit in the sea
+      with a line pointing at them. The rule is that a count must never sit
+      on a DIFFERENT territory.
 
 ### 2.2 Taking a turn
 
@@ -123,9 +130,19 @@ with no screen and no real randomness.
 - [x] 2.2.6 Fortify, and the button to skip it
 - [x] 2.2.7 End of turn, and pass to the next player
 - [ ] 2.2.8 A guard that no two territories overlap. Queensland and South
-      Australia both claimed the same rectangle until it was spotted on
-      screen. Detecting it needs polygon geometry the tests cannot do yet,
-      which is the same gap as 2.1.5.
+      Australia both claimed the same rectangle, and it sat there for days
+      because it was only ever going to be caught by somebody looking.
+
+      **Also parked for the wrong reason, corrected 2026-09-07.** Phase 7
+      separated all 64 borders of the detailed map into the 48 that share a
+      real edge and the 16 that share nothing, in plain arithmetic with no
+      browser anywhere near it.
+
+      One thing has to be said first. A city is drawn ON TOP of the place
+      around it, and that overlap is deliberate. So the map file needs to
+      say which place a city sits inside, the way it now says which places
+      are islands, and the guard then checks that a city really is inside
+      the place it claims and that nothing else overlaps at all.
 
 ### 2.3 Cards and dice
 
@@ -477,11 +494,15 @@ be. A bigger Australia is what makes strategy mean anything.
       An attack waits 1.5 seconds and everything else 0.7, because an attack
       is the only move with a result worth reading. The rest just change a
       number.
-- [ ] 5.1 A map file format, and reading it
-- [ ] 5.2 Run `validateMap()` on a loaded map and report faults in plain words
-- [ ] 5.3 Load a map from a file the player picks
-- [ ] 5.4 A second map, to prove the first one was not a special case
-- [ ] 5.5 A map editor tool, in its own folder
+- [ ] 5.5 A map file format, and reading it
+- [ ] 5.6 Run `validateMap()` on a loaded map and report faults in plain words
+- [ ] 5.7 Load a map from a file the player picks
+- [ ] 5.8 A second map, to prove the first one was not a special case
+- [ ] 5.9 A map editor tool, in its own folder
+
+Numbered from 5.5 on purpose. Tasks 5.0 to 5.4 were done first and took
+those numbers, and `australia-big.ts` names task 5.0 in its own comments.
+Renumbering the finished work would have made that comment a lie.
 
 ---
 
