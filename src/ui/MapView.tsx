@@ -1,4 +1,5 @@
-import type { GameState, TerritoryDefinition } from '../engine'
+import type { GameState, TerritoryDefinition, TerritoryId } from '../engine'
+import type { Highlights } from './taps'
 
 /**
  * The board on screen.
@@ -6,8 +7,8 @@ import type { GameState, TerritoryDefinition } from '../engine'
  * Each territory is one SVG path, so the browser owns the shapes and works
  * out which one a finger landed on. See spec 11.1.
  *
- * Nothing here decides anything. It draws the game state it is handed and
- * nothing else. See spec S14.
+ * Nothing here decides anything. It draws the game state it is handed, and
+ * reports taps. See spec S14.
  */
 
 const UNOWNED = '#cfcabb'
@@ -27,6 +28,9 @@ function readableOn(colour: string): string {
 
 interface MapViewProps {
   readonly state: GameState
+  readonly highlights: Highlights
+  readonly selectedId: TerritoryId | null
+  readonly onTap: (territoryId: TerritoryId) => void
   /**
    * Territories smaller than this get their count drawn beside them, with
    * a line pointing at them. Measured as the box the shape fits in.
@@ -37,9 +41,9 @@ interface MapViewProps {
 /**
  * Roughly how big a territory is on screen.
  *
- * The three islands are smaller than the circle that holds their army
- * count, so the count has to sit beside them rather than on top. This
- * measures the box the shape fits in, which is close enough to decide that.
+ * The two islands are smaller than the circle that holds their army count,
+ * so the count has to sit beside them rather than on top. This measures the
+ * box the shape fits in, which is close enough to decide that.
  */
 function shapeSize(territory: TerritoryDefinition): number {
   const numbers = (territory.shape.match(/[\d.]+/g) ?? []).map(Number)
@@ -55,7 +59,13 @@ function shapeSize(territory: TerritoryDefinition): number {
   )
 }
 
-export function MapView({ state, smallTerritoryArea = 400 }: MapViewProps) {
+export function MapView({
+  state,
+  highlights,
+  selectedId,
+  onTap,
+  smallTerritoryArea = 400,
+}: MapViewProps) {
   const { map } = state
 
   const colourOf = (ownerId: string | null): string => {
@@ -71,26 +81,66 @@ export function MapView({ state, smallTerritoryArea = 400 }: MapViewProps) {
   const outlineOf = (regionId: string): string =>
     map.regions.find((region) => region.id === regionId)?.outline ?? '#000000'
 
+  /** What this territory means to the tap that is half way through. */
+  const roleOf = (territoryId: TerritoryId): string => {
+    if (territoryId === selectedId) {
+      return 'chosen'
+    }
+
+    if (highlights.canFinish.has(territoryId)) {
+      return 'target'
+    }
+
+    if (highlights.canStart.has(territoryId)) {
+      return 'ready'
+    }
+
+    return 'idle'
+  }
+
   return (
     <svg
       className="map"
       viewBox={map.viewBox}
-      role="img"
+      role="group"
       aria-label={`The ${map.name} board`}
     >
       {/* Every shape first, so no territory can cover another one's count. */}
-      {map.territories.map((territory) => (
-        <path
-          key={territory.id}
-          d={territory.shape}
-          fill={colourOf(state.territories[territory.id]?.ownerId ?? null)}
-          stroke={outlineOf(territory.regionId)}
-          strokeWidth={3}
-          strokeLinejoin="round"
-        >
-          <title>{territory.name}</title>
-        </path>
-      ))}
+      {map.territories.map((territory) => {
+        const role = roleOf(territory.id)
+        const canTap = role !== 'idle'
+
+        return (
+          <path
+            key={territory.id}
+            className={`territory territory-${role}`}
+            data-territory={territory.id}
+            data-role={role}
+            d={territory.shape}
+            fill={colourOf(state.territories[territory.id]?.ownerId ?? null)}
+            stroke={outlineOf(territory.regionId)}
+            strokeWidth={3}
+            strokeLinejoin="round"
+            role="button"
+            tabIndex={canTap ? 0 : -1}
+            aria-disabled={!canTap}
+            aria-label={`${territory.name}, ${
+              state.territories[territory.id]?.armies ?? 0
+            } armies`}
+            // A pointer event covers a finger, a mouse and a stylus at once.
+            // See spec 11.3.
+            onPointerDown={() => onTap(territory.id)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                onTap(territory.id)
+              }
+            }}
+          >
+            <title>{territory.name}</title>
+          </path>
+        )
+      })}
 
       {map.territories.map((territory) => {
         const armies = state.territories[territory.id]?.armies ?? 0
@@ -105,7 +155,7 @@ export function MapView({ state, smallTerritoryArea = 400 }: MapViewProps) {
                 y1={territory.labelAt.y + 12}
                 x2={territory.labelAt.x}
                 y2={territory.labelAt.y + 24}
-                stroke="#6b675d"
+                className="territory-leader"
                 strokeWidth={2}
               />
             ) : null}
@@ -130,11 +180,11 @@ export function MapView({ state, smallTerritoryArea = 400 }: MapViewProps) {
               {armies}
             </text>
             <text
+              className="territory-name"
               x={territory.labelAt.x}
               y={territory.labelAt.y + (isSmall ? -22 : 30)}
               textAnchor="middle"
               fontSize={15}
-              fill="#4c4941"
             >
               {territory.shortName}
             </text>

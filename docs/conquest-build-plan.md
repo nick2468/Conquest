@@ -115,19 +115,23 @@ with no screen and no real randomness.
 
 ### 2.2 Taking a turn
 
-- [ ] 2.2.1 Show whose turn it is and which phase they are in
-- [ ] 2.2.2 Reinforce: tap a territory to place an army
-- [ ] 2.2.3 Attack: tap the attacking territory, then the target
-- [ ] 2.2.4 Show what a tap would do before it happens, using `legalActions`
-- [ ] 2.2.5 Occupy: choose how many armies move in
-- [ ] 2.2.6 Fortify, and the button to skip it
-- [ ] 2.2.7 End of turn, and pass to the next player
+- [x] 2.2.1 Show whose turn it is and which phase they are in
+- [x] 2.2.2 Reinforce: tap a territory to place an army
+- [x] 2.2.3 Attack: tap the attacking territory, then the target
+- [x] 2.2.4 Show what a tap would do before it happens, using `legalActions`
+- [x] 2.2.5 Occupy: choose how many armies move in
+- [x] 2.2.6 Fortify, and the button to skip it
+- [x] 2.2.7 End of turn, and pass to the next player
+- [ ] 2.2.8 A guard that no two territories overlap. Queensland and South
+      Australia both claimed the same rectangle until it was spotted on
+      screen. Detecting it needs polygon geometry the tests cannot do yet,
+      which is the same gap as 2.1.5.
 
 ### 2.3 Cards and dice
 
 - [ ] 2.3.1 Show the cards in the current player's hand
 - [ ] 2.3.2 Trade a set, including the forced trade at five cards
-- [ ] 2.3.3 Show the dice after an attack
+- [x] 2.3.3 Show the dice after an attack. Done early with 2.2.
 - [ ] 2.3.4 Honour the `diceDisplay` setting, one by one or all at once
 
 ### 2.4 Around the game
@@ -232,7 +236,7 @@ something to play with while the interesting part gets built.
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
-| 2 - the screen | **In progress.** 2.1 the map on screen is done. |
+| 2 - the screen | **In progress.** 2.1 and 2.2 done. The game is playable. |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |
 | 5 - maps of your own | Not started |

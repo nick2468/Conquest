@@ -1,62 +1,95 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 
-import { GAME_NAME, createGame, seededRandom } from '../engine'
-import { AUSTRALIA } from '../maps/australia'
+import type { GameAction, TerritoryId } from '../engine'
+import { GAME_NAME, armyLimitFor } from '../engine'
+import { ArmyChooser } from './ArmyChooser'
 import { MapView } from './MapView'
+import { TurnPanel } from './TurnPanel'
+import { highlightsFor, whatATapDoes } from './taps'
+import { useGame } from './useGame'
 
-/**
- * A board to look at while phase 1 finishes.
- *
- * It deals a real game with the real engine and draws it. Nothing here plays
- * a turn yet. Phase 2.2 adds that.
- *
- * The seed box exists because a seeded game is repeatable. Type 7 twice and
- * you get the same board twice. It is also the quickest way to see that the
- * dealing is fair, by flicking through boards.
- */
+/** A fortify move waiting for the player to say how many armies. */
+interface PendingFortify {
+  readonly fromId: TerritoryId
+  readonly toId: TerritoryId
+}
+
 export function App() {
-  const [seed, setSeed] = useState(1)
   const [playerCount, setPlayerCount] = useState(3)
+  const [seed, setSeed] = useState(1)
+  const { state, act, newGame } = useGame({ playerCount, seed })
 
-  const state = useMemo(
-    () =>
-      createGame({
-        map: AUSTRALIA,
-        players: Array.from({ length: playerCount }, (_unused, index) => ({
-          name: `Player ${index + 1}`,
-          kind: 'human' as const,
-        })),
-        random: seededRandom(seed),
-      }),
-    [seed, playerCount],
+  const [selectedId, setSelectedId] = useState<TerritoryId | null>(null)
+  const [pendingFortify, setPendingFortify] = useState<PendingFortify | null>(
+    null,
   )
 
-  const armiesOf = (playerId: string): number =>
-    Object.values(state.territories)
-      .filter((territory) => territory.ownerId === playerId)
-      .reduce((total, territory) => total + territory.armies, 0)
+  const highlights = highlightsFor(state, selectedId)
+  const occupation = state.turn.pendingOccupation
 
-  const territoriesOf = (playerId: string): number =>
-    Object.values(state.territories).filter(
-      (territory) => territory.ownerId === playerId,
-    ).length
+  const run = (action: GameAction): void => {
+    act(action)
+    setSelectedId(null)
+    setPendingFortify(null)
+  }
+
+  const handleTap = (territoryId: TerritoryId): void => {
+    const result = whatATapDoes(state, selectedId, territoryId)
+
+    switch (result.kind) {
+      case 'act':
+        // Attacking again from the same place is normal, so the chosen
+        // territory stays chosen after an attack.
+        act(result.action)
+
+        if (result.action.type !== 'attack') {
+          setSelectedId(null)
+        }
+        break
+
+      case 'select':
+        setSelectedId(result.territoryId)
+        break
+
+      case 'clear':
+        setSelectedId(null)
+        break
+
+      case 'askHowMany':
+        setPendingFortify({ fromId: result.fromId, toId: result.toId })
+        break
+
+      case 'ignore':
+        break
+    }
+  }
+
+  const startNewGame = (players: number, nextSeed: number): void => {
+    setPlayerCount(players)
+    setSeed(nextSeed)
+    setSelectedId(null)
+    setPendingFortify(null)
+    newGame({ playerCount: players, seed: nextSeed })
+  }
+
+  const nameOf = (territoryId: TerritoryId): string =>
+    state.map.territories.find((each) => each.id === territoryId)?.name ??
+    territoryId
+
+  const winner = state.players.find((each) => each.id === state.winnerId)
 
   return (
     <main className="board-page">
       <header className="board-header">
         <h1>{GAME_NAME}</h1>
-        <p>{state.map.name}, dealt by the rules engine.</p>
-      </header>
-
-      <MapView state={state} />
-
-      <section className="panel">
-        <div className="controls">
+        <div className="new-game">
           <label>
             Players
             <select
               value={playerCount}
-              onChange={(event) => setPlayerCount(Number(event.target.value))}
+              onChange={(event) =>
+                startNewGame(Number(event.target.value), seed)
+              }
             >
               {[2, 3, 4, 5, 6].map((count) => (
                 <option key={count} value={count}>
@@ -66,53 +99,131 @@ export function App() {
             </select>
           </label>
 
-          <label>
-            Seed
-            <input
-              type="number"
-              min={1}
-              value={seed}
-              onChange={(event) =>
-                setSeed(Math.max(1, Number(event.target.value)))
-              }
-            />
-          </label>
-
-          <button type="button" onClick={() => setSeed(seed + 1)}>
-            Deal again
+          <button
+            type="button"
+            onClick={() => startNewGame(playerCount, seed + 1)}
+          >
+            New game
           </button>
         </div>
+      </header>
+
+      <MapView
+        state={state}
+        highlights={highlights}
+        selectedId={selectedId}
+        onTap={handleTap}
+      />
+
+      <div className="side">
+        {winner === undefined ? (
+          <TurnPanel
+            state={state}
+            selectedId={selectedId}
+            onEndAttacks={() => run({ type: 'endAttackPhase' })}
+            onSkipFortify={() => run({ type: 'skipFortify' })}
+          />
+        ) : (
+          <section className="winner">
+            <h2>{winner.name} has won</h2>
+            <p>Every territory on the map is theirs.</p>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => startNewGame(playerCount, seed + 1)}
+            >
+              Play again
+            </button>
+          </section>
+        )}
+
+        {occupation === null ? null : (
+          <ArmyChooser
+            title="Move in"
+            detail={`You took ${nameOf(occupation.toId)}. How many armies move in from ${nameOf(occupation.fromId)}?`}
+            least={occupation.minimumArmies}
+            most={occupation.maximumArmies}
+            confirmLabel="Move in"
+            onConfirm={(count) => run({ type: 'occupy', count })}
+          />
+        )}
+
+        {pendingFortify === null ? null : (
+          <ArmyChooser
+            title="Move armies"
+            detail={`How many armies move from ${nameOf(pendingFortify.fromId)} to ${nameOf(pendingFortify.toId)}? This ends your turn.`}
+            least={1}
+            most={armyLimitFor(state, {
+              type: 'fortify',
+              fromId: pendingFortify.fromId,
+              toId: pendingFortify.toId,
+              count: 1,
+            })}
+            confirmLabel="Move and end turn"
+            onCancel={() => {
+              setPendingFortify(null)
+              setSelectedId(null)
+            }}
+            onConfirm={(count) =>
+              run({
+                type: 'fortify',
+                fromId: pendingFortify.fromId,
+                toId: pendingFortify.toId,
+                count,
+              })
+            }
+          />
+        )}
 
         <table className="scores">
           <thead>
             <tr>
               <th scope="col">Player</th>
-              <th scope="col">Territories</th>
+              <th scope="col">Land</th>
               <th scope="col">Armies</th>
             </tr>
           </thead>
           <tbody>
-            {state.players.map((player) => (
-              <tr key={player.id}>
-                <th scope="row">
-                  <span
-                    className="swatch"
-                    style={{ background: player.colour }}
-                  />
-                  {player.name}
-                </th>
-                <td>{territoriesOf(player.id)}</td>
-                <td>{armiesOf(player.id)}</td>
-              </tr>
-            ))}
+            {state.players.map((player) => {
+              const mine = Object.values(state.territories).filter(
+                (each) => each.ownerId === player.id,
+              )
+
+              return (
+                <tr
+                  key={player.id}
+                  className={player.isEliminated ? 'out' : undefined}
+                >
+                  <th scope="row">
+                    <span
+                      className="swatch"
+                      style={{ background: player.colour }}
+                    />
+                    {player.name}
+                    {player.id === state.turn.playerId ? ' •' : ''}
+                  </th>
+                  <td>{mine.length}</td>
+                  <td>
+                    {mine.reduce((total, each) => total + each.armies, 0)}
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
-        <p className="turn-note">
-          {state.players.find((each) => each.id === state.turn.playerId)?.name}{' '}
-          would start, with {state.turn.armiesToPlace} armies to place.
-        </p>
-      </section>
+        <section className="log" aria-label="What has happened">
+          <h2>History</h2>
+          <ol>
+            {state.log
+              .slice(-12)
+              .reverse()
+              .map((entry, index) => (
+                <li key={state.log.length - index}>{entry.text}</li>
+              ))}
+          </ol>
+        </section>
+      </div>
     </main>
   )
 }

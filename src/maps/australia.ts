@@ -88,11 +88,18 @@ export const AUSTRALIA: GameMap = {
       // Around the bottom of the Gulf of Carpentaria, up the west side of
       // Cape York Peninsula, round the cape itself, then all the way down
       // the east coast past Cairns, Mackay and Brisbane.
+      //
+      // The southern border steps. It runs along 29 degrees south as far
+      // west as 141 degrees east, then jumps north to 26 degrees south for
+      // the stretch beside South Australia. Running 29 south the whole way
+      // made Queensland and South Australia claim the same rectangle, which
+      // showed on screen as a stray block of colour.
       shape:
         'M 553 222 L 575 236 L 598 243 L 607 214 L 613 178 L 619 150 ' +
         'L 625 120 L 638 152 L 648 168 L 657 182 L 668 205 L 678 229 ' +
         'L 688 252 L 694 272 L 715 288 L 733 303 L 745 325 L 754 344 ' +
-        'L 775 361 L 796 377 L 800 400 L 794 416 L 800 443 L 553 443 Z',
+        'L 775 361 L 796 377 L 800 400 L 794 416 L 800 443 L 601 443 ' +
+        'L 601 390 L 553 390 Z',
       labelAt: { x: 676, y: 300 },
     },
     {

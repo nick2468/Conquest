@@ -9,6 +9,9 @@
   --ink-soft: #5d594f;
   --edge: #d9d4c7;
   --sea: #e8eef1;
+  --pick: #1d1c19;
+  --target: #c8453b;
+  --label: #4c4941;
 
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -22,6 +25,9 @@
     --ink-soft: #a3a094;
     --edge: #33352f;
     --sea: #1d2428;
+    --pick: #ffffff;
+    --target: #ff7a6e;
+    --label: #b9b5a8;
   }
 }
 
@@ -48,9 +54,9 @@ body {
 /* A wide screen puts the panel beside the map. A tall one stacks them. */
 @media (min-width: 900px) {
   .board-page {
-    grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-template-columns: minmax(0, 1fr) 21rem;
     grid-template-rows: auto 1fr;
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
 
   .board-header {
@@ -58,25 +64,98 @@ body {
   }
 }
 
+.board-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .board-header h1 {
   margin: 0;
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
   letter-spacing: -0.02em;
 }
 
-.board-header p {
-  margin: 0.25rem 0 0;
+.new-game {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.new-game label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  font-size: 0.85rem;
   color: var(--ink-soft);
 }
+
+/* ------------------------------------------------------------- the map */
 
 .map {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 78dvh;
+  max-height: 72dvh;
   background: var(--sea);
   border: 1px solid var(--edge);
   border-radius: 0.75rem;
+  touch-action: manipulation;
+}
+
+.territory {
+  transition: opacity 120ms ease;
+}
+
+/* A territory you may tap to start something. */
+.territory-ready {
+  cursor: pointer;
+}
+
+.territory-ready:hover {
+  opacity: 0.85;
+}
+
+/* The territory the armies are coming from. */
+.territory-chosen {
+  cursor: pointer;
+  stroke: var(--pick);
+  stroke-width: 7;
+}
+
+/* Somewhere the chosen territory can reach. */
+.territory-target {
+  cursor: pointer;
+  stroke: var(--target);
+  stroke-width: 6;
+  stroke-dasharray: 12 7;
+}
+
+.territory-idle {
+  opacity: 0.55;
+}
+
+/*
+ * A focused SVG path gets a browser outline drawn as a RECTANGLE around the
+ * shape's bounding box, because an outline cannot follow a coastline. On a
+ * map that reads as a drawing fault, so it is replaced with a thick stroke,
+ * which does follow the coastline.
+ *
+ * Keyboard focus still shows, through :focus-visible. Taking the ring away
+ * without putting something back would leave anyone using a keyboard with
+ * no idea where they are.
+ */
+.territory:focus {
+  outline: none;
+}
+
+.territory:focus-visible {
+  outline: none;
+  stroke: var(--pick);
+  stroke-width: 8;
+  stroke-dasharray: 4 6;
 }
 
 .territory-label {
@@ -84,51 +163,171 @@ body {
   user-select: none;
 }
 
-.panel {
+/* The name beside each army count. It follows the light or dark setting,
+   which a colour written into the drawing code could not do. */
+.territory-name {
+  fill: var(--label);
+}
+
+.territory-leader {
+  stroke: var(--label);
+}
+
+/* ----------------------------------------------------------- the panels */
+
+.side {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-width: 0;
+}
+
+.turn-panel,
+.chooser,
+.winner,
+.log {
   padding: 1rem;
   background: var(--panel);
   border: 1px solid var(--edge);
   border-radius: 0.75rem;
 }
 
-.controls {
+.turn-who {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: end;
+  gap: 0.5rem;
+  align-items: center;
 }
 
-.controls label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+.turn-phase {
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--page);
+  border: 1px solid var(--edge);
+  border-radius: 1rem;
+}
+
+.turn-round {
+  margin-left: auto;
   font-size: 0.8rem;
   color: var(--ink-soft);
 }
 
-.controls select,
-.controls input,
-.controls button {
+.turn-instruction {
+  margin: 0.75rem 0 0;
+  font-size: 1rem;
+}
+
+.turn-armies {
+  margin: 0.5rem 0 0;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.turn-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.dice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.dice-side {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.dice-against {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.die {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  font-weight: 700;
+  border: 1px solid var(--edge);
+  border-radius: 0.4rem;
+}
+
+.die-attacker {
+  color: #ffffff;
+  background: #c8453b;
+}
+
+.die-defender {
+  color: #1d1c19;
+  background: #e3e0d6;
+}
+
+/* ---------------------------------------------------------- the chooser */
+
+.chooser h2,
+.winner h2,
+.log h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.chooser p,
+.winner p {
+  margin: 0 0 0.75rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.chooser-count {
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1;
+}
+
+.chooser input[type='range'] {
+  width: 100%;
+  margin: 0.75rem 0;
+}
+
+.chooser-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+/* ---------------------------------------------------------- the controls */
+
+button,
+select,
+input[type='number'] {
   min-height: 2.75rem;
-  padding: 0 0.75rem;
+  padding: 0 0.9rem;
   font: inherit;
   color: var(--ink);
   background: var(--page);
   border: 1px solid var(--edge);
   border-radius: 0.5rem;
-}
-
-.controls input {
-  width: 6rem;
-}
-
-.controls button {
   cursor: pointer;
-  font-weight: 600;
 }
+
+button.primary {
+  font-weight: 600;
+  color: #ffffff;
+  background: #3a6ea8;
+  border-color: #33608f;
+}
+
+/* ------------------------------------------------------------ the scores */
 
 .scores {
   width: 100%;
@@ -144,7 +343,7 @@ body {
 }
 
 .scores thead th {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--ink-soft);
   text-transform: uppercase;
@@ -159,15 +358,36 @@ body {
   text-align: left;
 }
 
+.scores tr.out {
+  color: var(--ink-soft);
+  text-decoration: line-through;
+}
+
 .swatch {
+  flex: none;
   width: 0.9rem;
   height: 0.9rem;
   border: 1px solid var(--edge);
   border-radius: 0.2rem;
 }
 
-.turn-note {
+/* --------------------------------------------------------------- the log */
+
+.log ol {
   margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.log li {
+  padding: 0.35rem 0;
+  font-size: 0.85rem;
   color: var(--ink-soft);
-  font-size: 0.9rem;
+  border-bottom: 1px solid var(--edge);
+}
+
+.log li:first-child {
+  color: var(--ink);
 }
