@@ -811,7 +811,7 @@ runs in a place that has none of those things, with not one line changed.
 
 ---
 
-**S45. Three weights of line, heaviest first, each drawn UNDER the next.**
+**S45. Every border is drawn ONCE, by whichever layer owns it.**
 
 Nick asked for "thick fuzzy edges around the continents". The three layers
 are the coast, then a region, then a place, and each shows only where
@@ -821,10 +821,24 @@ nothing heavier covers it.
    shape, not one per region: per region put a dark band around every state
    of Australia, because the states touch. One shape gives each separate
    piece of land its own coast.
-2. Each region as one shape, not filled, with a thick line. Half the line
-   is covered by the places on top, so it shows around a region and never
+2. Each region as one shape, not filled, with a firm line. Half the line is
+   covered by the places on top, so it shows around a region and never
    through the middle of one.
-3. Each place, filled by owner, with a thin line.
+3. The borders INSIDE a region, as their own light line.
+
+**A place is drawn with no line of its own.** Nick: "don't double up
+borders where an inner border runs alongside a continent border, keep just
+the continent border." A place stroked all the way round put a second line
+just inside every coast, beside the region's own. Now the region layer owns
+the coast and the inside layer owns everything else, so nothing is drawn
+twice. The dashes and the heavy outline of a place being CHOSEN are
+highlights rather than borders, and those still belong to the place.
+
+**An edge counts as inside when its middle sits on another place's
+outline**, not when the two share it exactly. They almost never do: a
+border is one long straight line on the cell side and a row of short pieces
+on the coast side, so only 8 of the world map's 964 edges match end for
+end.
 
 **Nothing underneath may be filled with a solid colour.** A place you
 cannot act on is drawn at 55%, so anything solid below shows through it.
@@ -833,12 +847,21 @@ took a while to see, because the fill was right and the drawing was wrong.
 The coast is filled with the colour of the SEA, and the region shapes are
 not filled at all. The soft edge comes from the SHAPE, not from the fill.
 
-**S46. Where a traced map comes from is written down, in the game.** The
-world map is traced from "Risk board" by Gr0gmint on Wikimedia Commons,
-shared under CC BY-SA 3.0. That licence asks for credit and asks that the
-result be shared on the same terms, so `world.ts` says so and the new game
-screen says so with a link. The two Australia maps are our own and carry no
-such condition.
+**S46. No map carries an obligation.** An earlier world map traced somebody
+else's drawing of the board, under a licence asking for credit and asking
+that the result be shared on the same terms. Nick did not want that, and a
+good map of the world is public property anyway.
+
+The coastlines come from Natural Earth, whose own words are "No permission
+is needed to use Natural Earth. Crediting the authors is unnecessary." The
+game says where they came from because it is true, not because it must.
+
+**The coasts are real and the inland borders are ours.** Each place is the
+land inside a straight-sided CELL we drew, cut out by Sutherland-Hodgman
+clipping. So a coast wanders and a border between two places runs in a
+line, which is how the world looks and how the classic board looks. Two
+cells sharing an edge give two places sharing it exactly, which is what
+saves this map from the slivers the traced one could never lose.
 
 **S30. The game says when a set is waiting to be traded.**
 

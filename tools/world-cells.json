@@ -1,0 +1,1323 @@
+{
+ "regions": [
+  {
+   "id": "northAmerica",
+   "name": "North America",
+   "bonus": 5,
+   "outline": "#b8763a"
+  },
+  {
+   "id": "southAmerica",
+   "name": "South America",
+   "bonus": 2,
+   "outline": "#3f8f5e"
+  },
+  {
+   "id": "europe",
+   "name": "Europe",
+   "bonus": 5,
+   "outline": "#3a6ea8"
+  },
+  {
+   "id": "africa",
+   "name": "Africa",
+   "bonus": 3,
+   "outline": "#8557a8"
+  },
+  {
+   "id": "asia",
+   "name": "Asia",
+   "bonus": 7,
+   "outline": "#c2544a"
+  },
+  {
+   "id": "australiaRegion",
+   "name": "Australia",
+   "bonus": 2,
+   "outline": "#2f7f8f"
+  }
+ ],
+ "places": [
+  {
+   "id": "alaska",
+   "name": "Alaska",
+   "shortName": "ALK",
+   "region": "northAmerica",
+   "borders": [
+    "northwestTerritory",
+    "alberta",
+    "kamchatka"
+   ],
+   "cell": [
+    [
+     -180,
+     90
+    ],
+    [
+     -141,
+     90
+    ],
+    [
+     -141,
+     50
+    ],
+    [
+     -180,
+     50
+    ]
+   ]
+  },
+  {
+   "id": "northwestTerritory",
+   "name": "Northwest Territory",
+   "shortName": "NWT",
+   "region": "northAmerica",
+   "borders": [
+    "alaska",
+    "alberta",
+    "ontario",
+    "greenland"
+   ],
+   "cell": [
+    [
+     -141,
+     90
+    ],
+    [
+     -102,
+     90
+    ],
+    [
+     -102,
+     60
+    ],
+    [
+     -141,
+     60
+    ]
+   ]
+  },
+  {
+   "id": "greenland",
+   "name": "Greenland",
+   "shortName": "GRN",
+   "region": "northAmerica",
+   "borders": [
+    "northwestTerritory",
+    "ontario",
+    "quebec",
+    "iceland"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     -58,
+     84
+    ],
+    [
+     -8,
+     84
+    ],
+    [
+     -8,
+     58
+    ],
+    [
+     -46,
+     58
+    ],
+    [
+     -58,
+     70
+    ]
+   ]
+  },
+  {
+   "id": "alberta",
+   "name": "Alberta",
+   "shortName": "ALB",
+   "region": "northAmerica",
+   "borders": [
+    "alaska",
+    "northwestTerritory",
+    "ontario",
+    "westernUnitedStates"
+   ],
+   "cell": [
+    [
+     -141,
+     60
+    ],
+    [
+     -102,
+     60
+    ],
+    [
+     -102,
+     47
+    ],
+    [
+     -141,
+     47
+    ]
+   ]
+  },
+  {
+   "id": "ontario",
+   "name": "Ontario",
+   "shortName": "ONT",
+   "region": "northAmerica",
+   "borders": [
+    "northwestTerritory",
+    "alberta",
+    "greenland",
+    "quebec",
+    "westernUnitedStates",
+    "easternUnitedStates"
+   ],
+   "cell": [
+    [
+     -102,
+     90
+    ],
+    [
+     -79,
+     90
+    ],
+    [
+     -79,
+     47
+    ],
+    [
+     -102,
+     47
+    ]
+   ]
+  },
+  {
+   "id": "quebec",
+   "name": "Quebec",
+   "shortName": "QUE",
+   "region": "northAmerica",
+   "borders": [
+    "greenland",
+    "ontario",
+    "easternUnitedStates"
+   ],
+   "cell": [
+    [
+     -79,
+     90
+    ],
+    [
+     -58,
+     90
+    ],
+    [
+     -58,
+     47
+    ],
+    [
+     -79,
+     47
+    ]
+   ]
+  },
+  {
+   "id": "westernUnitedStates",
+   "name": "Western United States",
+   "shortName": "WUS",
+   "region": "northAmerica",
+   "borders": [
+    "alberta",
+    "ontario",
+    "easternUnitedStates",
+    "centralAmerica"
+   ],
+   "cell": [
+    [
+     -141,
+     47
+    ],
+    [
+     -102,
+     47
+    ],
+    [
+     -102,
+     27.8
+    ],
+    [
+     -141,
+     33
+    ]
+   ]
+  },
+  {
+   "id": "easternUnitedStates",
+   "name": "Eastern United States",
+   "shortName": "EUS",
+   "region": "northAmerica",
+   "borders": [
+    "ontario",
+    "quebec",
+    "westernUnitedStates",
+    "centralAmerica"
+   ],
+   "cell": [
+    [
+     -102,
+     47
+    ],
+    [
+     -40,
+     47
+    ],
+    [
+     -40,
+     22
+    ],
+    [
+     -58,
+     22
+    ],
+    [
+     -102,
+     27.8
+    ]
+   ]
+  },
+  {
+   "id": "centralAmerica",
+   "name": "Central America",
+   "shortName": "CAM",
+   "region": "northAmerica",
+   "borders": [
+    "westernUnitedStates",
+    "easternUnitedStates",
+    "venezuela"
+   ],
+   "cell": [
+    [
+     -141,
+     33
+    ],
+    [
+     -58,
+     22
+    ],
+    [
+     -58,
+     15
+    ],
+    [
+     -84,
+     7
+    ],
+    [
+     -141,
+     7
+    ]
+   ]
+  },
+  {
+   "id": "venezuela",
+   "name": "Venezuela",
+   "shortName": "VEN",
+   "region": "southAmerica",
+   "borders": [
+    "centralAmerica",
+    "brazil",
+    "peru"
+   ],
+   "cell": [
+    [
+     -84,
+     7
+    ],
+    [
+     -58,
+     15
+    ],
+    [
+     -34,
+     15
+    ],
+    [
+     -34,
+     -2
+    ],
+    [
+     -84,
+     -2
+    ]
+   ]
+  },
+  {
+   "id": "peru",
+   "name": "Peru",
+   "shortName": "PER",
+   "region": "southAmerica",
+   "borders": [
+    "venezuela",
+    "brazil",
+    "argentina"
+   ],
+   "cell": [
+    [
+     -82,
+     -2
+    ],
+    [
+     -60,
+     -2
+    ],
+    [
+     -60,
+     -24
+    ],
+    [
+     -82,
+     -24
+    ]
+   ]
+  },
+  {
+   "id": "brazil",
+   "name": "Brazil",
+   "shortName": "BRA",
+   "region": "southAmerica",
+   "borders": [
+    "venezuela",
+    "peru",
+    "argentina",
+    "northAfrica"
+   ],
+   "cell": [
+    [
+     -60,
+     -2
+    ],
+    [
+     -30,
+     -2
+    ],
+    [
+     -30,
+     -24
+    ],
+    [
+     -60,
+     -24
+    ]
+   ]
+  },
+  {
+   "id": "argentina",
+   "name": "Argentina",
+   "shortName": "ARG",
+   "region": "southAmerica",
+   "borders": [
+    "peru",
+    "brazil"
+   ],
+   "cell": [
+    [
+     -82,
+     -24
+    ],
+    [
+     -50,
+     -24
+    ],
+    [
+     -50,
+     -58
+    ],
+    [
+     -82,
+     -58
+    ]
+   ]
+  },
+  {
+   "id": "iceland",
+   "name": "Iceland",
+   "shortName": "ICE",
+   "region": "europe",
+   "borders": [
+    "greenland",
+    "greatBritain",
+    "scandinavia"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     -25,
+     68
+    ],
+    [
+     -12,
+     68
+    ],
+    [
+     -12,
+     62
+    ],
+    [
+     -25,
+     62
+    ]
+   ]
+  },
+  {
+   "id": "greatBritain",
+   "name": "Great Britain",
+   "shortName": "GBR",
+   "region": "europe",
+   "borders": [
+    "iceland",
+    "scandinavia",
+    "northernEurope",
+    "westernEurope"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     -11,
+     61
+    ],
+    [
+     2,
+     61
+    ],
+    [
+     2,
+     49
+    ],
+    [
+     -11,
+     49
+    ]
+   ]
+  },
+  {
+   "id": "scandinavia",
+   "name": "Scandinavia",
+   "shortName": "SCA",
+   "region": "europe",
+   "borders": [
+    "iceland",
+    "greatBritain",
+    "northernEurope",
+    "ukraine"
+   ],
+   "cell": [
+    [
+     2,
+     72
+    ],
+    [
+     32,
+     72
+    ],
+    [
+     32,
+     55
+    ],
+    [
+     2,
+     55
+    ]
+   ]
+  },
+  {
+   "id": "ukraine",
+   "name": "Ukraine",
+   "shortName": "UKR",
+   "region": "europe",
+   "borders": [
+    "scandinavia",
+    "northernEurope",
+    "southernEurope",
+    "ural",
+    "afghanistan",
+    "middleEast"
+   ],
+   "cell": [
+    [
+     32,
+     72
+    ],
+    [
+     60,
+     72
+    ],
+    [
+     60,
+     40
+    ],
+    [
+     32,
+     40
+    ]
+   ]
+  },
+  {
+   "id": "northernEurope",
+   "name": "Northern Europe",
+   "shortName": "NEU",
+   "region": "europe",
+   "borders": [
+    "scandinavia",
+    "greatBritain",
+    "ukraine",
+    "southernEurope",
+    "westernEurope"
+   ],
+   "cell": [
+    [
+     2,
+     55
+    ],
+    [
+     32,
+     55
+    ],
+    [
+     32,
+     45
+    ],
+    [
+     2,
+     45
+    ]
+   ]
+  },
+  {
+   "id": "westernEurope",
+   "name": "Western Europe",
+   "shortName": "WEU",
+   "region": "europe",
+   "borders": [
+    "greatBritain",
+    "northernEurope",
+    "southernEurope",
+    "northAfrica"
+   ],
+   "cell": [
+    [
+     -11,
+     49
+    ],
+    [
+     2,
+     49
+    ],
+    [
+     2,
+     36
+    ],
+    [
+     -11,
+     36
+    ]
+   ]
+  },
+  {
+   "id": "southernEurope",
+   "name": "Southern Europe",
+   "shortName": "SEU",
+   "region": "europe",
+   "borders": [
+    "westernEurope",
+    "northernEurope",
+    "ukraine",
+    "middleEast",
+    "egypt",
+    "northAfrica"
+   ],
+   "cell": [
+    [
+     2,
+     45
+    ],
+    [
+     32,
+     45
+    ],
+    [
+     32,
+     36
+    ],
+    [
+     2,
+     36
+    ]
+   ]
+  },
+  {
+   "id": "northAfrica",
+   "name": "North Africa",
+   "shortName": "NAF",
+   "region": "africa",
+   "borders": [
+    "westernEurope",
+    "southernEurope",
+    "egypt",
+    "eastAfrica",
+    "congo",
+    "brazil"
+   ],
+   "cell": [
+    [
+     -18,
+     36
+    ],
+    [
+     25,
+     36
+    ],
+    [
+     25,
+     8
+    ],
+    [
+     -18,
+     8
+    ]
+   ]
+  },
+  {
+   "id": "egypt",
+   "name": "Egypt",
+   "shortName": "EGY",
+   "region": "africa",
+   "borders": [
+    "northAfrica",
+    "southernEurope",
+    "middleEast",
+    "eastAfrica"
+   ],
+   "cell": [
+    [
+     25,
+     32
+    ],
+    [
+     37,
+     32
+    ],
+    [
+     37,
+     15
+    ],
+    [
+     25,
+     15
+    ]
+   ]
+  },
+  {
+   "id": "eastAfrica",
+   "name": "East Africa",
+   "shortName": "EAF",
+   "region": "africa",
+   "borders": [
+    "egypt",
+    "northAfrica",
+    "congo",
+    "southAfrica",
+    "madagascar",
+    "middleEast"
+   ],
+   "cell": [
+    [
+     25,
+     15
+    ],
+    [
+     52,
+     15
+    ],
+    [
+     52,
+     -11
+    ],
+    [
+     25,
+     -11
+    ]
+   ]
+  },
+  {
+   "id": "congo",
+   "name": "Congo",
+   "shortName": "CON",
+   "region": "africa",
+   "borders": [
+    "northAfrica",
+    "eastAfrica",
+    "southAfrica"
+   ],
+   "cell": [
+    [
+     -18,
+     8
+    ],
+    [
+     25,
+     8
+    ],
+    [
+     25,
+     -11
+    ],
+    [
+     -18,
+     -11
+    ]
+   ]
+  },
+  {
+   "id": "southAfrica",
+   "name": "South Africa",
+   "shortName": "SAF",
+   "region": "africa",
+   "borders": [
+    "congo",
+    "eastAfrica",
+    "madagascar"
+   ],
+   "cell": [
+    [
+     8,
+     -11
+    ],
+    [
+     42,
+     -11
+    ],
+    [
+     42,
+     -36
+    ],
+    [
+     8,
+     -36
+    ]
+   ]
+  },
+  {
+   "id": "madagascar",
+   "name": "Madagascar",
+   "shortName": "MAD",
+   "region": "africa",
+   "borders": [
+    "southAfrica",
+    "eastAfrica"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     42,
+     -11
+    ],
+    [
+     52,
+     -11
+    ],
+    [
+     52,
+     -27
+    ],
+    [
+     42,
+     -27
+    ]
+   ]
+  },
+  {
+   "id": "ural",
+   "name": "Ural",
+   "shortName": "URA",
+   "region": "asia",
+   "borders": [
+    "ukraine",
+    "siberia",
+    "china",
+    "afghanistan"
+   ],
+   "cell": [
+    [
+     60,
+     78
+    ],
+    [
+     90,
+     78
+    ],
+    [
+     90,
+     48
+    ],
+    [
+     60,
+     48
+    ]
+   ]
+  },
+  {
+   "id": "siberia",
+   "name": "Siberia",
+   "shortName": "SIB",
+   "region": "asia",
+   "borders": [
+    "ural",
+    "yakutsk",
+    "irkutsk",
+    "mongolia",
+    "china"
+   ],
+   "cell": [
+    [
+     90,
+     78
+    ],
+    [
+     110,
+     78
+    ],
+    [
+     110,
+     50
+    ],
+    [
+     90,
+     50
+    ]
+   ]
+  },
+  {
+   "id": "yakutsk",
+   "name": "Yakutsk",
+   "shortName": "YAK",
+   "region": "asia",
+   "borders": [
+    "siberia",
+    "irkutsk",
+    "kamchatka"
+   ],
+   "cell": [
+    [
+     110,
+     78
+    ],
+    [
+     140,
+     78
+    ],
+    [
+     140,
+     62
+    ],
+    [
+     110,
+     62
+    ]
+   ]
+  },
+  {
+   "id": "irkutsk",
+   "name": "Irkutsk",
+   "shortName": "IRK",
+   "region": "asia",
+   "borders": [
+    "siberia",
+    "yakutsk",
+    "kamchatka",
+    "mongolia"
+   ],
+   "cell": [
+    [
+     110,
+     62
+    ],
+    [
+     140,
+     62
+    ],
+    [
+     140,
+     50
+    ],
+    [
+     110,
+     50
+    ]
+   ]
+  },
+  {
+   "id": "kamchatka",
+   "name": "Kamchatka",
+   "shortName": "KAM",
+   "region": "asia",
+   "borders": [
+    "yakutsk",
+    "irkutsk",
+    "mongolia",
+    "japan",
+    "alaska"
+   ],
+   "cell": [
+    [
+     140,
+     78
+    ],
+    [
+     180,
+     78
+    ],
+    [
+     180,
+     50
+    ],
+    [
+     140,
+     50
+    ]
+   ]
+  },
+  {
+   "id": "mongolia",
+   "name": "Mongolia",
+   "shortName": "MON",
+   "region": "asia",
+   "borders": [
+    "siberia",
+    "irkutsk",
+    "kamchatka",
+    "japan",
+    "china"
+   ],
+   "cell": [
+    [
+     90,
+     50
+    ],
+    [
+     128,
+     50
+    ],
+    [
+     128,
+     40
+    ],
+    [
+     90,
+     40
+    ]
+   ]
+  },
+  {
+   "id": "japan",
+   "name": "Japan",
+   "shortName": "JAP",
+   "region": "asia",
+   "borders": [
+    "mongolia",
+    "kamchatka"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     128,
+     46
+    ],
+    [
+     148,
+     46
+    ],
+    [
+     148,
+     30
+    ],
+    [
+     128,
+     30
+    ]
+   ]
+  },
+  {
+   "id": "afghanistan",
+   "name": "Afghanistan",
+   "shortName": "AFG",
+   "region": "asia",
+   "borders": [
+    "ukraine",
+    "ural",
+    "china",
+    "india",
+    "middleEast"
+   ],
+   "cell": [
+    [
+     60,
+     48
+    ],
+    [
+     90,
+     48
+    ],
+    [
+     90,
+     25
+    ],
+    [
+     60,
+     25
+    ]
+   ]
+  },
+  {
+   "id": "china",
+   "name": "China",
+   "shortName": "CHI",
+   "region": "asia",
+   "borders": [
+    "siberia",
+    "ural",
+    "afghanistan",
+    "india",
+    "siam",
+    "mongolia"
+   ],
+   "cell": [
+    [
+     90,
+     40
+    ],
+    [
+     125,
+     40
+    ],
+    [
+     125,
+     20
+    ],
+    [
+     90,
+     20
+    ]
+   ]
+  },
+  {
+   "id": "middleEast",
+   "name": "Middle East",
+   "shortName": "MEA",
+   "region": "asia",
+   "borders": [
+    "ukraine",
+    "southernEurope",
+    "egypt",
+    "eastAfrica",
+    "afghanistan",
+    "india"
+   ],
+   "cell": [
+    [
+     37,
+     40
+    ],
+    [
+     60,
+     40
+    ],
+    [
+     60,
+     15
+    ],
+    [
+     37,
+     15
+    ]
+   ]
+  },
+  {
+   "id": "india",
+   "name": "India",
+   "shortName": "IND",
+   "region": "asia",
+   "borders": [
+    "middleEast",
+    "afghanistan",
+    "china",
+    "siam"
+   ],
+   "cell": [
+    [
+     65,
+     25
+    ],
+    [
+     90,
+     25
+    ],
+    [
+     90,
+     5
+    ],
+    [
+     65,
+     5
+    ]
+   ]
+  },
+  {
+   "id": "siam",
+   "name": "Siam",
+   "shortName": "SIA",
+   "region": "asia",
+   "borders": [
+    "india",
+    "china",
+    "indonesia"
+   ],
+   "cell": [
+    [
+     92,
+     20
+    ],
+    [
+     125,
+     20
+    ],
+    [
+     125,
+     4
+    ],
+    [
+     92,
+     4
+    ]
+   ]
+  },
+  {
+   "id": "indonesia",
+   "name": "Indonesia",
+   "shortName": "INO",
+   "region": "australiaRegion",
+   "borders": [
+    "siam",
+    "newGuinea",
+    "westernAustralia"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     92,
+     4
+    ],
+    [
+     130,
+     4
+    ],
+    [
+     130,
+     -11
+    ],
+    [
+     92,
+     -11
+    ]
+   ]
+  },
+  {
+   "id": "newGuinea",
+   "name": "New Guinea",
+   "shortName": "NGU",
+   "region": "australiaRegion",
+   "borders": [
+    "indonesia",
+    "westernAustralia",
+    "easternAustralia"
+   ],
+   "isIsland": true,
+   "cell": [
+    [
+     130,
+     0
+    ],
+    [
+     152,
+     0
+    ],
+    [
+     152,
+     -11
+    ],
+    [
+     130,
+     -11
+    ]
+   ]
+  },
+  {
+   "id": "westernAustralia",
+   "name": "Western Australia",
+   "shortName": "WAU",
+   "region": "australiaRegion",
+   "borders": [
+    "indonesia",
+    "newGuinea",
+    "easternAustralia"
+   ],
+   "cell": [
+    [
+     112,
+     -11
+    ],
+    [
+     133,
+     -11
+    ],
+    [
+     133,
+     -40
+    ],
+    [
+     112,
+     -40
+    ]
+   ]
+  },
+  {
+   "id": "easternAustralia",
+   "name": "Eastern Australia",
+   "shortName": "EAU",
+   "region": "australiaRegion",
+   "borders": [
+    "westernAustralia",
+    "newGuinea"
+   ],
+   "cell": [
+    [
+     133,
+     -11
+    ],
+    [
+     155,
+     -11
+    ],
+    [
+     155,
+     -40
+    ],
+    [
+     133,
+     -40
+    ]
+   ]
+  }
+ ]
+}

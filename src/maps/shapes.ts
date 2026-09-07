@@ -92,9 +92,13 @@ function distanceToEdge(point: Corner, from: Corner, to: Corner): number {
 }
 
 /** Is this point sitting on the outline itself? */
-export function isOnEdge(point: Corner, corners: readonly Corner[]): boolean {
+export function isOnEdge(
+  point: Corner,
+  corners: readonly Corner[],
+  within: number = TOUCHING,
+): boolean {
   return edgesOf(corners).some(
-    ([from, to]) => distanceToEdge(point, from, to) <= TOUCHING,
+    ([from, to]) => distanceToEdge(point, from, to) <= within,
   )
 }
 
@@ -274,6 +278,72 @@ export function overlapBetween(
 ): Corner | null {
   return partInside(one, two) ?? partInside(two, one)
 }
+
+/**
+ * The edges of these shapes that are borders BETWEEN them.
+ *
+ * Nick: "don't double up borders where an inner border runs alongside a
+ * continent border, keep just the continent border." To do that the game
+ * has to know which parts of a place's outline face a neighbour and which
+ * parts face the sea, and an outline on its own does not say.
+ *
+ * An edge counts as inside when its middle sits on another shape's
+ * outline. NOT when the two share the edge exactly: they almost never do.
+ * A border between two places is one long straight line on the cell side
+ * and a row of short pieces on the coast side, so only 8 of the world
+ * map's 964 edges match end for end. Position is what matters, not how
+ * each side happened to be cut up.
+ */
+export function edgesBetween(
+  shapes: ReadonlyArray<readonly Corner[]>,
+): Array<[Corner, Corner]> {
+  const boxes = shapes.map((ring) => {
+    const xs = ring.map(([x]) => x)
+    const ys = ring.map(([, y]) => y)
+
+    return [
+      Math.min(...xs) - TOUCHES,
+      Math.min(...ys) - TOUCHES,
+      Math.max(...xs) + TOUCHES,
+      Math.max(...ys) + TOUCHES,
+    ] as const
+  })
+
+  const inside: Array<[Corner, Corner]> = []
+
+  for (let which = 0; which < shapes.length; which += 1) {
+    for (const [from, to] of edgesOf(shapes[which] as readonly Corner[])) {
+      const middle: Corner = [(from[0] + to[0]) / 2, (from[1] + to[1]) / 2]
+
+      for (let other = 0; other < shapes.length; other += 1) {
+        if (other === which) {
+          continue
+        }
+
+        const box = boxes[other] as readonly number[]
+
+        if (
+          (middle[0] as number) < (box[0] as number) ||
+          (middle[0] as number) > (box[2] as number) ||
+          (middle[1] as number) < (box[1] as number) ||
+          (middle[1] as number) > (box[3] as number)
+        ) {
+          continue
+        }
+
+        if (isOnEdge(middle, shapes[other] as readonly Corner[], TOUCHES)) {
+          inside.push([from, to])
+          break
+        }
+      }
+    }
+  }
+
+  return inside
+}
+
+/** How near a middle has to be to a neighbour's outline to count. */
+const TOUCHES = 0.6
 
 /**
  * How far these two outlines run along one another.

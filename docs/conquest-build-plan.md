@@ -593,50 +593,41 @@ be. A bigger Australia is what makes strategy mean anything.
 
       It is now the map the game opens on.
 
-      **REDRAWN 2026-09-08.** Nick: "far too blocky with not enough detail."
-      He was right, and hand-drawn rectangles were never going to be
-      anything else. The shapes are now traced, simplified by a tool, and
-      the tool is `tools/make-world-map.mjs` so it can be run again at a
-      different level of detail. Everything a person decides lives in
-      `tools/world-places.json`.
+      **REDRAWN TWICE on 2026-09-08.** Nick on the first: "far too blocky
+      with not enough detail." Hand-drawn rectangles were never going to be
+      anything else.
 
-      4,582 traced points down to 2,140, which is about half. Nick said the
-      tracing itself was "a bit too detailed", and half of it sits between
-      that and the rectangles.
+      The second was traced from somebody else's drawing of the board, which
+      looked right but came with a licence asking for credit and asking that
+      the result be shared on the same terms. Nick: "I don't want to have
+      license obligations... I provided the examples to you for inspiration
+      not direct copying." Fair, and a good map of the world is public
+      property anyway. That version is gone.
 
-      **Each shared BORDER is simplified once, not each shape twice.** That
-      was the whole difficulty. Simplifying two neighbours on their own
-      simplifies the border between them twice, differently, and the two no
-      longer meet: 17 overlaps, every one a sliver along a border. The
-      tracing already shares 875 of its points between shapes, so each
-      outline is cut into stretches between junctions, each stretch is
-      simplified ONCE, and the shapes are built again from those.
+      **The third is ours.** The coastlines come from Natural Earth, whose
+      own words are "No permission is needed to use Natural Earth.
+      Crediting the authors is unnecessary." The data sits in `tools/data`
+      so a build needs no internet.
 
-      **The tracing had twelve overlaps of its own**, measured at zero
-      simplification, so they were not something the tool did. Artwork is
-      drawn by eye. Two mends: corners that stray inside a neighbour are
-      pushed out to its edge, and where two outlines CROSS with no corner
-      inside either, a corner is put at the crossing first so there is
-      something to push.
+      **The coasts are real and the inland borders are ours.** Each place is
+      the land inside a straight-sided CELL we drew, cut out with
+      Sutherland-Hodgman clipping. So a coast wanders and a border between
+      two places runs in a line, which is how the world looks and how the
+      board looks. The cells are in `tools/world-cells.json` and they are
+      the whole of what a person designs.
 
-      What is left is eleven hairlines, at most 0.89 units deep on a board
-      736 across. Removing them entirely needs a proper polygon clipper,
-      which is a real piece of work for something nobody can see, so rule 9
-      now allows a stray of 2.5 units and says why. See spec 3.2.
+      Two cells sharing an edge give two places sharing it exactly. That is
+      what the traced version could never manage: it left eleven hairline
+      overlaps and forced rule 9 to be loosened. This one passes every rule
+      first time, with nothing loosened for its sake.
 
-      **The detail level was chosen by measuring, not by eye.** How badly
-      two neighbours can disagree about their border is set by how hard the
-      map is simplified: at 1.6 the worst is 2.11 units, which is close
-      enough to a real fault to be worth avoiding, and at 1.2 it is 0.89.
-      So 1.2.
+      The first run had eight overlaps, every one a pair of cells I had
+      drawn over each other. The guard named all eight and each was a line
+      to move. That is the difference between a fault in the DESIGN, which
+      is easy to fix, and a fault in traced artwork, which is not.
 
-      **Credit.** The outlines are traced from "Risk board" by Gr0gmint on
-      Wikimedia Commons, under CC BY-SA 3.0. That licence asks for credit
-      and asks that the result be shared on the same terms. The map file
-      says so and the new game screen says so with a link. **This is a
-      decision for Nick to confirm**: it means that one file is CC BY-SA,
-      and anybody may reuse it on the same terms. Drawing our own from
-      scratch is the alternative and would take a while to look as good.
+      42 places, 964 corners. `node tools/make-world-map.mjs` builds it.
+
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
       needs nothing installed, and is one link away. See spec 3.4.

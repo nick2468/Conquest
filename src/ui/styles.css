@@ -1097,3 +1097,13 @@ button.primary.ready:hover {
   font-size: 0.75rem;
   color: var(--ink-soft);
 }
+
+/* The light line between two places inside one region. Drawn once, as its
+ * own layer, so a coast never gets both this and the heavy region line. */
+.inside-border {
+  fill: none;
+  stroke: #2b2a26;
+  stroke-opacity: 0.45;
+  stroke-linecap: round;
+  pointer-events: none;
+}

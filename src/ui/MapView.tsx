@@ -1,4 +1,7 @@
+import { useMemo } from 'react'
+
 import type { GameState, TerritoryDefinition, TerritoryId } from '../engine'
+import { cornersOf as cornersOfShape, edgesBetween } from '../maps/shapes'
 import { EffectLayer } from './EffectLayer'
 import type { Effect } from './effects'
 import type { Highlights } from './taps'
@@ -150,6 +153,35 @@ export function MapView({
       .map((each) => each.shape)
       .join(' ')
 
+  /**
+   * Just the borders INSIDE a region, as one path.
+   *
+   * Nick: "don't double up borders where an inner border runs alongside a
+   * continent border, keep just the continent border." So the places
+   * themselves are drawn with no line at all, the heavy line around a
+   * region comes from the shape underneath, and the light line between two
+   * places in the same region comes from here. Each border is drawn once,
+   * by whichever layer owns it.
+   *
+   * Worked out once per map. It costs a moment and the map does not change
+   * while a game is played.
+   */
+  const insideBorders = useMemo(() => {
+    const paths: string[] = []
+
+    for (const region of map.regions) {
+      const shapes = map.territories
+        .filter((each) => each.regionId === region.id)
+        .map((each) => cornersOfShape(each.shape))
+
+      for (const [from, to] of edgesBetween(shapes)) {
+        paths.push(`M ${from[0]} ${from[1]} L ${to[0]} ${to[1]}`)
+      }
+    }
+
+    return paths.join(' ')
+  }, [map])
+
   return (
     <svg
       className="map"
@@ -218,7 +250,7 @@ export function MapView({
           // not through the middle of one.
           fill="none"
           stroke={region.outline}
-          strokeWidth={steady(7)}
+          strokeWidth={steady(4)}
           strokeLinejoin="round"
         />
       ))}
@@ -239,8 +271,12 @@ export function MapView({
             // A quiet line between two places in the same continent. The
             // heavy line belongs to the coast, drawn underneath, and two
             // heavy lines competing made the map look like a grid.
-            stroke={outlineOf(territory.regionId)}
-            strokeWidth={steady(role === 'idle' ? 1.2 : 3)}
+            // No line of its own. See insideBorders above: a border is
+            // drawn once, by whichever layer owns it. The dashes and the
+            // heavy outline of a place being chosen are highlights rather
+            // than borders, and those still come from here.
+            stroke={role === 'idle' ? 'none' : outlineOf(territory.regionId)}
+            strokeWidth={steady(role === 'idle' ? 0 : 3)}
             strokeLinejoin="round"
             role="button"
             tabIndex={canTap ? 0 : -1}
@@ -262,6 +298,13 @@ export function MapView({
           </path>
         )
       })}
+
+      {/* The light line between two places in the same region. */}
+      <path
+        className="inside-border"
+        d={insideBorders}
+        strokeWidth={steady(0.9)}
+      />
 
       {map.territories.map((territory) => {
         const armies = state.territories[territory.id]?.armies ?? 0
