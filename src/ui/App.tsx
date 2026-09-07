@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import type { GameAction, GameState, TerritoryId } from '../engine'
-import { GAME_NAME, armyLimitFor, legalActions } from '../engine'
+import type { GameAction, GameState, Skill, TerritoryId } from '../engine'
+import { GAME_NAME, armyLimitFor, legalActions, playerFor } from '../engine'
 import { ArmyChooser } from './ArmyChooser'
 import { CardsPanel } from './CardsPanel'
 import { GameLog } from './GameLog'
@@ -46,20 +46,68 @@ function thinnestPlacement(state: GameState): GameAction | null {
   )
 }
 
+/** How long a computer player appears to think, in milliseconds. */
+const MOVE_PAUSE = 450
+
+/** Nothing lit up. Used while a computer is moving. */
+const EMPTY_HIGHLIGHTS = {
+  canStart: new Set<TerritoryId>(),
+  canFinish: new Set<TerritoryId>(),
+}
+
 export function App() {
   const [setup, setSetup] = useState<GameSetup>(DEFAULT_SETUP)
   const [screen, setScreen] = useState<'newGame' | 'playing'>('newGame')
-  const { state, act, actUntilDone, newGame } = useGame(setup)
+  const { state, chooser, act, actUntilDone, newGame } = useGame(setup)
 
   const [selectedId, setSelectedId] = useState<TerritoryId | null>(null)
   const [pendingFortify, setPendingFortify] = useState<PendingFortify | null>(
     null,
   )
 
+  // Which computer player, if any, should be moving right now.
+  const whoseTurn = state.players.find(
+    (each) => each.id === state.turn.playerId,
+  )
+  const playing: Skill | null =
+    screen === 'playing' &&
+    state.winnerId === null &&
+    whoseTurn !== undefined &&
+    whoseTurn.kind !== 'human'
+      ? whoseTurn.kind
+      : null
+
   const forget = (): void => {
     setSelectedId(null)
     setPendingFortify(null)
   }
+
+  /**
+   * A computer player takes its turn.
+   *
+   * One move per tick, with a pause between, so a person can follow what is
+   * happening rather than watching a board change all at once. Each move
+   * changes the state, which runs this again, which is the loop.
+   *
+   * The dice source lives in useGame and carries its position, so the
+   * cleanup below matters: without it a paused game could roll dice nobody
+   * asked for.
+   */
+  const thinkingFor = playing ? MOVE_PAUSE : 0
+
+  useEffect(() => {
+    if (!playing) {
+      return
+    }
+
+    const timer = setTimeout(() => {
+      act(playerFor(playing).chooseAction(state, chooser))
+      setSelectedId(null)
+      setPendingFortify(null)
+    }, thinkingFor)
+
+    return () => clearTimeout(timer)
+  }, [playing, state, act, chooser, thinkingFor])
 
   const run = (action: GameAction): void => {
     act(action)
@@ -90,6 +138,7 @@ export function App() {
   const highlights = highlightsFor(state, selectedId)
   const occupation = state.turn.pendingOccupation
   const current = state.players.find((each) => each.id === state.turn.playerId)
+  const computer = current !== undefined && current.kind !== 'human'
 
   const handleTap = (territoryId: TerritoryId): void => {
     const result = whatATapDoes(state, selectedId, territoryId)
@@ -150,9 +199,9 @@ export function App() {
 
       <MapView
         state={state}
-        highlights={highlights}
-        selectedId={selectedId}
-        onTap={handleTap}
+        highlights={computer ? EMPTY_HIGHLIGHTS : highlights}
+        selectedId={computer ? null : selectedId}
+        onTap={computer ? () => undefined : handleTap}
       />
 
       <div className="side">
@@ -171,7 +220,7 @@ export function App() {
           />
         )}
 
-        {occupation === null ? null : (
+        {occupation === null || computer ? null : (
           <ArmyChooser
             title="Move in"
             detail={`You took ${nameOf(occupation.toId)}. How many armies move in from ${nameOf(occupation.fromId)}?`}
@@ -206,7 +255,7 @@ export function App() {
           />
         )}
 
-        {over || state.turn.phase === 'setup' ? null : (
+        {over || computer || state.turn.phase === 'setup' ? null : (
           <CardsPanel
             state={state}
             onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}

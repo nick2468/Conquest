@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA } from '../maps/australia'
 import { STARTING_ARMIES } from './balance'
-import { chooseSimpleAction } from './testing/simplePlayer'
+import { CAUTIOUS } from './players'
 import { scriptedDice } from './dice'
 import type { GameAction } from './game'
 import {
@@ -689,7 +689,7 @@ function playToTheEnd(
     map: AUSTRALIA,
     players: Array.from({ length: playerCount }, (_unused, index) => ({
       name: `Player ${index + 1}`,
-      kind: 'computer' as const,
+      kind: 'cautious' as const,
     })),
     random,
   })
@@ -697,7 +697,7 @@ function playToTheEnd(
   let steps = 0
 
   while (state.winnerId === null && steps < 40000) {
-    state = applyAction(state, chooseSimpleAction(state, choices), random)
+    state = applyAction(state, CAUTIOUS.chooseAction(state, choices), random)
     steps += 1
 
     checkNothingImpossible(state)

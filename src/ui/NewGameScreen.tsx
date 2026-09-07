@@ -1,12 +1,14 @@
 import { useState } from 'react'
 
-import type { GameOptions, NewPlayer } from '../engine'
+import type { GameOptions, NewPlayer, PlayerKind } from '../engine'
 import {
+  ALL_SKILLS,
   DEFAULT_OPTIONS,
   GAME_NAME,
   MAX_PLAYERS,
   MIN_PLAYERS,
   PLAYER_COLOURS,
+  playerFor,
 } from '../engine'
 
 export interface GameSetup {
@@ -64,6 +66,22 @@ export function NewGameScreen({
   const rename = (index: number, name: string): void => {
     setPlayers((current) =>
       current.map((player, at) => (at === index ? { ...player, name } : player)),
+    )
+  }
+
+  const rekind = (index: number, kind: PlayerKind): void => {
+    setPlayers((current) =>
+      current.map((player, at) =>
+        at === index
+          ? {
+              ...player,
+              kind,
+              // A player who was "Player 2" and becomes a computer takes the
+              // computer's name, so the table reads as who is playing.
+              name: nameFor(kind, at, player.name),
+            }
+          : player,
+      ),
     )
   }
 
@@ -131,6 +149,22 @@ export function NewGameScreen({
                   onChange={(event) => rename(index, event.target.value)}
                 />
 
+                <select
+                  className="player-kind"
+                  value={player.kind}
+                  aria-label={`Who plays as player ${index + 1}`}
+                  onChange={(event) =>
+                    rekind(index, event.target.value as PlayerKind)
+                  }
+                >
+                  <option value="human">A person</option>
+                  {ALL_SKILLS.map((skill) => (
+                    <option key={skill} value={skill}>
+                      {playerFor(skill).name}
+                    </option>
+                  ))}
+                </select>
+
                 <span className="colour-choices">
                   {PLAYER_COLOURS.map((colour) => (
                     <button
@@ -151,6 +185,19 @@ export function NewGameScreen({
               </li>
             ))}
           </ul>
+
+          {players.some((player) => player.kind !== 'human') ? (
+            <ul className="skill-notes">
+              {ALL_SKILLS.filter((skill) =>
+                players.some((player) => player.kind === skill),
+              ).map((skill) => (
+                <li key={skill}>
+                  <strong>{playerFor(skill).name}</strong>{' '}
+                  {playerFor(skill).describe}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           {clash ? (
             <p className="setup-warning">
@@ -251,4 +298,17 @@ export function NewGameScreen({
       </div>
     </main>
   )
+}
+
+/** The name a player gets when they change between a person and a computer. */
+function nameFor(kind: PlayerKind, index: number, current: string): string {
+  const wasDefault =
+    current === `Player ${index + 1}` ||
+    ALL_SKILLS.some((skill) => current === playerFor(skill).name)
+
+  if (!wasDefault) {
+    return current
+  }
+
+  return kind === 'human' ? `Player ${index + 1}` : playerFor(kind).name
 }

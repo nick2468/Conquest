@@ -6,6 +6,7 @@
  * before and the state from after and compare them.
  */
 import type { AttackOutcome } from './attack'
+import type { Skill } from './players/types'
 
 export type PlayerId = string
 export type TerritoryId = string
@@ -85,7 +86,13 @@ export interface DeckState {
 
 // ------------------------------------------------------------ the players
 
-export type PlayerKind = 'human' | 'computer'
+/**
+ * Who is playing. A person, or a computer player of a named skill.
+ *
+ * One field rather than two, so "a computer with no skill" and "a person
+ * with a skill" cannot be written down at all.
+ */
+export type PlayerKind = 'human' | Skill
 
 export interface Player {
   readonly id: PlayerId

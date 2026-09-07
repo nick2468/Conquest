@@ -576,6 +576,40 @@ See D16.
 
 ---
 
+## 11.4 Computer players
+
+**S20. A computer player is asked for ONE action and returns one, and it may
+only return something `legalActions` offered.** So it cannot cheat, because it
+never sees the rules. It sees only the list of what is allowed, the same list
+the screen greys out from. A test walks every position and checks this.
+
+Three of them, built as steps so the difference is visible:
+
+| Name | What it does |
+|---|---|
+| Reckless | Picks at random. The baseline everything else is measured against. |
+| Cautious | Attacks only when ahead. Reinforces its frontier, fortifies forward. |
+| Greedy | The same, but chooses attacks and placements by region value. |
+
+`PlayerKind` is `'human'` or one of the three, as ONE field. Two fields would
+allow "a computer with no skill" and "a person with a skill", neither of which
+means anything.
+
+**S21. Strength is measured, not asserted.** A tournament plays hundreds of
+games and reports the score. Measured 2026-09-07:
+
+| Match | 200 games |
+|---|---|
+| Greedy vs Reckless | 199 - 1 |
+| Cautious vs Reckless | 198 - 2 |
+| Greedy vs Cautious | 94 - 100 |
+
+Greedy is NOT stronger than Cautious, and the tests say so. An earlier
+40-game run read 21-19 the other way, which would have let a false claim
+through. How many games you play is part of what the test means.
+
+---
+
 ## 12. Numbers we will get wrong
 
 **S15. Every number that affects balance lives in one place.**

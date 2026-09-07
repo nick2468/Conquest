@@ -26,7 +26,16 @@ export interface NewGameSettings {
  */
 interface Holding {
   readonly state: GameState
+  /** Rolls the dice. */
   readonly random: RandomSource
+  /**
+   * Breaks ties for computer players.
+   *
+   * Separate from the dice on purpose. If a computer player drew from the
+   * same source, adding an opponent would change every roll in the game,
+   * and the same seed would stop meaning the same game.
+   */
+  readonly chooser: RandomSource
 }
 
 function deal(settings: NewGameSettings): Holding {
@@ -35,6 +44,7 @@ function deal(settings: NewGameSettings): Holding {
   // differ, which makes a board easy to set up again.
   const dealer = seededRandom(settings.seed)
   const random = seededRandom(settings.seed * 7919 + 13)
+  const chooser = seededRandom(settings.seed * 104729 + 5)
 
   return {
     state: createGame({
@@ -44,6 +54,7 @@ function deal(settings: NewGameSettings): Holding {
       options: settings.options,
     }),
     random,
+    chooser,
   }
 }
 
@@ -61,8 +72,8 @@ export function useGame(initial: NewGameSettings) {
   const act = useCallback(
     (action: GameAction) => {
       setHolding({
+        ...holding,
         state: applyAction(holding.state, action, holding.random),
-        random: holding.random,
       })
     },
     [holding],
@@ -94,7 +105,7 @@ export function useGame(initial: NewGameSettings) {
         state = applyAction(state, action, holding.random)
       }
 
-      setHolding({ state, random: holding.random })
+      setHolding({ ...holding, state })
     },
     [holding],
   )
@@ -103,5 +114,11 @@ export function useGame(initial: NewGameSettings) {
     setHolding(deal(settings))
   }, [])
 
-  return { state: holding.state, act, actUntilDone, newGame }
+  return {
+    state: holding.state,
+    chooser: holding.chooser,
+    act,
+    actUntilDone,
+    newGame,
+  }
 }

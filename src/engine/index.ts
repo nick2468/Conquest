@@ -81,6 +81,21 @@ export {
   legalActions,
 } from './game'
 
+export type { ComputerPlayer, Skill } from './players'
+export {
+  ALL_SKILLS,
+  CAUTIOUS,
+  GREEDY,
+  RECKLESS,
+  bonusForTaking,
+  frontierOf,
+  interiorOf,
+  ownedBy,
+  playerFor,
+  pressureOn,
+  regionHoldings,
+} from './players'
+
 export type { NewGame, NewPlayer } from './setup'
 export { DEFAULT_OPTIONS, createGame } from './setup'
 

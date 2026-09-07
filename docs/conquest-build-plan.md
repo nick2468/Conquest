@@ -147,9 +147,9 @@ with no screen and no real randomness.
 - [x] 2.4.4 Placing your first armies by hand, from spec section 14. Players
       alternate one army each, with a "place the rest for us" button for
       anyone who does not want a hundred taps.
-- [ ] 2.4.5 See the winner screen live. It needs a player good enough to
-      finish a game in a browser, which is phase 4. Its logic is tested; its
-      layout is not.
+- [x] 2.4.5 See the winner screen live. Done 2026-09-07 once phase 4 gave us
+      a player that finishes: Greedy beat Reckless in 7 rounds and 61 attacks,
+      on screen.
 
 **Done when:** Nick and James play a full game on the iPad, start to finish, and
 nothing on the screen disagrees with the rules.
@@ -205,15 +205,42 @@ the region bonuses or the card values are wrong, per spec S5. It is weak
 because a bad player makes any game run long. Judge the numbers against a
 player that is trying.
 
-- [ ] 4.1 The seam: a computer player is asked for one action and returns one,
-      chosen from `legalActions`
-- [ ] 4.2 **Reckless.** Picks at random from the legal actions. Terrible, and a
-      useful baseline.
-- [ ] 4.3 **Cautious.** Only attacks when it has more armies than the defender.
-- [ ] 4.4 **Greedy.** Prefers attacks that complete a region, and defends borders.
-- [ ] 4.5 Pick the opponent's skill on the new game screen
-- [ ] 4.6 A test that plays 100 games of Greedy against Reckless and checks
-      Greedy wins most of them
+- [x] 4.1 The seam: a computer player is asked for one action and returns one,
+      chosen from `legalActions`. A test walks every position and checks each
+      player only ever returns something the engine allowed, so a computer
+      player cannot cheat: it never sees the rules, only the list.
+- [x] 4.2 **Reckless.** Picks at random from the legal actions. Terrible, and a
+      useful baseline. Two Reckless players can wander past 30000 moves without
+      finishing, which is itself a fair measure of random play.
+- [x] 4.3 **Cautious.** Only attacks when it has more armies than the
+      defender. It also reinforces its frontier and fortifies forward, which
+      fixes two of the three faults Nick named.
+- [x] 4.4 **Greedy.** Prefers attacks that complete a region, and reinforces
+      where the enemy is thinnest. **It is NOT stronger than Cautious.** See
+      4.6.
+- [x] 4.5 Pick the opponent's skill on the new game screen. Every player can
+      be a person or any of the three, in any mixture.
+- [x] 4.6 A test that plays 100 games of Greedy against Reckless and checks
+      Greedy wins most of them. Measured 2026-09-07 over 200 games each:
+
+      | Match | Result |
+      |---|---|
+      | Greedy vs Reckless | 199 - 1 |
+      | Cautious vs Reckless | 198 - 2 |
+      | Greedy vs Cautious | 94 - 100, 6 unfinished |
+
+      **Greedy is a coin flip against Cautious**, so the test asserts they are
+      evenly matched rather than claiming a ranking that is not there. A
+      40-game run had come out 21-19 in Greedy's favour and would have let the
+      claim through. The number of games is part of the test.
+- [ ] 4.7 Make Greedy actually stronger, or drop it. Playing for the regions
+      was a good idea that did not pay. Needs a real idea, not a new weight,
+      and the tournament will say whether it worked.
+- [ ] 4.8 Two careful players deadlock. Greedy against Reckless ends inside 25
+      rounds; Greedy against Cautious has run to 1793 and sometimes never
+      ends. Neither player is at fault: the game gives them no reason to
+      break. Look at the balance numbers, spec S5, and at the rules left out
+      in spec section 14, especially taking a beaten player's cards.
 
 Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
@@ -273,8 +300,8 @@ something to play with while the interesting part gets built.
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
-| 2 - the screen | **In progress.** 2.1 to 2.4 done, bar 2.4.5. |
+| 2 - the screen | **COMPLETE** 2026-09-07, bar the 2.1.5 overlap guard. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
-| 4 - computer players | Not started |
+| 4 - computer players | **4.1 to 4.6 done.** 4.7 and 4.8 came out of them. |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |

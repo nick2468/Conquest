@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { GameState } from '../engine'
 import { applyAction, createGame, seededRandom } from '../engine'
-import { chooseSimpleAction } from '../engine/testing/simplePlayer'
+import { CAUTIOUS } from '../engine'
 import { AUSTRALIA } from '../maps/australia'
 import { armies, cards, territories } from './plurals'
 import { attacksIn, standingsIn } from './standings'
@@ -22,13 +22,13 @@ function finishedGame(seed: number, playerCount: number): GameState {
     map: AUSTRALIA,
     players: Array.from({ length: playerCount }, (_unused, index) => ({
       name: `Player ${index + 1}`,
-      kind: 'computer' as const,
+      kind: 'cautious' as const,
     })),
     random,
   })
 
   for (let step = 0; step < 40000 && state.winnerId === null; step += 1) {
-    state = applyAction(state, chooseSimpleAction(state, choices), random)
+    state = applyAction(state, CAUTIOUS.chooseAction(state, choices), random)
   }
 
   return state
