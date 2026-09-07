@@ -539,6 +539,11 @@ export function App() {
         lookingAt={view}
         effect={effect}
         moveNumber={moveNumber}
+        // Only when looking closely. On the whole map there is nowhere to
+        // go back to, and clearing the chosen place here would undo the
+        // fortify fix: a move from one side of the country to the other
+        // needs the choice to survive a trip out to the whole map.
+        onTapSea={view === null ? undefined : showWholeBoard}
       />
 
       <div className="side">

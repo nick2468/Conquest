@@ -1087,6 +1087,14 @@ button.primary.ready:hover {
 
 /* The soft band around every coast, drawn under the places. Its own colour
  * hardly shows: the places cover all of it but the edge. */
+/* The coast and the region lines are drawing, not targets. Taps go
+ * straight through them, so a tap that misses the land reaches the board
+ * itself and steps back out to the whole map. */
+.coast,
+.region-edge {
+  pointer-events: none;
+}
+
 .coast {
   fill: var(--sea);
 }

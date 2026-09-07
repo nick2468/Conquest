@@ -53,6 +53,15 @@ interface MapViewProps {
   readonly effect?: Effect | null
   /** Counts up once per move, so the same move twice animates twice. */
   readonly moveNumber?: number
+  /**
+   * Somebody tapped the sea rather than a place.
+   *
+   * Nick asked for this: stepping back out to the whole map should not
+   * need the button. Tapping past the edge of the land is what a person
+   * reaches for, and on an iPad it is a much bigger target than a button
+   * in the corner.
+   */
+  readonly onTapSea?: (() => void) | undefined
 }
 
 /**
@@ -86,6 +95,7 @@ export function MapView({
   smallTerritoryArea = 400,
   effect = null,
   moveNumber = 0,
+  onTapSea,
 }: MapViewProps) {
   const { map } = state
   const viewBox = viewBoxFor(map, lookingAt)
@@ -188,6 +198,15 @@ export function MapView({
       viewBox={viewBox}
       role="group"
       aria-label={`The ${map.name} board`}
+      onPointerDown={(event) => {
+        // Only when the tap landed on the board itself. A tap on a place
+        // reaches this too, on its way up, and that one is not the sea.
+        // Everything drawn between, the coast and the region lines, is set
+        // to ignore taps so it cannot get in the way.
+        if (event.target === event.currentTarget) {
+          onTapSea?.()
+        }
+      }}
     >
       <defs>
         {/*
@@ -323,24 +342,24 @@ export function MapView({
                 x2={middleOf(territory).x}
                 y2={middleOf(territory).y}
                 className="territory-leader"
-                strokeWidth={steady(2)}
+                strokeWidth={steady(1.5)}
               />
             ) : null}
 
             <circle
               cx={territory.labelAt.x}
               cy={territory.labelAt.y}
-              r={steady(15)}
+              r={steady(11)}
               fill={fill}
               stroke="#2b2a26"
-              strokeWidth={steady(2)}
+              strokeWidth={steady(1.5)}
             />
             <text
               x={territory.labelAt.x}
               y={territory.labelAt.y}
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize={steady(16)}
+              fontSize={steady(12.5)}
               fontWeight={700}
               fill={readableOn(fill)}
             >
@@ -349,9 +368,9 @@ export function MapView({
             <text
               className="territory-name"
               x={territory.labelAt.x}
-              y={territory.labelAt.y + steady(30)}
+              y={territory.labelAt.y + steady(23)}
               textAnchor="middle"
-              fontSize={steady(closeUp ? 17 : 15)}
+              fontSize={steady(closeUp ? 15 : 13)}
             >
               {closeUp ? territory.name : territory.shortName}
             </text>

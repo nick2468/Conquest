@@ -811,6 +811,21 @@ runs in a place that has none of those things, with not one line changed.
 
 ---
 
+**S47. Tapping the sea steps back out to the whole map.**
+
+Nick asked for it, and the reason is the size of the target. The "Whole
+map" button is a small thing in a corner. The sea is most of the screen,
+and on an iPad the difference matters.
+
+Only when looking closely. On the whole map a tap on the sea does nothing
+at all, and that is deliberate: clearing the chosen place there would undo
+the fortify fix, where a move across the country needs the choice to
+survive a trip out to the whole map.
+
+For a tap to reach the board, everything drawn over the sea has to ignore
+taps: the coast, the region lines, the borders inside a region and the
+army counts are all drawing rather than targets.
+
 **S45. Every border is drawn ONCE, by whichever layer owns it.**
 
 Nick asked for "thick fuzzy edges around the continents". The three layers
