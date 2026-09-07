@@ -7,6 +7,13 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "C:/Users/nick2/code/Conquest", "run", "dev"],
       "port": 5180
+    },
+    {
+      "//": "Serves the BUILT files, with the service worker. `npm run dev` never has one, so this is the only way to test that the game opens with no internet.",
+      "name": "conquest-preview",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/Users/nick2/code/Conquest", "run", "preview"],
+      "port": 5181
     }
   ]
 }

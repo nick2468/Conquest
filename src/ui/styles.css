@@ -48,7 +48,14 @@ body {
   gap: 1rem;
   align-content: start;
   min-height: 100dvh;
-  padding: 1rem;
+  /*
+   * Full screen on an iPad means the page runs under the rounded corners and
+   * the home indicator. The safe-area insets keep the board clear of both.
+   */
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
 }
 
 /* A wide screen puts the panel beside the map. A tall one stacks them. */

@@ -160,12 +160,15 @@ nothing on the screen disagrees with the rules.
 
 **Goal: a tap on the iPad Home Screen opens Conquest, with no internet.**
 
-- [ ] 3.1 An app icon
-- [ ] 3.2 The manifest: name, icon, full screen
-- [ ] 3.3 A service worker that stores the game for offline use
-- [ ] 3.4 Publish to Cloudflare Pages
-- [ ] 3.5 Point `conquest.datacrafter.net` at it
-- [ ] 3.6 Add it to the iPad Home Screen and play a game with Wi-Fi turned off
+- [x] 3.1 An app icon, drawn from the real map file by
+      `tools/make-icons.mjs`, so it can never drift away from the board
+- [x] 3.2 The manifest: name, icon, full screen
+- [x] 3.3 A service worker that stores the game for offline use. Proven by
+      serving the built game, STOPPING the server, and playing a turn.
+- [ ] 3.4 Publish to Cloudflare Pages. Needs Nick. See `conquest-deploy.md`.
+- [ ] 3.5 Point `conquest.datacrafter.net` at it. Needs Nick.
+- [ ] 3.6 Add it to the iPad Home Screen and play a game with Wi-Fi turned
+      off. Needs Nick and the iPad. This is the task that decides the phase.
 
 **Done when:** the iPad is in aeroplane mode and a full game still plays.
 
@@ -267,7 +270,7 @@ something to play with while the interesting part gets built.
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
 | 2 - the screen | **In progress.** 2.1 to 2.4 done, bar 2.4.5. |
-| 3 - the Home Screen app | Not started |
+| 3 - the Home Screen app | **3.1 to 3.3 done.** 3.4 to 3.6 need Nick. |
 | 4 - computer players | Not started |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |

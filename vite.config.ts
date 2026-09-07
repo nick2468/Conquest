@@ -1,8 +1,55 @@
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+
+    // What turns the page into something you add to the Home Screen. It
+    // writes the manifest and a service worker that stores the whole game,
+    // so it opens with no internet at all. See the design brief.
+    VitePWA({
+      // 'prompt', NOT 'autoUpdate'. An automatic update reloads the page the
+      // moment a new version arrives, and a game part way through is only
+      // held in memory. See spec section 14: saving a game is not built yet.
+      // Waiting means a new version starts the next time the app is opened
+      // fresh, which cannot lose anybody's game.
+      registerType: 'prompt',
+      injectRegister: 'auto',
+      includeAssets: ['apple-touch-icon.png', 'favicon-32.png', 'icon.svg'],
+
+      manifest: {
+        name: 'Conquest',
+        short_name: 'Conquest',
+        description: 'A turn-based territory game set in Australia.',
+        start_url: '/',
+        scope: '/',
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#f6f4ef',
+        theme_color: '#1f3348',
+        icons: [
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: 'icon-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
+
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
+      },
+
+      // No service worker while developing. A cached old build during
+      // development wastes hours and teaches nothing.
+      devOptions: { enabled: false },
+    }),
+  ],
 
   server: {
     // 5173 belongs to dc.web on this machine. Conquest uses 5180.

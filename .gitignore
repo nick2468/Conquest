@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 .vite/
+# The service worker built for development. devOptions is off, so this
+# should never appear, but it costs nothing to keep it out of the repo.
+dev-dist/
 
 # Editor settings. Two files ARE committed, so that anyone opening the folder
 # gets the same extensions and the same formatting.
