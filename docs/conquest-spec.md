@@ -219,7 +219,42 @@ looking at, so a map of your own starts as the map we ship with one thing
 changed. That is also the only place the format needs explaining, because
 you are looking at it.
 
-### 3.4 The Australia map, phase 1
+### 3.4 The map editor
+
+A second page beside the game, at `/editor.html`. See plan task 5.9.
+
+**S34. The editor ships WITH the game, not somewhere else.** It is a second
+page in the same build, so it works with no internet, needs nothing
+installed, and is one link away from the game it makes maps for. It is
+cached by the same service worker.
+
+**S35. A map never starts from a blank page.** It starts as one of the two
+maps we ship, or as a file you already have. A blank page is where a project
+like this dies, and there is nowhere to learn the shape of a file from.
+
+**S36. A corner dropped near another one snaps onto it exactly.** This is
+the most useful thing the editor does. Two places that share a border have
+to share the exact same corners, or the border comes out with a sliver of
+no-man's land or a sliver of overlap along it. Nobody can click the same
+point twice by hand, so the editor does it for them.
+
+**S37. The editor shows the same faults the game would, beside the drawing
+rather than after it.** It runs `validateMap` on every change. A fault
+appears the moment it is made, next to the thing that made it.
+
+**S38. Opening a file in the editor does NOT check the rules of a map.** A
+map with an overlap in it is exactly the map somebody wants to open in an
+editor. Refusing it would send them back to a text editor to fix the very
+thing the editor exists for. The faults are shown beside the drawing
+instead.
+
+**Borders can be worked out from the shapes, but only added, never taken
+away.** Where two shapes run along one another, the border is there to be
+read, and a border typed on one side and forgotten on the other is the
+mistake people make most. A border with no shared edge is NOT a mistake:
+Melbourne to Launceston crosses Bass Strait and no shape can tell you that.
+
+### 3.5 The Australia map, phase 1
 
 Ten territories in four regions. Agreed 2026-09-06.
 

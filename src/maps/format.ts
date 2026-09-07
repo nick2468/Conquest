@@ -66,60 +66,131 @@ function whatItIs(value: unknown): string {
   return typeof value
 }
 
-// ------------------------------------------------------------- writing out
+// --------------------------------------------------- the shape of a file
 
-interface PlaceOut {
+/**
+ * One place, as a file holds it.
+ *
+ * Corners, not a drawn path. See spec S32. The map editor works on this
+ * rather than on a `GameMap`, because corners are the thing you can take
+ * hold of and move.
+ */
+export interface DraftPlace {
   readonly id: string
   readonly name: string
   readonly shortName: string
   readonly region: string
   readonly borders: readonly string[]
-  readonly corners: ReadonlyArray<readonly [number, number]>
-  readonly labelAt: readonly [number, number]
+  readonly corners: readonly Corner[]
+  readonly labelAt: Corner
   readonly isIsland?: boolean
   readonly drawnOver?: string
 }
 
-/**
- * Write a map out as a file.
- *
- * Used by the "save this map" button, so a player can take the map we
- * ship, change something in it, and load it back. That is a far better
- * starting point than a blank page, and it is the same thing the map
- * editor of task 5.9 will write.
- */
-export function writeMap(map: GameMap): string {
-  const places: PlaceOut[] = map.territories.map((territory) => ({
-    id: territory.id,
-    name: territory.name,
-    shortName: territory.shortName,
-    region: territory.regionId,
-    borders: [...territory.borders],
-    corners: cornersOf(territory.shape).map(([x, y]) => [x, y] as const),
-    labelAt: [territory.labelAt.x, territory.labelAt.y] as const,
-    ...(territory.isIsland === true ? { isIsland: true } : {}),
-    ...(territory.drawnOver === undefined
-      ? {}
-      : { drawnOver: territory.drawnOver }),
-  }))
+/** A whole map, as a file holds it. */
+export interface MapDraft {
+  readonly id: string
+  readonly name: string
+  readonly viewBox: string
+  readonly regions: readonly RegionDefinition[]
+  readonly places: readonly DraftPlace[]
+}
 
+/** A map, turned back into the corners a file holds and an editor moves. */
+export function toDraft(map: GameMap): MapDraft {
+  return {
+    id: map.id,
+    name: map.name,
+    viewBox: map.viewBox,
+    regions: map.regions.map((region) => ({ ...region })),
+    places: map.territories.map((territory) => ({
+      id: territory.id,
+      name: territory.name,
+      shortName: territory.shortName,
+      region: territory.regionId,
+      borders: [...territory.borders],
+      corners: cornersOf(territory.shape),
+      labelAt: [territory.labelAt.x, territory.labelAt.y] as Corner,
+      ...(territory.isIsland === true ? { isIsland: true } : {}),
+      ...(territory.drawnOver === undefined
+        ? {}
+        : { drawnOver: territory.drawnOver }),
+    })),
+  }
+}
+
+/**
+ * A draft, turned into a map the game can draw and check.
+ *
+ * Nothing is checked here. The editor draws a half-finished map all the
+ * time, and says what is wrong with it beside the drawing rather than
+ * refusing to show it.
+ */
+export function fromDraft(draft: MapDraft): GameMap {
+  return {
+    id: draft.id,
+    name: draft.name,
+    viewBox: draft.viewBox,
+    regions: draft.regions.map((region) => ({ ...region })),
+    territories: draft.places.map((place) => ({
+      id: place.id,
+      name: place.name,
+      shortName: place.shortName,
+      regionId: place.region,
+      borders: [...place.borders],
+      shape: pathFrom(place.corners),
+      labelAt: { x: place.labelAt[0], y: place.labelAt[1] },
+      ...(place.isIsland === true ? { isIsland: true } : {}),
+      ...(place.drawnOver === undefined ? {} : { drawnOver: place.drawnOver }),
+    })),
+  }
+}
+
+// ------------------------------------------------------------- writing out
+
+/** Write a draft out as a file. */
+export function writeDraft(draft: MapDraft): string {
   return `${JSON.stringify(
     {
       conquestMap: MAP_FORMAT,
-      id: map.id,
-      name: map.name,
-      viewBox: map.viewBox,
-      regions: map.regions.map((region) => ({
+      id: draft.id,
+      name: draft.name,
+      viewBox: draft.viewBox,
+      regions: draft.regions.map((region) => ({
         id: region.id,
         name: region.name,
         bonus: region.bonus,
         outline: region.outline,
       })),
-      places,
+      places: draft.places.map((place) => ({
+        id: place.id,
+        name: place.name,
+        shortName: place.shortName,
+        region: place.region,
+        borders: [...place.borders],
+        corners: place.corners.map(([x, y]) => [x, y]),
+        labelAt: [place.labelAt[0], place.labelAt[1]],
+        ...(place.isIsland === true ? { isIsland: true } : {}),
+        ...(place.drawnOver === undefined
+          ? {}
+          : { drawnOver: place.drawnOver }),
+      })),
     },
     null,
     2,
-  )}\n`
+  )}
+`
+}
+
+/**
+ * Write a map out as a file.
+ *
+ * Used by the "save this map" button, so a player can take the map we ship,
+ * change something in it, and load it back. That is a far better starting
+ * point than a blank page.
+ */
+export function writeMap(map: GameMap): string {
+  return writeDraft(toDraft(map))
 }
 
 // -------------------------------------------------------------- reading in
@@ -338,7 +409,22 @@ function readPlace(value: unknown, at: number, problems: MapProblem[]) {
  * both, and never a half-built map: a map that is only partly right would
  * fail later, somewhere far away from the mistake.
  */
-export function readMap(text: string): MapRead {
+export function readMap(
+  text: string,
+  options: {
+    /**
+     * Check the ten rules of a map, as well as the file itself.
+     *
+     * The map editor turns this OFF. A map with an overlap in it is exactly
+     * the map somebody wants to open in an editor, and refusing to open it
+     * would send them back to a text editor to fix the very thing the
+     * editor exists for. The editor shows the same faults beside the
+     * drawing instead.
+     */
+    readonly checkRules?: boolean
+  } = {},
+): MapRead {
+  const checkRules = options.checkRules ?? true
   const problems: MapProblem[] = []
 
   if (text.length > MOST_TEXT) {
@@ -499,7 +585,7 @@ export function readMap(text: string): MapRead {
   //
   // Both lists together, on purpose. A person writing a map wants to see
   // everything that is wrong with it, not one thing per attempt.
-  const broken = [...problems, ...validateMap(map)]
+  const broken = checkRules ? [...problems, ...validateMap(map)] : problems
 
   return broken.length > 0 ? { problems: broken } : { map }
 }

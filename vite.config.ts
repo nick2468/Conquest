@@ -54,6 +54,18 @@ export default defineConfig({
     }),
   ],
 
+  build: {
+    rollupOptions: {
+      // Two pages: the game, and the map editor beside it. The editor ships
+      // with the game rather than living somewhere else, so it works with
+      // no internet and is one link away. See plan task 5.9.
+      input: {
+        game: 'index.html',
+        editor: 'editor.html',
+      },
+    },
+  },
+
   server: {
     // 5173 belongs to dc.web on this machine. Conquest uses 5180.
     // strictPort makes a clash fail loudly instead of quietly moving to

@@ -1,0 +1,249 @@
+/*
+ * The map editor. Plan task 5.9.
+ *
+ * It borrows the game's colours and buttons from styles.css, so the two
+ * look like one thing rather than two.
+ */
+
+.editor-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 1rem;
+  height: 100vh;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.editor-header {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editor-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.editor-map {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+  touch-action: none;
+}
+
+.editor-sea {
+  fill: var(--sea);
+}
+
+.editor-place {
+  stroke: #2b2a26;
+  cursor: pointer;
+}
+
+.editor-place:hover {
+  filter: brightness(1.08);
+}
+
+.editor-chosen {
+  stroke: #1d1c19;
+}
+
+.editor-name {
+  fill: var(--label);
+  pointer-events: none;
+  font-weight: 600;
+}
+
+/* A corner you can take hold of. */
+.editor-corner {
+  fill: #ffffff;
+  stroke: #1d1c19;
+  cursor: grab;
+}
+
+.editor-corner-chosen {
+  fill: #e3b62c;
+}
+
+/* Halfway along a side: press it to put a corner there. */
+.editor-add {
+  fill: #ffffff;
+  fill-opacity: 0.5;
+  stroke: #5d594f;
+  stroke-dasharray: 3 3;
+  cursor: copy;
+}
+
+.editor-add:hover {
+  fill-opacity: 1;
+}
+
+.editor-label rect {
+  fill: #ffffff;
+  stroke: #3a6ea8;
+  cursor: grab;
+}
+
+.editor-label line {
+  stroke: #3a6ea8;
+  stroke-dasharray: 4 4;
+}
+
+.editor-side {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.editor-side section {
+  padding: 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+}
+
+.editor-side h2 {
+  margin: 0 0 0.7rem;
+  font-size: 0.95rem;
+}
+
+.editor-side h3 {
+  margin: 0.9rem 0 0.4rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+}
+
+.editor-field {
+  display: block;
+  margin-bottom: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.editor-field input,
+.editor-field select {
+  display: block;
+  width: 100%;
+  margin-top: 0.2rem;
+  box-sizing: border-box;
+}
+
+.editor-tick {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.editor-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.6rem 0;
+}
+
+.editor-hint,
+.editor-note,
+.editor-good {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.editor-good {
+  color: #2f8f5e;
+  font-weight: 600;
+}
+
+.editor-borders {
+  max-height: 14rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  list-style: none;
+  border: 1px solid var(--edge);
+  border-radius: 6px;
+}
+
+.editor-regions {
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.editor-regions li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 3.5rem 2.5rem auto;
+  gap: 0.35rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.editor-count {
+  display: inline-block;
+  min-width: 1.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: var(--edge);
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.editor-faults,
+.editor-faults-list {
+  font-size: 0.8rem;
+}
+
+.editor-faults {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #c8453b;
+  border-radius: 6px;
+  background: #fdf3f2;
+}
+
+.editor-faults ul,
+.editor-faults-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.editor-faults-list li {
+  margin-bottom: 0.4rem;
+}
+
+/* One column on a narrow screen, so it still works on an iPad held tall. */
+@media (max-width: 60rem) {
+  .editor-page {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .editor-map {
+    height: 60vh;
+  }
+
+  .editor-side {
+    overflow: visible;
+  }
+}

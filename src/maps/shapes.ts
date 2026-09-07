@@ -241,6 +241,65 @@ export function overlapBetween(
   return partInside(one, two) ?? partInside(two, one)
 }
 
+/**
+ * How far these two outlines run along one another.
+ *
+ * Zero means they do not share a border. Anything else is the length of the
+ * longest stretch where they touch.
+ *
+ * The map editor uses it to work borders out from the shapes, which is the
+ * job people get wrong most often: a border typed on one side and forgotten
+ * on the other. It cannot find them all. Melbourne to Launceston crosses
+ * Bass Strait and the two shapes never touch, so a sea crossing stays
+ * something a person says.
+ */
+export function touchingLength(
+  one: readonly Corner[],
+  two: readonly Corner[],
+): number {
+  let most = 0
+
+  for (const edge of edgesOf(one)) {
+    for (const other of edgesOf(two)) {
+      most = Math.max(most, sharedLength(edge, other))
+    }
+  }
+
+  return most
+}
+
+/** How much of one edge lies along another, when the two are in line. */
+function sharedLength(
+  one: readonly [Corner, Corner],
+  two: readonly [Corner, Corner],
+): number {
+  const [from, to] = one
+
+  // Not in line, so they cross at a point at most, which has no length.
+  if (
+    distanceToEdge(two[0], from, to) > TOUCHING ||
+    distanceToEdge(two[1], from, to) > TOUCHING
+  ) {
+    return 0
+  }
+
+  const alongX = to[0] - from[0]
+  const alongY = to[1] - from[1]
+  const length = Math.hypot(alongX, alongY)
+
+  if (length === 0) {
+    return 0
+  }
+
+  const howFar = (point: Corner): number =>
+    ((point[0] - from[0]) * alongX + (point[1] - from[1]) * alongY) / length
+
+  const starts = Math.max(0, Math.min(howFar(two[0]), howFar(two[1])))
+  const ends = Math.min(length, Math.max(howFar(two[0]), howFar(two[1])))
+
+  return Math.max(0, ends - starts)
+}
+
 /** Roughly how much ground a shape covers, for comparing two of them. */
 export function roomTakenBy(corners: readonly Corner[]): number {
   if (corners.length < 3) {

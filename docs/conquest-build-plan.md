@@ -560,7 +560,38 @@ be. A bigger Australia is what makes strategy mean anything.
       back, and played it. The board said "James's Australia" and the place
       said "Hobart Town".
 - [ ] 5.8 A second map, to prove the first one was not a special case
-- [ ] 5.9 A map editor tool, in its own folder
+- [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
+      page at `/editor.html`. It ships WITH the game, so it works offline,
+      needs nothing installed, and is one link away. See spec 3.4.
+
+      What it does: start from either map we ship or from a file, drag
+      corners, add and remove corners, move where the army count sits, add
+      and delete places, edit regions, tick borders both ways at once, work
+      land borders out from the shapes, undo, save to a file, and send a map
+      straight to the game.
+
+      **A corner dropped near another snaps onto it exactly.** That is the
+      most useful thing in it. Two places that share a border must share the
+      same corners, nobody can click the same point twice by hand, so the
+      editor does it for them.
+
+      **It never starts from a blank page**, and opening a file does NOT
+      check the rules, because a map with an overlap in it is exactly the
+      map somebody wants to open in an editor.
+
+      **It found a real fault in the map we ship.** Eyre Peninsula and The
+      Riverland share 28 units of edge at x=543, and neither names the other
+      as a border. The picture says you can walk across South Australia
+      there and the rules say you cannot. **Left as it is, because adding
+      the border opens a new route and changes the game. It is Nick's
+      call.**
+
+      Driven live: selected a place and got its seven corners, dragged one
+      into the neighbour and watched the overlap fault appear naming the
+      exact point, undid it, worked out borders and got the Eyre finding,
+      added a place and got the honest "nothing can reach it" fault, then
+      sent the map to the game and confirmed the game's own reader accepts
+      what the editor wrote.
 
 Numbered from 5.5 on purpose. Tasks 5.0 to 5.4 were done first and took
 those numbers, and `australia-big.ts` names task 5.0 in its own comments.
@@ -722,6 +753,6 @@ something to play with while the interesting part gets built.
 | 2 - the screen | **COMPLETE** 2026-09-07, both guards included. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
-| 5 - maps of your own | 5.0 to 5.7 done 2026-09-07. 5.8 and 5.9 left. |
+| 5 - maps of your own | **All but 5.8 done** 2026-09-07. A second map is left. |
 | 6 - separate devices | Not started |
 | 7 - things you can see and hear | **Built** 2026-09-07, bar 7.10 on the iPad, which is Nick's. |
