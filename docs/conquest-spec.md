@@ -871,12 +871,28 @@ The coastlines come from Natural Earth, whose own words are "No permission
 is needed to use Natural Earth. Crediting the authors is unnecessary." The
 game says where they came from because it is true, not because it must.
 
-**The coasts are real and the inland borders are ours.** Each place is the
-land inside a straight-sided CELL we drew, cut out by Sutherland-Hodgman
-clipping. So a coast wanders and a border between two places runs in a
-line, which is how the world looks and how the classic board looks. Two
-cells sharing an edge give two places sharing it exactly, which is what
-saves this map from the slivers the traced one could never lose.
+**Every border is a real border.** Nick, on the version before this one:
+"the inner borders have too many straight lines, I'd like the maps to be
+more impressive and realistic." Cutting real coasts with straight cells of
+our own fixed the coast and left every inland border dead straight.
+
+Each place is now a group of real COUNTRIES, joined together. The line
+between Peru and Brazil in the game is the line between Peru and Brazil in
+the world. Where a place is only part of one country, such as either half
+of the United States, it is a group of that country's real provinces
+instead, and which side of the split each province falls on is a rule
+rather than a list of eighty-five names.
+
+**Joining works because the data shares its edges.** Where two countries
+meet, both hold the same line, one running each way. So the join is: throw
+away every edge whose reverse is also in the group, because that is a
+border inside it, and stitch what is left into a ring. Half the edges in
+the file have their reverse present, which is exactly the half that is a
+land border.
+
+Two places sharing a border then share it exactly, which is what saves this
+map from the slivers a traced one could never lose. It passes all ten rules
+of section 3.2 with nothing loosened for it.
 
 **S30. The game says when a set is waiting to be traded.**
 

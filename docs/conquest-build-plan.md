@@ -626,7 +626,39 @@ be. A bigger Australia is what makes strategy mean anything.
       to move. That is the difference between a fault in the DESIGN, which
       is easy to fix, and a fault in traced artwork, which is not.
 
-      42 places, 964 corners. `node tools/make-world-map.mjs` builds it.
+      **REDRAWN A FOURTH TIME.** Nick: "the inner borders have too many
+      straight lines, I'd like the maps to be more impressive and
+      realistic." Cells of our own fixed the coast and left every inland
+      border dead straight, which is the one thing they could never fix.
+
+      Each place is now a group of real COUNTRIES, joined together, so the
+      line between Peru and Brazil in the game is the line between Peru and
+      Brazil in the world. Where a place is only part of one country, such
+      as either half of the United States, it is a group of that country's
+      real provinces. Which side of a split each province falls on is a
+      RULE, not a list: Russia has eighty-five of them and nobody should
+      type those out.
+
+      **The join works because the data shares its edges.** Where two
+      countries meet, both hold the same line, one running each way. Throw
+      away every edge whose reverse is also in the group, because that is a
+      border inside it, and stitch what is left. Half the edges in the file
+      have their reverse present, which is exactly the half that is a land
+      border.
+
+      Joined straight from the data the map came to 18,511 corners, which
+      is more than the game can redraw and far more than an eye can see.
+      Simplified to 2,065, with each shared border simplified ONCE so the
+      two sides stay together.
+
+      42 places, 2,065 corners, and it passes all ten rules first time with
+      nothing loosened for it. `node tools/make-world-map.mjs` builds it.
+
+      **Known and left:** a place made of several islands keeps only its
+      biggest. Indonesia is one island rather than many, Japan is Honshu,
+      Great Britain has no Ireland. Fixing it means letting one place be
+      several shapes, which the map format and three of the guards would
+      all have to learn.
 
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,

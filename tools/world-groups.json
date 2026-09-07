@@ -37,6 +37,110 @@
    "outline": "#2f7f8f"
   }
  ],
+ "provinceRules": {
+  "United States of America": [
+   {
+    "named": [
+     "Alaska"
+    ],
+    "place": "alaska"
+   },
+   {
+    "named": [
+     "Hawaii"
+    ],
+    "place": "(nowhere)"
+   },
+   {
+    "westOf": -95,
+    "place": "westernUnitedStates"
+   },
+   {
+    "eastOf": -95,
+    "place": "easternUnitedStates"
+   }
+  ],
+  "Canada": [
+   {
+    "named": [
+     "Yukon",
+     "Northwest Territories",
+     "Nunavut"
+    ],
+    "place": "northwestTerritory"
+   },
+   {
+    "named": [
+     "British Columbia",
+     "Alberta",
+     "Saskatchewan"
+    ],
+    "place": "alberta"
+   },
+   {
+    "named": [
+     "Manitoba",
+     "Ontario"
+    ],
+    "place": "ontario"
+   },
+   {
+    "named": [
+     "Québec",
+     "Newfoundland and Labrador",
+     "New Brunswick",
+     "Nova Scotia",
+     "Prince Edward Island"
+    ],
+    "place": "quebec"
+   }
+  ],
+  "Australia": [
+   {
+    "named": [
+     "Western Australia",
+     "Northern Territory",
+     "South Australia"
+    ],
+    "place": "westernAustralia"
+   },
+   {
+    "named": [
+     "Queensland",
+     "New South Wales",
+     "Victoria",
+     "Tasmania",
+     "Australian Capital Territory",
+     "Jervis Bay Territory"
+    ],
+    "place": "easternAustralia"
+   }
+  ],
+  "Russia": [
+   {
+    "westOf": 75,
+    "place": "ural"
+   },
+   {
+    "westOf": 105,
+    "place": "siberia"
+   },
+   {
+    "eastOf": 105,
+    "northOf": 60,
+    "place": "yakutsk"
+   },
+   {
+    "eastOf": 105,
+    "westOf": 130,
+    "place": "irkutsk"
+   },
+   {
+    "eastOf": 130,
+    "place": "kamchatka"
+   }
+  ]
+ },
  "places": [
   {
    "id": "alaska",
@@ -47,24 +151,6 @@
     "northwestTerritory",
     "alberta",
     "kamchatka"
-   ],
-   "cell": [
-    [
-     -180,
-     90
-    ],
-    [
-     -141,
-     90
-    ],
-    [
-     -141,
-     50
-    ],
-    [
-     -180,
-     50
-    ]
    ]
   },
   {
@@ -77,24 +163,6 @@
     "alberta",
     "ontario",
     "greenland"
-   ],
-   "cell": [
-    [
-     -141,
-     90
-    ],
-    [
-     -102,
-     90
-    ],
-    [
-     -102,
-     60
-    ],
-    [
-     -141,
-     60
-    ]
    ]
   },
   {
@@ -109,27 +177,8 @@
     "iceland"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     -58,
-     84
-    ],
-    [
-     -8,
-     84
-    ],
-    [
-     -8,
-     58
-    ],
-    [
-     -46,
-     58
-    ],
-    [
-     -58,
-     70
-    ]
+   "countries": [
+    "Greenland"
    ]
   },
   {
@@ -142,24 +191,6 @@
     "northwestTerritory",
     "ontario",
     "westernUnitedStates"
-   ],
-   "cell": [
-    [
-     -141,
-     60
-    ],
-    [
-     -102,
-     60
-    ],
-    [
-     -102,
-     47
-    ],
-    [
-     -141,
-     47
-    ]
    ]
   },
   {
@@ -174,24 +205,6 @@
     "quebec",
     "westernUnitedStates",
     "easternUnitedStates"
-   ],
-   "cell": [
-    [
-     -102,
-     90
-    ],
-    [
-     -79,
-     90
-    ],
-    [
-     -79,
-     47
-    ],
-    [
-     -102,
-     47
-    ]
    ]
   },
   {
@@ -203,24 +216,6 @@
     "greenland",
     "ontario",
     "easternUnitedStates"
-   ],
-   "cell": [
-    [
-     -79,
-     90
-    ],
-    [
-     -58,
-     90
-    ],
-    [
-     -58,
-     47
-    ],
-    [
-     -79,
-     47
-    ]
    ]
   },
   {
@@ -233,24 +228,6 @@
     "ontario",
     "easternUnitedStates",
     "centralAmerica"
-   ],
-   "cell": [
-    [
-     -141,
-     47
-    ],
-    [
-     -102,
-     47
-    ],
-    [
-     -102,
-     27.8
-    ],
-    [
-     -141,
-     33
-    ]
    ]
   },
   {
@@ -263,28 +240,6 @@
     "quebec",
     "westernUnitedStates",
     "centralAmerica"
-   ],
-   "cell": [
-    [
-     -102,
-     47
-    ],
-    [
-     -40,
-     47
-    ],
-    [
-     -40,
-     22
-    ],
-    [
-     -58,
-     22
-    ],
-    [
-     -102,
-     27.8
-    ]
    ]
   },
   {
@@ -297,27 +252,21 @@
     "easternUnitedStates",
     "venezuela"
    ],
-   "cell": [
-    [
-     -141,
-     33
-    ],
-    [
-     -58,
-     22
-    ],
-    [
-     -58,
-     15
-    ],
-    [
-     -84,
-     7
-    ],
-    [
-     -141,
-     7
-    ]
+   "countries": [
+    "Mexico",
+    "Guatemala",
+    "Belize",
+    "Honduras",
+    "El Salvador",
+    "Nicaragua",
+    "Costa Rica",
+    "Panama",
+    "Cuba",
+    "Jamaica",
+    "Haiti",
+    "Dominican Rep.",
+    "Bahamas",
+    "Puerto Rico"
    ]
   },
   {
@@ -330,27 +279,12 @@
     "brazil",
     "peru"
    ],
-   "cell": [
-    [
-     -84,
-     7
-    ],
-    [
-     -58,
-     15
-    ],
-    [
-     -34,
-     15
-    ],
-    [
-     -34,
-     -2
-    ],
-    [
-     -84,
-     -2
-    ]
+   "countries": [
+    "Venezuela",
+    "Colombia",
+    "Guyana",
+    "Suriname",
+    "Trinidad and Tobago"
    ]
   },
   {
@@ -363,23 +297,10 @@
     "brazil",
     "argentina"
    ],
-   "cell": [
-    [
-     -82,
-     -2
-    ],
-    [
-     -60,
-     -2
-    ],
-    [
-     -60,
-     -24
-    ],
-    [
-     -82,
-     -24
-    ]
+   "countries": [
+    "Peru",
+    "Ecuador",
+    "Bolivia"
    ]
   },
   {
@@ -393,23 +314,8 @@
     "argentina",
     "northAfrica"
    ],
-   "cell": [
-    [
-     -60,
-     -2
-    ],
-    [
-     -30,
-     -2
-    ],
-    [
-     -30,
-     -24
-    ],
-    [
-     -60,
-     -24
-    ]
+   "countries": [
+    "Brazil"
    ]
   },
   {
@@ -421,23 +327,11 @@
     "peru",
     "brazil"
    ],
-   "cell": [
-    [
-     -82,
-     -24
-    ],
-    [
-     -50,
-     -24
-    ],
-    [
-     -50,
-     -58
-    ],
-    [
-     -82,
-     -58
-    ]
+   "countries": [
+    "Argentina",
+    "Chile",
+    "Uruguay",
+    "Paraguay"
    ]
   },
   {
@@ -451,23 +345,8 @@
     "scandinavia"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     -25,
-     68
-    ],
-    [
-     -12,
-     68
-    ],
-    [
-     -12,
-     62
-    ],
-    [
-     -25,
-     62
-    ]
+   "countries": [
+    "Iceland"
    ]
   },
   {
@@ -482,23 +361,9 @@
     "westernEurope"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     -11,
-     61
-    ],
-    [
-     2,
-     61
-    ],
-    [
-     2,
-     49
-    ],
-    [
-     -11,
-     49
-    ]
+   "countries": [
+    "United Kingdom",
+    "Ireland"
    ]
   },
   {
@@ -512,23 +377,11 @@
     "northernEurope",
     "ukraine"
    ],
-   "cell": [
-    [
-     2,
-     72
-    ],
-    [
-     32,
-     72
-    ],
-    [
-     32,
-     55
-    ],
-    [
-     2,
-     55
-    ]
+   "countries": [
+    "Norway",
+    "Sweden",
+    "Finland",
+    "Denmark"
    ]
   },
   {
@@ -544,23 +397,13 @@
     "afghanistan",
     "middleEast"
    ],
-   "cell": [
-    [
-     32,
-     72
-    ],
-    [
-     60,
-     72
-    ],
-    [
-     60,
-     40
-    ],
-    [
-     32,
-     40
-    ]
+   "countries": [
+    "Ukraine",
+    "Belarus",
+    "Lithuania",
+    "Latvia",
+    "Estonia",
+    "Moldova"
    ]
   },
   {
@@ -575,23 +418,17 @@
     "southernEurope",
     "westernEurope"
    ],
-   "cell": [
-    [
-     2,
-     55
-    ],
-    [
-     32,
-     55
-    ],
-    [
-     32,
-     45
-    ],
-    [
-     2,
-     45
-    ]
+   "countries": [
+    "Germany",
+    "Poland",
+    "Czechia",
+    "Slovakia",
+    "Austria",
+    "Switzerland",
+    "Netherlands",
+    "Belgium",
+    "Luxembourg",
+    "Hungary"
    ]
   },
   {
@@ -605,23 +442,10 @@
     "southernEurope",
     "northAfrica"
    ],
-   "cell": [
-    [
-     -11,
-     49
-    ],
-    [
-     2,
-     49
-    ],
-    [
-     2,
-     36
-    ],
-    [
-     -11,
-     36
-    ]
+   "countries": [
+    "France",
+    "Spain",
+    "Portugal"
    ]
   },
   {
@@ -637,23 +461,19 @@
     "egypt",
     "northAfrica"
    ],
-   "cell": [
-    [
-     2,
-     45
-    ],
-    [
-     32,
-     45
-    ],
-    [
-     32,
-     36
-    ],
-    [
-     2,
-     36
-    ]
+   "countries": [
+    "Italy",
+    "Greece",
+    "Romania",
+    "Bulgaria",
+    "Serbia",
+    "Croatia",
+    "Slovenia",
+    "Bosnia and Herz.",
+    "Montenegro",
+    "North Macedonia",
+    "Albania",
+    "Kosovo"
    ]
   },
   {
@@ -669,23 +489,28 @@
     "congo",
     "brazil"
    ],
-   "cell": [
-    [
-     -18,
-     36
-    ],
-    [
-     25,
-     36
-    ],
-    [
-     25,
-     8
-    ],
-    [
-     -18,
-     8
-    ]
+   "countries": [
+    "Morocco",
+    "W. Sahara",
+    "Algeria",
+    "Tunisia",
+    "Libya",
+    "Mauritania",
+    "Mali",
+    "Niger",
+    "Chad",
+    "Senegal",
+    "Gambia",
+    "Guinea-Bissau",
+    "Guinea",
+    "Sierra Leone",
+    "Liberia",
+    "Côte d'Ivoire",
+    "Burkina Faso",
+    "Ghana",
+    "Togo",
+    "Benin",
+    "Nigeria"
    ]
   },
   {
@@ -699,23 +524,9 @@
     "middleEast",
     "eastAfrica"
    ],
-   "cell": [
-    [
-     25,
-     32
-    ],
-    [
-     37,
-     32
-    ],
-    [
-     37,
-     15
-    ],
-    [
-     25,
-     15
-    ]
+   "countries": [
+    "Egypt",
+    "Sudan"
    ]
   },
   {
@@ -731,23 +542,18 @@
     "madagascar",
     "middleEast"
    ],
-   "cell": [
-    [
-     25,
-     15
-    ],
-    [
-     52,
-     15
-    ],
-    [
-     52,
-     -11
-    ],
-    [
-     25,
-     -11
-    ]
+   "countries": [
+    "Ethiopia",
+    "Eritrea",
+    "Djibouti",
+    "Somalia",
+    "Somaliland",
+    "Kenya",
+    "Uganda",
+    "Rwanda",
+    "Burundi",
+    "Tanzania",
+    "S. Sudan"
    ]
   },
   {
@@ -760,23 +566,14 @@
     "eastAfrica",
     "southAfrica"
    ],
-   "cell": [
-    [
-     -18,
-     8
-    ],
-    [
-     25,
-     8
-    ],
-    [
-     25,
-     -11
-    ],
-    [
-     -18,
-     -11
-    ]
+   "countries": [
+    "Dem. Rep. Congo",
+    "Congo",
+    "Cameroon",
+    "Central African Rep.",
+    "Gabon",
+    "Eq. Guinea",
+    "Angola"
    ]
   },
   {
@@ -789,23 +586,16 @@
     "eastAfrica",
     "madagascar"
    ],
-   "cell": [
-    [
-     8,
-     -11
-    ],
-    [
-     42,
-     -11
-    ],
-    [
-     42,
-     -36
-    ],
-    [
-     8,
-     -36
-    ]
+   "countries": [
+    "South Africa",
+    "Namibia",
+    "Botswana",
+    "Zimbabwe",
+    "Zambia",
+    "Mozambique",
+    "Malawi",
+    "Lesotho",
+    "eSwatini"
    ]
   },
   {
@@ -818,23 +608,8 @@
     "eastAfrica"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     42,
-     -11
-    ],
-    [
-     52,
-     -11
-    ],
-    [
-     52,
-     -27
-    ],
-    [
-     42,
-     -27
-    ]
+   "countries": [
+    "Madagascar"
    ]
   },
   {
@@ -847,24 +622,6 @@
     "siberia",
     "china",
     "afghanistan"
-   ],
-   "cell": [
-    [
-     60,
-     78
-    ],
-    [
-     90,
-     78
-    ],
-    [
-     90,
-     48
-    ],
-    [
-     60,
-     48
-    ]
    ]
   },
   {
@@ -878,24 +635,6 @@
     "irkutsk",
     "mongolia",
     "china"
-   ],
-   "cell": [
-    [
-     90,
-     78
-    ],
-    [
-     110,
-     78
-    ],
-    [
-     110,
-     50
-    ],
-    [
-     90,
-     50
-    ]
    ]
   },
   {
@@ -907,24 +646,6 @@
     "siberia",
     "irkutsk",
     "kamchatka"
-   ],
-   "cell": [
-    [
-     110,
-     78
-    ],
-    [
-     140,
-     78
-    ],
-    [
-     140,
-     62
-    ],
-    [
-     110,
-     62
-    ]
    ]
   },
   {
@@ -937,24 +658,6 @@
     "yakutsk",
     "kamchatka",
     "mongolia"
-   ],
-   "cell": [
-    [
-     110,
-     62
-    ],
-    [
-     140,
-     62
-    ],
-    [
-     140,
-     50
-    ],
-    [
-     110,
-     50
-    ]
    ]
   },
   {
@@ -968,24 +671,6 @@
     "mongolia",
     "japan",
     "alaska"
-   ],
-   "cell": [
-    [
-     140,
-     78
-    ],
-    [
-     180,
-     78
-    ],
-    [
-     180,
-     50
-    ],
-    [
-     140,
-     50
-    ]
    ]
   },
   {
@@ -1000,23 +685,8 @@
     "japan",
     "china"
    ],
-   "cell": [
-    [
-     90,
-     50
-    ],
-    [
-     128,
-     50
-    ],
-    [
-     128,
-     40
-    ],
-    [
-     90,
-     40
-    ]
+   "countries": [
+    "Mongolia"
    ]
   },
   {
@@ -1029,23 +699,10 @@
     "kamchatka"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     128,
-     46
-    ],
-    [
-     148,
-     46
-    ],
-    [
-     148,
-     30
-    ],
-    [
-     128,
-     30
-    ]
+   "countries": [
+    "Japan",
+    "South Korea",
+    "North Korea"
    ]
   },
   {
@@ -1060,23 +717,14 @@
     "india",
     "middleEast"
    ],
-   "cell": [
-    [
-     60,
-     48
-    ],
-    [
-     90,
-     48
-    ],
-    [
-     90,
-     25
-    ],
-    [
-     60,
-     25
-    ]
+   "countries": [
+    "Afghanistan",
+    "Pakistan",
+    "Kazakhstan",
+    "Uzbekistan",
+    "Turkmenistan",
+    "Tajikistan",
+    "Kyrgyzstan"
    ]
   },
   {
@@ -1092,23 +740,9 @@
     "siam",
     "mongolia"
    ],
-   "cell": [
-    [
-     90,
-     40
-    ],
-    [
-     125,
-     40
-    ],
-    [
-     125,
-     20
-    ],
-    [
-     90,
-     20
-    ]
+   "countries": [
+    "China",
+    "Taiwan"
    ]
   },
   {
@@ -1124,23 +758,26 @@
     "afghanistan",
     "india"
    ],
-   "cell": [
-    [
-     37,
-     40
-    ],
-    [
-     60,
-     40
-    ],
-    [
-     60,
-     15
-    ],
-    [
-     37,
-     15
-    ]
+   "countries": [
+    "Turkey",
+    "Syria",
+    "Lebanon",
+    "Israel",
+    "Palestine",
+    "Jordan",
+    "Iraq",
+    "Iran",
+    "Saudi Arabia",
+    "Kuwait",
+    "Qatar",
+    "United Arab Emirates",
+    "Oman",
+    "Yemen",
+    "Georgia",
+    "Armenia",
+    "Azerbaijan",
+    "Cyprus",
+    "N. Cyprus"
    ]
   },
   {
@@ -1154,23 +791,12 @@
     "china",
     "siam"
    ],
-   "cell": [
-    [
-     65,
-     25
-    ],
-    [
-     90,
-     25
-    ],
-    [
-     90,
-     5
-    ],
-    [
-     65,
-     5
-    ]
+   "countries": [
+    "India",
+    "Bangladesh",
+    "Nepal",
+    "Bhutan",
+    "Sri Lanka"
    ]
   },
   {
@@ -1183,23 +809,13 @@
     "china",
     "indonesia"
    ],
-   "cell": [
-    [
-     92,
-     20
-    ],
-    [
-     125,
-     20
-    ],
-    [
-     125,
-     4
-    ],
-    [
-     92,
-     4
-    ]
+   "countries": [
+    "Myanmar",
+    "Thailand",
+    "Laos",
+    "Cambodia",
+    "Vietnam",
+    "Malaysia"
    ]
   },
   {
@@ -1213,23 +829,11 @@
     "westernAustralia"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     92,
-     4
-    ],
-    [
-     130,
-     4
-    ],
-    [
-     130,
-     -11
-    ],
-    [
-     92,
-     -11
-    ]
+   "countries": [
+    "Indonesia",
+    "Brunei",
+    "Timor-Leste",
+    "Philippines"
    ]
   },
   {
@@ -1243,23 +847,8 @@
     "easternAustralia"
    ],
    "isIsland": true,
-   "cell": [
-    [
-     130,
-     0
-    ],
-    [
-     152,
-     0
-    ],
-    [
-     152,
-     -11
-    ],
-    [
-     130,
-     -11
-    ]
+   "countries": [
+    "Papua New Guinea"
    ]
   },
   {
@@ -1271,24 +860,6 @@
     "indonesia",
     "newGuinea",
     "easternAustralia"
-   ],
-   "cell": [
-    [
-     112,
-     -11
-    ],
-    [
-     133,
-     -11
-    ],
-    [
-     133,
-     -40
-    ],
-    [
-     112,
-     -40
-    ]
    ]
   },
   {
@@ -1299,24 +870,6 @@
    "borders": [
     "westernAustralia",
     "newGuinea"
-   ],
-   "cell": [
-    [
-     133,
-     -11
-    ],
-    [
-     155,
-     -11
-    ],
-    [
-     155,
-     -40
-    ],
-    [
-     133,
-     -40
-    ]
    ]
   }
  ]

@@ -3,38 +3,40 @@ import { readFileSync, writeFileSync } from 'node:fs'
 /**
  * Draw the world map. Plan task 5.8.
  *
- * OURS, with no strings attached. An earlier go traced somebody else's
- * drawing of the board, which meant a licence asking for credit and asking
- * that the result be shared on the same terms. Nick did not want that, and
- * he was right: a good map of the world is public property.
+ * OURS, with no strings attached, and now with borders that WANDER.
  *
- * So the coasts come from Natural Earth, whose own words are "All versions
- * of Natural Earth raster + vector map data found on this website are in
- * the public domain... No permission is needed to use Natural Earth.
- * Crediting the authors is unnecessary." The data sits in `tools/data`, so
- * a build needs no internet.
+ * Three goes at this. The first was drawn from rectangles by hand: "far
+ * too blocky". The second traced somebody else's drawing, which meant a
+ * licence asking for credit and share-alike, and Nick did not want that.
+ * The third cut real coastlines with straight cells of our own, which fixed
+ * the coast and left the inland borders dead straight: "the inner borders
+ * have too many straight lines, I'd like the maps to be more impressive
+ * and realistic."
  *
- * **The coasts are real and the inland borders are ours.** That is how the
- * world looks and how the classic board looks: a coastline wanders, and a
- * border between two provinces runs in a line. Each place is the land
- * inside a straight-sided CELL, and the cells are the part a person
- * designs. They live in `tools/world-cells.json` beside the names.
+ * **So the inland borders are real borders now.** Each place is a group of
+ * real countries, joined together. Where a place is part of ONE country,
+ * such as the two halves of the United States, it is a group of that
+ * country's real provinces instead. The border between Peru and Brazil in
+ * the game is the border between Peru and Brazil in the world.
  *
- * Cutting land to a cell is Sutherland-Hodgman clipping, which is short and
- * reliable so long as every cell is convex. The tool checks that. Where two
- * cells share an edge, the two places share it exactly, which is what spec
- * S32 asks for, and it is what saves this map from the slivers the traced
- * one could never quite lose.
+ * Everything is public domain: Natural Earth's own words are "No permission
+ * is needed to use Natural Earth. Crediting the authors is unnecessary."
+ * The data sits in `tools/data`, so a build needs no internet.
+ *
+ * **Joining countries works because the data shares its edges.** Where two
+ * countries meet, both hold the SAME line, one running each way. So the
+ * join is: throw away every edge that appears in both directions, because
+ * that is a border inside the group, and stitch what is left into a ring.
+ * Half the edges in the file have their reverse present, which is exactly
+ * the half that is a land border.
  *
  * Run it with:  node tools/make-world-map.mjs
  */
 
-const LAND = 'tools/data/ne-110m-land.geojson'
-const CELLS = 'tools/world-cells.json'
+const COUNTRIES = 'tools/data/ne-110m-countries.geojson'
+const PROVINCES = 'tools/data/ne-50m-provinces.geojson'
+const GROUPS = 'tools/world-groups.json'
 const WRITE_TO = 'src/maps/world.ts'
-
-/** How far a coast may be moved when simplifying, in degrees. */
-const SIMPLIFY_TO = Number(process.env['SIMPLIFY'] ?? 0.55)
 
 /** How many units across the picture is for each degree of longitude. */
 const ACROSS = 2.6
@@ -48,24 +50,16 @@ const ACROSS = 2.6
  */
 const TALLER = 1.25
 
-// ------------------------------------------------------------- the coasts
+/** Islands smaller than this are left off, in square degrees. */
+const TOO_SMALL = 0.6
 
-function ringsIn(geoJson) {
-  const rings = []
+// -------------------------------------------------------------- the data
 
-  for (const feature of geoJson.features) {
-    const shape = feature.geometry
-    const pieces =
-      shape.type === 'Polygon' ? [shape.coordinates] : shape.coordinates
+function ringsOf(shape) {
+  const pieces = shape.type === 'Polygon' ? [shape.coordinates] : shape.coordinates
 
-    // The first ring of each piece is the outside. The rest are lakes,
-    // which a board game does not need.
-    for (const piece of pieces) {
-      rings.push(piece[0])
-    }
-  }
-
-  return rings
+  // The first ring of a piece is its outside. The rest are lakes.
+  return pieces.map((piece) => piece[0])
 }
 
 function roomTaken(ring) {
@@ -81,7 +75,132 @@ function roomTaken(ring) {
   return Math.abs(twice) / 2
 }
 
-// ------------------------------------------------------------ simplifying
+function middleOf(ring) {
+  const xs = ring.map(([x]) => x)
+  const ys = ring.map(([, y]) => y)
+
+  return [
+    (Math.min(...xs) + Math.max(...xs)) / 2,
+    (Math.min(...ys) + Math.max(...ys)) / 2,
+  ]
+}
+
+/** Every country, by name, as a list of rings. */
+function loadCountries() {
+  const found = new Map()
+
+  for (const feature of JSON.parse(readFileSync(COUNTRIES, 'utf8')).features) {
+    found.set(feature.properties.NAME, ringsOf(feature.geometry))
+  }
+
+  return found
+}
+
+/** Every province of the few countries a place ever splits. */
+function loadProvinces() {
+  const found = []
+
+  for (const feature of JSON.parse(readFileSync(PROVINCES, 'utf8')).features) {
+    found.push({
+      country: feature.properties.admin,
+      name: feature.properties.name,
+      rings: ringsOf(feature.geometry),
+    })
+  }
+
+  return found
+}
+
+// ------------------------------------------------------------ the joining
+
+const where = (point) => `${point[0].toFixed(6)},${point[1].toFixed(6)}`
+
+/**
+ * Join a group of shapes into one outline, or several if they are apart.
+ *
+ * Where two of them meet, both hold the same line, one running each way.
+ * Any edge with its own reverse in the group is therefore a border INSIDE
+ * the group, and goes. What is left is the outside, and it stitches into
+ * rings by following each edge to whichever one starts where it ended.
+ */
+function joined(rings) {
+  const edges = new Map()
+
+  for (const ring of rings) {
+    // A ring from the file repeats its first point at the end.
+    const points =
+      where(ring[0]) === where(ring[ring.length - 1]) ? ring.slice(0, -1) : ring
+
+    for (let at = 0; at < points.length; at += 1) {
+      const from = points[at]
+      const to = points[(at + 1) % points.length]
+
+      edges.set(`${where(from)}>${where(to)}`, [from, to])
+    }
+  }
+
+  const outside = new Map()
+
+  for (const [name, [from, to]] of edges) {
+    if (!edges.has(`${where(to)}>${where(from)}`)) {
+      const already = outside.get(where(from)) ?? []
+
+      already.push([from, to])
+      outside.set(where(from), already)
+    }
+  }
+
+  const built = []
+
+  while (outside.size > 0) {
+    const first = outside.values().next().value
+    let step = first[0]
+    const ring = [step[0]]
+
+    for (let guard = 0; guard < 200000; guard += 1) {
+      const leaving = outside.get(where(step[0]))
+
+      if (leaving !== undefined) {
+        const at = leaving.indexOf(step)
+
+        if (at >= 0) {
+          leaving.splice(at, 1)
+        }
+
+        if (leaving.length === 0) {
+          outside.delete(where(step[0]))
+        }
+      }
+
+      const next = outside.get(where(step[1]))
+
+      if (next === undefined || next.length === 0) {
+        break
+      }
+
+      step = next[0]
+      ring.push(step[0])
+    }
+
+    if (ring.length >= 3) {
+      built.push(ring)
+    }
+  }
+
+  return built.sort((one, two) => roomTaken(two) - roomTaken(one))
+}
+
+// ----------------------------------------------------------- simplifying
+
+/**
+ * How far a border may be moved when simplifying, in degrees.
+ *
+ * Real borders are drawn in enormous detail: joined up straight from the
+ * data the map came to 18,511 corners, which is more than the game can
+ * redraw comfortably and far more than an eye can see. This keeps the
+ * shape of a coast and a border and drops the wobble between.
+ */
+const SIMPLIFY_TO = Number(process.env['SIMPLIFY'] ?? 0.45)
 
 function awayFromLine(point, from, to) {
   const alongX = to[0] - from[0]
@@ -98,7 +217,7 @@ function awayFromLine(point, from, to) {
   )
 }
 
-/** Ramer-Douglas-Peucker: keep the corners, drop the wobble between them. */
+/** Ramer-Douglas-Peucker. */
 function simplified(points, tolerance) {
   if (points.length < 3) {
     return points
@@ -133,97 +252,95 @@ function simplifiedRing(ring, tolerance) {
   return kept
 }
 
-// ------------------------------------------------------ cutting to a cell
+/**
+ * Simplify each shared BORDER once, not each place twice.
+ *
+ * Simplifying two neighbours on their own simplifies the border between
+ * them twice, differently, and the two stop meeting. So each outline is
+ * cut into stretches that run between junctions, each stretch is
+ * simplified ONCE, and the outlines are built again from those. Both sides
+ * then get the identical line, because it IS the identical line.
+ *
+ * This works here and did not on an earlier traced map, for one reason:
+ * these outlines come from data that shares its points exactly, so a
+ * shared border really is the same run of points on both sides.
+ */
+function simplifyTogether(outlines, tolerance) {
+  const belongsTo = new Map()
 
-function whichSide(from, to, point) {
-  return (
-    (to[0] - from[0]) * (point[1] - from[1]) -
-    (to[1] - from[1]) * (point[0] - from[0])
-  )
-}
+  for (const [name, ring] of outlines) {
+    for (const point of ring) {
+      const already = belongsTo.get(where(point)) ?? new Set()
 
-/** Which way round a cell is drawn, and a complaint if it bends both ways. */
-function checkCell(name, cell) {
-  let sign = 0
+      already.add(name)
+      belongsTo.set(where(point), already)
+    }
+  }
 
-  for (let at = 0; at < cell.length; at += 1) {
-    const turn = whichSide(
-      cell[at],
-      cell[(at + 1) % cell.length],
-      cell[(at + 2) % cell.length],
-    )
+  const owner = (point) =>
+    [...(belongsTo.get(where(point)) ?? [])].sort().join('|')
 
-    if (Math.abs(turn) < 1e-9) {
+  const done = new Map()
+  const out = new Map()
+
+  for (const [name, ring] of outlines) {
+    const owners = ring.map(owner)
+    const count = ring.length
+    const junctions = []
+
+    for (let at = 0; at < count; at += 1) {
+      if (
+        owners[at] !== owners[(at + count - 1) % count] ||
+        owners[at] !== owners[(at + 1) % count]
+      ) {
+        junctions.push(at)
+      }
+    }
+
+    // Nothing shared with anybody: an island, simplified whole.
+    if (junctions.length < 2) {
+      out.set(name, simplifiedRing(ring, tolerance))
       continue
     }
 
-    const way = turn > 0 ? 1 : -1
+    const rebuilt = []
 
-    if (sign === 0) {
-      sign = way
-    } else if (way !== sign) {
-      throw new Error(
-        `The cell for "${name}" bends both ways at corner ${at + 1}. ` +
-          `A cell has to be convex or the cutting goes wrong.`,
-      )
-    }
-  }
+    for (let step = 0; step < junctions.length; step += 1) {
+      const from = junctions[step]
+      const to = junctions[(step + 1) % junctions.length]
+      const run = [ring[from]]
 
-  return sign
-}
-
-function crossingAt(from, to, edgeFrom, edgeTo) {
-  const alongX = to[0] - from[0]
-  const alongY = to[1] - from[1]
-  const edgeX = edgeTo[0] - edgeFrom[0]
-  const edgeY = edgeTo[1] - edgeFrom[1]
-  const turn = alongX * edgeY - alongY * edgeX
-
-  if (Math.abs(turn) < 1e-12) {
-    return to
-  }
-
-  const gapX = edgeFrom[0] - from[0]
-  const gapY = edgeFrom[1] - from[1]
-  const howFar = (gapX * edgeY - gapY * edgeX) / turn
-
-  return [from[0] + howFar * alongX, from[1] + howFar * alongY]
-}
-
-/**
- * The part of a shape lying inside a cell. Sutherland-Hodgman.
- *
- * Cut the shape against one side of the cell at a time. What survives all
- * of them is what was inside. It only works for a convex cell, which is
- * why the tool insists on one.
- */
-function cutToCell(ring, cell, inside) {
-  let kept = ring
-
-  for (let at = 0; at < cell.length && kept.length > 0; at += 1) {
-    const edgeFrom = cell[at]
-    const edgeTo = cell[(at + 1) % cell.length]
-    const next = []
-
-    for (let step = 0; step < kept.length; step += 1) {
-      const from = kept[step]
-      const to = kept[(step + 1) % kept.length]
-      const fromIn = whichSide(edgeFrom, edgeTo, from) * inside >= 0
-      const toIn = whichSide(edgeFrom, edgeTo, to) * inside >= 0
-
-      if (fromIn) {
-        next.push(from)
+      for (let at = (from + 1) % count; ; at = (at + 1) % count) {
+        run.push(ring[at])
+        if (at === to) break
       }
 
-      if (fromIn !== toIn) {
-        next.push(crossingAt(from, to, edgeFrom, edgeTo))
+      const forwards = run.map(where).join(' ')
+      const backwards = [...run].reverse().map(where).join(' ')
+      const key = forwards < backwards ? forwards : backwards
+
+      if (!done.has(key)) {
+        done.set(key, simplified(run, tolerance))
+      }
+
+      const kept = done.get(key)
+      const sameWayRound = where(kept[0]) === where(run[0])
+      const inOrder = sameWayRound ? kept : [...kept].reverse()
+
+      for (const point of inOrder.slice(0, -1)) {
+        rebuilt.push(point)
       }
     }
 
-    kept = next
+    out.set(
+      name,
+      rebuilt.filter(
+        (point, at) => at === 0 || where(point) !== where(rebuilt[at - 1]),
+      ),
+    )
   }
 
-  return kept
+  return out
 }
 
 // ---------------------------------------------------------- the projection
@@ -294,8 +411,7 @@ function awayFromEdge(point, ring) {
  * The roomiest point inside a shape.
  *
  * NOT the average of the corners: on a shape like a horseshoe the average
- * lands in the gap and the name sits on the sea. This looks for the point
- * furthest from any edge, which is where a name has the most room.
+ * lands in the gap and the name would sit on the sea.
  */
 function roomiestIn(ring) {
   const xs = ring.map(([x]) => x)
@@ -334,56 +450,123 @@ function roomiestIn(ring) {
 
 // ------------------------------------------------------------------- build
 
-function main() {
-  const meta = JSON.parse(readFileSync(CELLS, 'utf8'))
-  const land = ringsIn(JSON.parse(readFileSync(LAND, 'utf8')))
-    .filter((ring) => roomTaken(ring) >= 0.4)
-    // Antarctica is not somewhere anybody fights over here.
-    .filter((ring) => Math.max(...ring.map(([, lat]) => lat)) > -55)
-    .map((ring) => simplifiedRing(ring, SIMPLIFY_TO))
+/**
+ * Which place a province belongs to.
+ *
+ * Written as a RULE rather than a list of eighty-five names. The border
+ * that comes out still follows real provinces, so it wanders the way a real
+ * border does. Only which side of the line each province falls on is ours.
+ */
+function placeForProvince(rules, province) {
+  const [lon, lat] = middleOf(
+    province.rings.reduce((biggest, ring) =>
+      roomTaken(ring) > roomTaken(biggest) ? ring : biggest,
+    ),
+  )
 
-  console.log(`coastlines kept: ${land.length}`)
+  for (const rule of rules[province.country] ?? []) {
+    if (rule.named !== undefined) {
+      if (rule.named.includes(province.name)) {
+        return rule.place
+      }
+
+      continue
+    }
+
+    const fits =
+      (rule.westOf === undefined || lon < rule.westOf) &&
+      (rule.eastOf === undefined || lon >= rule.eastOf) &&
+      (rule.northOf === undefined || lat >= rule.northOf) &&
+      (rule.southOf === undefined || lat < rule.southOf)
+
+    if (fits) {
+      return rule.place
+    }
+  }
+
+  return null
+}
+
+function main() {
+  const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
+  const countries = loadCountries()
+  const provinces = loadProvinces()
+
+  // Every province, sorted into the place it belongs to.
+  const provincesFor = new Map()
+  let homeless = []
+
+  for (const province of provinces) {
+    const place = placeForProvince(meta.provinceRules, province)
+
+    if (place === null) {
+      homeless.push(`${province.country}/${province.name}`)
+      continue
+    }
+
+    provincesFor.set(place, [...(provincesFor.get(place) ?? []), province])
+  }
+
+  if (homeless.length > 0) {
+    console.log(`provinces left out: ${homeless.length}`)
+  }
 
   const built = []
+  const unknown = []
 
   for (const place of meta.places) {
-    const inside = checkCell(place.id, place.cell)
-    const pieces = []
+    const rings = []
 
-    for (const ring of land) {
-      const cut = cutToCell(ring, place.cell, inside)
+    for (const name of place.countries ?? []) {
+      const found = countries.get(name)
 
-      if (cut.length >= 3 && roomTaken(cut) > 0.05) {
-        pieces.push(cut)
+      if (found === undefined) {
+        unknown.push(`${place.id}: ${name}`)
+        continue
       }
+
+      rings.push(...found.filter((ring) => roomTaken(ring) >= TOO_SMALL))
     }
 
-    if (pieces.length === 0) {
-      throw new Error(`The cell for "${place.id}" catches no land at all.`)
+    for (const province of provincesFor.get(place.id) ?? []) {
+      rings.push(...province.rings.filter((ring) => roomTaken(ring) >= TOO_SMALL))
     }
 
-    pieces.sort((one, two) => roomTaken(two) - roomTaken(one))
+    if (rings.length === 0) {
+      throw new Error(`"${place.id}" is made of nothing.`)
+    }
 
-    const corners = pieces[0]
+    const outlines = joined(rings)
+
+    built.push({ ...place, pieces: outlines.length, outline: outlines[0] })
+  }
+
+  // Every place at once, so a shared border is simplified once.
+  const thinner = simplifyTogether(
+    new Map(built.map((place) => [place.id, place.outline])),
+    SIMPLIFY_TO,
+  )
+
+  for (const place of built) {
+    place.corners = thinner
+      .get(place.id)
       .map(project)
       .filter(
         (point, at, all) =>
           at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1],
       )
+    place.labelAt = roomiestIn(place.corners)
+  }
 
-    built.push({
-      ...place,
-      pieces: pieces.length,
-      corners,
-      labelAt: roomiestIn(corners),
-    })
+  if (unknown.length > 0) {
+    throw new Error(`No such country:\n  ${unknown.join('\n  ')}`)
   }
 
   const several = built.filter((place) => place.pieces > 1)
 
   if (several.length > 0) {
     console.log(
-      'made of several islands, biggest kept: ' +
+      'in several pieces, biggest kept: ' +
         several.map((place) => `${place.id}(${place.pieces})`).join(' '),
     )
   }
@@ -397,9 +580,8 @@ function main() {
   const ys = built.flatMap((place) => place.corners.map(([, y]) => y))
   const names = built.map((place) => place.labelAt)
   const edge = 14
-  // A name hangs 30 below its count, so the frame reaches past the name
-  // rather than past the southernmost coast.
-  const nameRoom = 34
+  // A name hangs below its count, so the frame reaches past the name.
+  const nameRoom = 30
   const left = Math.round(Math.min(...xs, ...names.map(([x]) => x)) - edge)
   const top = Math.round(Math.min(...ys, ...names.map(([, y]) => y)) - edge)
   const right = Math.round(Math.max(...xs, ...names.map(([x]) => x)) + edge)
@@ -467,17 +649,20 @@ import { pathFrom } from './shapes'
  *
  * WRITTEN BY A TOOL. Do not change the shapes by hand: run
  * \`node tools/make-world-map.mjs\` instead. Everything a person decides
- * lives in \`tools/world-cells.json\`: the names, the continents, who
- * borders whom, and the straight-sided cell each place is cut from.
+ * lives in \`tools/world-groups.json\`: the names, the continents, who
+ * borders whom, and which real countries each place is made of.
  *
- * **The coasts are real and the inland borders are ours.** The coastlines
- * come from Natural Earth, which is public domain and asks for nothing at
- * all, not even credit. Each place is the land inside a cell we drew, so a
- * coast wanders and a border between two places runs in a line. That is how
- * the world looks and how the classic board looks.
+ * **Every border here is a real border.** Each place is a group of real
+ * countries joined together, so the line between Peru and Brazil in the
+ * game is the line between Peru and Brazil in the world. Where a place is
+ * only part of a country, such as either half of the United States, it is
+ * a group of that country's real provinces instead.
+ *
+ * The shapes come from Natural Earth, which is public domain and asks for
+ * nothing at all, not even credit.
  *
  * Forty-two places in six continents, the layout anybody who has played
- * that board already knows.
+ * the classic board already knows.
  *
  * **Asia pays 7 and is nearly impossible to hold.** Twelve places and five
  * ways in. Australia pays 2, has four places and ONE way in, from Siam to
