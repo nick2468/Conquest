@@ -11,6 +11,8 @@ import { DEFAULT_SETUP, NewGameScreen } from './NewGameScreen'
 import { TurnPanel } from './TurnPanel'
 import { UpdateBanner } from './UpdateBanner'
 import { WinnerScreen } from './WinnerScreen'
+import { effectFor } from './effects'
+import { playSound, rememberSound, soundWasOn, wakeSounds } from './sounds'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
 import { useUpdate } from './useUpdate'
@@ -97,6 +99,25 @@ export function App() {
    */
   const [lastMove, setLastMove] = useState<GameAction | null>(null)
 
+  /**
+   * Counts every move made, by anybody.
+   *
+   * The animation is keyed on it. Attacking the same border twice in a row
+   * is the same action twice, so without a number that changes, React would
+   * keep the first animation and the second attack would show nothing.
+   */
+  const [moveNumber, setMoveNumber] = useState(0)
+
+  /**
+   * Whether the game makes a noise. Off until asked. See spec S25.
+   *
+   * Two things outside our control make this the right default. A browser
+   * refuses to play a sound before the person has touched the page. iPadOS
+   * also mutes web audio with the side switch, so sound can be switched on
+   * in the game and still be silent.
+   */
+  const [soundOn, setSoundOn] = useState(soundWasOn)
+
   // Which computer player, if any, should be moving right now.
   const whoseTurn = state.players.find(
     (each) => each.id === state.turn.playerId,
@@ -112,6 +133,41 @@ export function App() {
   const forget = (): void => {
     setSelectedId(null)
     setPendingFortify(null)
+  }
+
+  /**
+   * Make one move, and show it.
+   *
+   * Everything that changes the game goes through here, so a person's move
+   * and a computer's move are shown the same way. The state changes at once
+   * and the effect is drawn over the top. Nothing waits for it. Spec S24.
+   */
+  const perform = (action: GameAction): void => {
+    setLastMove(action)
+    setMoveNumber((counted) => counted + 1)
+
+    if (soundOn) {
+      const effect = effectFor(state.map, action)
+
+      if (effect !== null) {
+        playSound(effect.kind)
+      }
+    }
+
+    act(action)
+  }
+
+  const turnSoundOn = (): void => {
+    const wanted = !soundOn
+
+    // The browser only lets sound through from inside a tap, so the switch
+    // itself has to be the thing that starts it.
+    if (wanted) {
+      wakeSounds()
+    }
+
+    setSoundOn(wanted)
+    rememberSound(wanted)
   }
 
   /**
@@ -152,19 +208,16 @@ export function App() {
     }
 
     const timer = setTimeout(() => {
-      const move = playerFor(playing).chooseAction(state, chooser)
-
-      setLastMove(move)
-      act(move)
+      perform(playerFor(playing).chooseAction(state, chooser))
       setSelectedId(null)
       setPendingFortify(null)
     }, thinkingFor)
 
     return () => clearTimeout(timer)
-  }, [playing, state, act, chooser, thinkingFor, lastMove])
+  }, [playing, state, act, chooser, thinkingFor, lastMove, soundOn])
 
   const run = (action: GameAction): void => {
-    act(action)
+    perform(action)
     forget()
   }
 
@@ -172,6 +225,7 @@ export function App() {
     setSetup(chosen)
     forget()
     setLastMove(null)
+    setMoveNumber(0)
     setLookingAt(null)
     newGame(chosen)
     setScreen('playing')
@@ -218,6 +272,9 @@ export function App() {
   const view = computer ? null : lookingAt
 
   const watching = computer ? showing(lastMove) : null
+
+  // What to draw over the board for the move just made. See spec S23.
+  const effect = lastMove === null ? null : effectFor(state.map, lastMove)
   const closeUpOn = state.map.territories.find((each) => each.id === view)
 
   const handleTap = (territoryId: TerritoryId): void => {
@@ -234,7 +291,7 @@ export function App() {
       case 'act':
         // Attacking again from the same place is normal, so the chosen
         // territory stays chosen after an attack.
-        act(result.action)
+        perform(result.action)
 
         if (result.action.type !== 'attack') {
           setSelectedId(null)
@@ -294,6 +351,19 @@ export function App() {
             </button>
           )}
 
+          <button
+            type="button"
+            onClick={turnSoundOn}
+            aria-pressed={soundOn}
+            title={
+              soundOn
+                ? 'Turn the sound off'
+                : 'Turn the sound on. An iPad side switch set to silent mutes it anyway.'
+            }
+          >
+            {soundOn ? 'Sound on' : 'Sound off'}
+          </button>
+
           <button type="button" onClick={() => setScreen('newGame')}>
             New game
           </button>
@@ -306,6 +376,8 @@ export function App() {
         selectedId={computer ? (watching?.from ?? null) : selectedId}
         onTap={computer ? () => undefined : handleTap}
         lookingAt={view}
+        effect={effect}
+        moveNumber={moveNumber}
       />
 
       <div className="side">

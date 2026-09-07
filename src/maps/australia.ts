@@ -64,6 +64,7 @@ export const AUSTRALIA: GameMap = {
       borders: ['wa'],
       shape: 'M 170 491 L 182 489 L 185 499 L 173 502 Z',
       labelAt: { x: 178, y: 466 },
+      isIsland: true,
     },
     {
       id: 'nt',
@@ -110,6 +111,7 @@ export const AUSTRALIA: GameMap = {
       borders: ['qld'],
       shape: 'M 742 281 L 753 278 L 756 289 L 745 292 Z',
       labelAt: { x: 750, y: 256 },
+      isIsland: true,
     },
     {
       id: 'sa',
@@ -172,6 +174,7 @@ export const AUSTRALIA: GameMap = {
         'M 660 649 L 686 644 L 713 650 L 718 668 L 713 693 L 697 701 ' +
         'L 681 700 L 668 684 L 655 668 Z',
       labelAt: { x: 684, y: 662 },
+      isIsland: true,
     },
   ],
 }

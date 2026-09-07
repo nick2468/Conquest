@@ -500,6 +500,65 @@ This is the only phase needing a server. See D15.
 
 ---
 
+## Phase 7 - things you can see and hear
+
+Nick's request, after watching a computer take a turn: "could we have some
+animations and sounds? Explosions and smoke on the border when attacking,
+landing craft arriving at an island, parachutists inland, a convoy when
+fortifying."
+
+This phase does not depend on phase 5 or phase 6. It can be built at any
+time, and it improves the game people already play. See spec 11.5.
+
+- [x] 7.1 Mark each island in both map files, and let the map type carry it
+- [x] 7.2 `effects.ts`: turn one action into a list of effects, tested with no browser
+- [x] 7.3 Draw a battle: smoke and a flash on the border between the two places
+- [x] 7.4 Draw an arrival: parachutists inland, landing craft from the open sea
+- [x] 7.5 Draw a convoy travelling from where armies leave to where they land
+- [x] 7.6 Keep effects the same size on screen however far the map is zoomed
+- [x] 7.7 Obey "reduce motion", the system setting for people animation upsets
+- [x] 7.8 Build the sounds in code, one per effect, no audio files
+- [x] 7.9 A sound switch in the header, off until a player turns it on
+- [ ] 7.10 Nick: play a real game on the iPad and check nothing is slower
+
+### What was measured, and what had to change
+
+**Islands cannot be worked out from the shapes.** That was the first thing
+tried, because the map is built from a shared corner table and two places
+that share a land border share an edge. Measuring how far each pair of
+borders touch separates them cleanly: 48 of the 64 borders touch along a
+real edge, and 16 touch along nothing.
+
+The 16 are not the sea crossings. They are the sea crossings AND every
+coastal city, because a city is drawn on top of the coast and so meets the
+land around it at one corner only. Perth came out an island. Testing whether
+one shape sits inside another does not separate them either. Only Canberra
+is fully inside its place.
+
+So each island is written down in the map file instead. There are five on
+the detailed map and three on the small one. See spec S26.
+
+**The drawings were far too small at first.** Each was drawn at its own
+size, about 13 across on the glass, and read as a speck. They are now scaled
+against the army counts, which are 30 across, so a parachute is about 48.
+
+**The first explosion washed out.** One pale yellow circle over tan land is
+not a bang. It is now an orange ball with a white-hot middle, over darker
+and more solid smoke.
+
+**Lorries were driving across Bass Strait.** Armies fortifying to Tasmania
+got a convoy, because the rule only looked at deploying. A move now counts
+as a sea crossing when exactly ONE end is an island, and those armies go by
+boat. Launceston to Hobart stays a convoy, because both are on the same
+island.
+
+Measured after: 319 tests green. The board holds 236 shapes at rest and 252
+at the peak of an effect, so an animation adds at most 16 and nothing builds
+up. Battle, parachute, landing and convoy were each driven live and looked
+at frame by frame.
+
+---
+
 ## The order, and why
 
 Phase 1 comes before any screen. That is deliberate and it is the main risk in
@@ -530,3 +589,4 @@ something to play with while the interesting part gets built.
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |
+| 7 - things you can see and hear | **7.1 to 7.9 COMPLETE** 2026-09-07. 7.10 is Nick's. |

@@ -748,3 +748,214 @@ button.primary {
   border-radius: 50%;
   vertical-align: baseline;
 }
+
+/* ------------------------------------------------ what just happened
+ *
+ * Plan phase 7. Smoke on a border during an attack, parachutists and
+ * landing craft when armies arrive, lorries when they move.
+ *
+ * The whole layer ignores taps. A finger must always reach the map under
+ * it, even mid-explosion.
+ */
+.fx {
+  pointer-events: none;
+}
+
+.fx * {
+  pointer-events: none;
+}
+
+/* Anything that arrives comes in from --fx-from-x, --fx-from-y. Those are
+ * set on the element by EffectLayer.tsx, in map units. Parachutists come
+ * from above, landing craft from the open sea, lorries from where the
+ * armies left. One movement covers all three. */
+@keyframes fx-arrive {
+  from {
+    opacity: 0;
+    transform: translate(var(--fx-from-x, 0), var(--fx-from-y, 0));
+  }
+  15% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translate(0, 0);
+  }
+}
+
+.fx-arrive {
+  animation-name: fx-arrive;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+/* transform-box makes the middle of the shape the middle of the turn,
+ * rather than the corner of the whole drawing. */
+.fx-flash,
+.fx-puff,
+.fx-sparks {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-fill-mode: both;
+}
+
+@keyframes fx-flash {
+  from {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+.fx-flash {
+  animation-name: fx-flash;
+  animation-timing-function: ease-out;
+}
+
+.fx-fire {
+  fill: #f07a1e;
+}
+
+.fx-hot {
+  fill: #fff4cf;
+}
+
+@keyframes fx-puff {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  20% {
+    opacity: 0.92;
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+.fx-puff {
+  animation-name: fx-puff;
+  animation-timing-function: ease-out;
+}
+
+.fx-puff circle {
+  fill: #514c44;
+}
+
+@keyframes fx-sparks {
+  from {
+    opacity: 1;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+.fx-sparks {
+  animation-name: fx-sparks;
+  animation-timing-function: ease-out;
+}
+
+.fx-sparks path {
+  fill: none;
+  stroke: #ffcf6b;
+  stroke-linecap: round;
+}
+
+.fx-canopy {
+  fill: #e8e2d2;
+  stroke: #3a3833;
+  stroke-width: 1;
+}
+
+.fx-cords {
+  fill: none;
+  stroke: #3a3833;
+  stroke-width: 0.8;
+}
+
+.fx-soldier {
+  fill: #3a3833;
+}
+
+.fx-hull {
+  fill: #4a5a3f;
+  stroke: #2b2a26;
+  stroke-width: 1;
+}
+
+.fx-cabin {
+  fill: #6b7c5b;
+  stroke: #2b2a26;
+  stroke-width: 1;
+}
+
+.fx-wake {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2;
+  opacity: 0.7;
+}
+
+.fx-body {
+  fill: #4a5a3f;
+  stroke: #2b2a26;
+  stroke-width: 1;
+}
+
+.fx-cab {
+  fill: #6b7c5b;
+  stroke: #2b2a26;
+  stroke-width: 1;
+}
+
+.fx-wheel {
+  fill: #26251f;
+}
+
+/* The road runs itself in, so it reads as a route being taken rather than
+ * a line that was always there. */
+@keyframes fx-track {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 40;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+    stroke-dashoffset: 0;
+  }
+}
+
+.fx-track {
+  fill: none;
+  stroke: #2b2a26;
+  stroke-linecap: round;
+  animation-name: fx-track;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+
+/* Plan task 7.7. Some people are made ill by movement on screen, and say so
+ * once in their system settings. The game must still be playable, so the
+ * effects go and nothing else changes. Nothing depends on them. Spec S24. */
+@media (prefers-reduced-motion: reduce) {
+  .fx {
+    display: none;
+  }
+}

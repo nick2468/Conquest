@@ -43,6 +43,8 @@ interface Place {
   readonly borders: readonly string[]
   readonly corners: ReadonlyArray<readonly [number, number]>
   readonly labelAt: Point
+  /** Reachable only by sea. See spec S26. */
+  readonly isIsland?: boolean
 }
 
 const PLACES: readonly Place[] = [
@@ -124,6 +126,7 @@ const PLACES: readonly Place[] = [
     borders: ['perth'],
     corners: [[158, 492], [170, 489], [173, 501], [161, 504]],
     labelAt: at(166, 456),
+    isIsland: true,
   },
 
   // ----------------------------------------------- Northern Territory (5)
@@ -237,6 +240,7 @@ const PLACES: readonly Place[] = [
     borders: ['northQld'],
     corners: [[744, 282], [755, 279], [758, 290], [747, 293]],
     labelAt: at(786, 262),
+    isIsland: true,
   },
   {
     id: 'centralQld',
@@ -446,6 +450,7 @@ const PLACES: readonly Place[] = [
     borders: ['launceston', 'hobart'],
     corners: [[640, 656], [672, 649], [672, 713], [652, 715], [632, 690]],
     labelAt: at(652, 684),
+    isIsland: true,
   },
   {
     id: 'launceston',
@@ -455,6 +460,7 @@ const PLACES: readonly Place[] = [
     borders: ['westCoast', 'hobart', 'melbourne'],
     corners: [[672, 649], [730, 645], [738, 669], [672, 673]],
     labelAt: at(690, 656),
+    isIsland: true,
   },
   {
     id: 'hobart',
@@ -466,6 +472,7 @@ const PLACES: readonly Place[] = [
       [672, 673], [738, 669], [731, 700], [710, 716], [688, 716], [672, 713],
     ],
     labelAt: at(716, 694),
+    isIsland: true,
   },
 ]
 
@@ -478,6 +485,7 @@ function toTerritory(place: Place): TerritoryDefinition {
     borders: place.borders,
     shape: path(place.corners),
     labelAt: place.labelAt,
+    isIsland: place.isIsland === true,
   }
 }
 

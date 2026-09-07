@@ -1,4 +1,6 @@
 import type { GameState, TerritoryDefinition, TerritoryId } from '../engine'
+import { EffectLayer } from './EffectLayer'
+import type { Effect } from './effects'
 import type { Highlights } from './taps'
 import { cornersOf, magnification, middleOf, viewBoxFor } from './zoom'
 
@@ -44,6 +46,10 @@ interface MapViewProps {
    * a line pointing at them. Measured as the box the shape fits in.
    */
   readonly smallTerritoryArea?: number
+  /** What just happened, drawn over the board. Null for nothing. */
+  readonly effect?: Effect | null
+  /** Counts up once per move, so the same move twice animates twice. */
+  readonly moveNumber?: number
 }
 
 /**
@@ -75,6 +81,8 @@ export function MapView({
   onTap,
   lookingAt,
   smallTerritoryArea = 400,
+  effect = null,
+  moveNumber = 0,
 }: MapViewProps) {
   const { map } = state
   const viewBox = viewBoxFor(map, lookingAt)
@@ -214,6 +222,9 @@ export function MapView({
           </g>
         )
       })}
+
+      {/* Last, so smoke is never drawn under a shape or a count. */}
+      <EffectLayer effect={effect} moveNumber={moveNumber} closer={closer} />
     </svg>
   )
 }

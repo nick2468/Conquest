@@ -44,6 +44,16 @@ export function middleOf(territory: TerritoryDefinition): {
   return { x: total.x / corners.length, y: total.y / corners.length }
 }
 
+/** The middle of the whole board. */
+export function middleOfMap(map: GameMap): { readonly x: number; readonly y: number } {
+  const whole = readViewBox(map.viewBox)
+
+  return {
+    x: whole.left + whole.width / 2,
+    y: whole.top + whole.height / 2,
+  }
+}
+
 interface Box {
   readonly left: number
   readonly top: number

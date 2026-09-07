@@ -576,6 +576,60 @@ See D16.
 
 ---
 
+## 11.5 Animations and sounds
+
+Nick asked for these while watching a game: smoke on the border during an
+attack, landing craft arriving at an island, parachutists inland, a convoy
+when armies move. They are there so a person can see WHAT happened, not only
+read that it happened.
+
+**S23. An effect is worked out from the action, and nothing else.** One pure
+function takes the map and one action and returns a list of effects to draw.
+It touches no browser and no clock, so it is tested the same way the rules
+are. The screen draws whatever the list says.
+
+**S24. The game never waits for an animation.** The state changes at once and
+the effect is drawn over the top of it. So a slow iPad, a player who turns
+animations off, and a browser that refuses to animate all still play the same
+game at the same speed. This follows from S14: the screen is built from the
+state, and an effect is not state.
+
+**S25. Sound is off until a player turns it on.** Two reasons, both outside
+our control. A browser refuses to make a sound before the person has touched
+the page, so a sound at the wrong moment is silently dropped. iPadOS also
+mutes web audio with the side switch, so a player can have sound switched on
+in the game and hear nothing, and think the game is broken.
+
+Every sound is built in code from an oscillator and noise. No audio files.
+That keeps the app small, keeps it working offline, and means there is
+nothing to host.
+
+**S26. Whether a place is an island is written in the map file.** It is not
+worked out from the shape.
+
+That was measured, not assumed. Shapes that share a land border also share
+an edge, so a shared edge of zero length looks like a sea crossing. It
+finds Rottnest, the Whitsundays and Bass Strait correctly. It also calls
+Perth an island, because a coastal city is drawn on top of the coast and
+juts into the water, so it touches the land around it at one corner only.
+Containment does not separate them either: only Canberra is fully inside
+its place.
+
+A one-word fact in the map file is also the kind of thing James can read and
+change, which the geometry would not be. See D14.
+
+**S27. Armies cross water when exactly ONE end of the move is an island.**
+
+So Melbourne to Launceston crosses Bass Strait and goes by boat. Launceston
+to Hobart does not, because both are on the same island, and those armies
+drive. Perth to Rottnest crosses, Sydney to Melbourne does not.
+
+The rule holds even for a long fortify, where armies may move any distance
+through their own land. If one end is an island and the other is not, water
+is crossed somewhere along the way.
+
+---
+
 ## 11.4 Computer players
 
 **S20. A computer player is asked for ONE action and returns one, and it may

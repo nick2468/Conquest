@@ -38,6 +38,15 @@ export interface TerritoryDefinition {
   readonly shape: string
   /** Where the army count is drawn. */
   readonly labelAt: Point
+  /**
+   * True if you can only reach this place by sea.
+   *
+   * Only the screen uses it, to send landing craft rather than
+   * parachutists. It is written down here rather than worked out from the
+   * shape, because the shapes cannot tell an island from a coastal city.
+   * See spec S26.
+   */
+  readonly isIsland?: boolean
 }
 
 /** A group of territories worth a bonus if one player owns them all. */
