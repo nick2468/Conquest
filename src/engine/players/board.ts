@@ -150,6 +150,38 @@ export function pressureOn(
   return against - armiesOn(state, territoryId)
 }
 
+/**
+ * The territories OUTSIDE a region that border into it.
+ *
+ * This is what a region costs to hold. In the real board game Australia is
+ * the favourite base because it has exactly one way in. On our map The West
+ * has two, which makes it the same kind of prize.
+ */
+export function entrancesTo(
+  state: GameState,
+  regionId: RegionId,
+): TerritoryId[] {
+  const inside = new Set(
+    state.map.territories
+      .filter((each) => each.regionId === regionId)
+      .map((each) => each.id),
+  )
+
+  const ways = new Set<TerritoryId>()
+
+  for (const territory of state.map.territories) {
+    if (inside.has(territory.id)) {
+      continue
+    }
+
+    if (territory.borders.some((border) => inside.has(border))) {
+      ways.add(territory.id)
+    }
+  }
+
+  return [...ways]
+}
+
 /** Something to choose, with how good it looks. */
 export interface Scored<Item> {
   readonly item: Item

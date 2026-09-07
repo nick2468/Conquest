@@ -5,8 +5,8 @@ import type { GameAction } from '../game'
 import { applyAction, legalActions } from '../game'
 import { seededRandom } from '../random'
 import { createGame } from '../setup'
-import type { GameState } from '../types'
-import { frontierOf, interiorOf, regionHoldings } from './board'
+import type { GameMap, GameState } from '../types'
+import { entrancesTo, frontierOf, interiorOf, regionHoldings } from './board'
 import { ALL_SKILLS, playerFor } from './index'
 import type { Skill } from './types'
 
@@ -239,7 +239,9 @@ describe('the faults Nick named while watching the phase 2 player', () => {
       state.log.map((entry) => entry.text).join('|'),
     )
 
-    expect(new Set(stories).size, 'two skills played identically').toBe(3)
+    expect(new Set(stories).size, 'two skills played identically').toBe(
+      ALL_SKILLS.length,
+    )
   })
 })
 
@@ -422,5 +424,143 @@ describe('the players are ranked, not just different', () => {
 
     expect(easy.longest, 'greedy vs reckless dragged').toBeLessThan(60)
     expect(easy.firstWins).toBeGreaterThan(15)
+  })
+})
+
+// ------------------------------------------- a plan needs room to matter
+
+/**
+ * A board shaped like a real Risk board: several regions of several
+ * territories, joined by one door each.
+ *
+ * It exists because Australia is too small to tell two strategies apart.
+ * With ten territories a region is two or three squares, so "I am going for
+ * that region" is never more than one attack away and means almost nothing.
+ */
+function riskShapedMap(regions: number, per: number, bonus: number): GameMap {
+  const name = (region: number, place: number) => `t${region}_${place}`
+  const territories = []
+
+  for (let region = 0; region < regions; region += 1) {
+    for (let place = 0; place < per; place += 1) {
+      const borders: string[] = []
+
+      if (place > 0) borders.push(name(region, place - 1))
+      if (place < per - 1) borders.push(name(region, place + 1))
+      if (place === 0) {
+        borders.push(name((region - 1 + regions) % regions, per - 1))
+      }
+      if (place === per - 1) borders.push(name((region + 1) % regions, 0))
+
+      territories.push({
+        id: name(region, place),
+        name: name(region, place),
+        shortName: name(region, place),
+        regionId: `r${region}`,
+        borders,
+        shape: 'M 0 0 L 1 0 L 1 1 Z',
+        labelAt: { x: place * 10 + 5, y: region * 10 + 5 },
+      })
+    }
+  }
+
+  return {
+    id: 'risk-shaped',
+    name: 'Risk shaped',
+    viewBox: '0 0 500 500',
+    regions: Array.from({ length: regions }, (_unused, region) => ({
+      id: `r${region}`,
+      name: `Region ${region}`,
+      bonus,
+      outline: '#000000',
+    })),
+    territories,
+  }
+}
+
+function playOn(
+  map: GameMap,
+  order: readonly Skill[],
+  seed: number,
+  players: number,
+): Skill | undefined {
+  const random = seededRandom(seed)
+  const choices = seededRandom(seed * 31 + 7)
+
+  let state = createGame({
+    map,
+    players: Array.from({ length: players }, (_unused, index) => ({
+      name: `p${index}`,
+      kind: order[index % order.length] as Skill,
+    })),
+    random,
+  })
+
+  for (let step = 0; step < 60000 && state.winnerId === null; step += 1) {
+    const kind = state.players.find(
+      (each) => each.id === state.turn.playerId,
+    )?.kind
+
+    state = applyAction(
+      state,
+      playerFor(kind as Skill).chooseAction(state, choices),
+      random,
+    )
+  }
+
+  return state.players.find((each) => each.id === state.winnerId)?.kind as
+    | Skill
+    | undefined
+}
+
+describe('the Planner', () => {
+  it('picks the region that pays most and is easiest to hold', () => {
+    const state = createGame({
+      map: AUSTRALIA,
+      players: [
+        { name: 'One', kind: 'planner' },
+        { name: 'Two', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+
+    // The West pays 3 and has two ways in. The South pays 2 and has five.
+    // Any sensible plan prefers the first.
+    expect(entrancesTo(state, 'west').length).toBeLessThan(
+      entrancesTo(state, 'south').length,
+    )
+  })
+
+  /**
+   * The measurement that says a plan is worth having. Plan task 4.13.
+   *
+   * On Australia the Planner is level with Cautious, and no weighting
+   * changed that: ten territories give a plan nothing to work with. On a
+   * board shaped like a real Risk board it wins about six games in ten,
+   * at every player count.
+   *
+   * So the finding is NOT "planning does not pay". It is "planning needs a
+   * board worth planning on", which is why the map is being made bigger.
+   */
+  it('beats Cautious on a board with room to plan on', { timeout: 200000 }, () => {
+    const board = riskShapedMap(6, 7, 5)
+    let planner = 0
+    let cautious = 0
+
+    for (const players of [2, 4, 6]) {
+      for (let game = 0; game < 24; game += 1) {
+        const order: Skill[] =
+          game % 2 === 0 ? ['planner', 'cautious'] : ['cautious', 'planner']
+        const winner = playOn(board, order, game + 1, players)
+
+        if (winner === 'planner') planner += 1
+        else if (winner === 'cautious') cautious += 1
+      }
+    }
+
+    expect(
+      planner,
+      `planner ${planner} : ${cautious} cautious on a 42-territory board`,
+    ).toBeGreaterThan(cautious)
   })
 })

@@ -367,12 +367,65 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
 **Done when:** a person can play alone, and 4.6 passes.
 
+- [x] 4.13 **Nick: "real players have a high level plan, e.g. take South
+      America as a base and push from there. It is not just scattered
+      tactics."** He was right, and it turned into the clearest result in
+      the whole phase.
+
+      A fourth player, **Planner**, picks a REGION to own and makes every
+      move serve it: attacks into it first, reinforces where it can attack
+      from, and once it holds the region guards the ways in. It prefers a
+      region with FEW DOORS, which is why people pick Australia or South
+      America in the real game: not because they pay well, but because they
+      are cheap to hold.
+
+      The goal is worked out from the board each turn rather than
+      remembered, so the seam of spec S20 is untouched. That also behaves
+      better than a memory: the plan holds while the board holds.
+
+      | Board | Planner : Cautious |
+      |---|---|
+      | Australia, 10 territories, 2 players | 78 : 82 |
+      | Australia, 10 territories, 4 players | 78 : 80 |
+      | Risk-shaped, 42 territories, 2 players | **32 : 18** |
+      | Risk-shaped, 42 territories, 4 players | **31 : 19** |
+      | Risk-shaped, 42 territories, 6 players | **30 : 20** |
+
+      **A plan needs a board worth planning on.** On ten territories a
+      region is two or three squares, so "I am going for that region" is
+      never more than one attack away and means nothing. On a real board the
+      Planner wins about six games in ten, at every player count.
+
+      One thing had to be got right. The first version weighted the plan at
+      25 against a tactical score of about 25, so the plan DROWNED the
+      tactics and it lost badly, 7 to 43. At a weight of 10 it wins. A plan
+      guides the choice between good moves; it does not excuse a bad one.
+      That is the same lesson as the region bonus in 4.7.
+
 ---
 
 ## Phase 5 - maps of your own
 
 **Goal: Conquest plays a map nobody wrote code for.**
 
+**Task 4.13 turned this phase from a nice-to-have into the thing the game
+needs.** The computer players are as good as a ten-territory board lets them
+be. A bigger Australia is what makes strategy mean anything.
+
+- [ ] 5.0 **A bigger Australia.** Nick's design: divide the states and
+      territories into several regions each, and make the big cities
+      playable places of their own. Perth, Adelaide, Melbourne, Sydney,
+      Brisbane, Hobart, Darwin, Canberra.
+
+      Aim for something near a real Risk board: about 40 territories in 8 to
+      10 regions. That is the size at which the Planner beats Cautious 6 to
+      4, measured in 4.13, and at which a region bonus is worth defending.
+
+      A city inside a state is the same shape of idea as the Australian
+      Capital Territory: a small, valuable, one-door place. Those make good
+      prizes and good bases.
+
+      The current 10-territory map stays, as the small one to learn on.
 - [ ] 5.1 A map file format, and reading it
 - [ ] 5.2 Run `validateMap()` on a loaded map and report faults in plain words
 - [ ] 5.3 Load a map from a file the player picks
@@ -423,6 +476,6 @@ something to play with while the interesting part gets built.
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
 | 2 - the screen | **COMPLETE** 2026-09-07, bar the 2.1.5 overlap guard. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
-| 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.11 all done. |
+| 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |
