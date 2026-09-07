@@ -29,8 +29,7 @@ let hiss: AudioBuffer | null = null
  * The browser's sound engine, or null if there is not one.
  *
  * A browser refuses to make a sound until the person has touched the page.
- * `resume` is what lifts that, and it only works from inside a tap. So the
- * sound switch calls `wakeSounds` and everything after it can play.
+ * `resume` lifts that, and it only counts from inside a tap.
  */
 function engine(): AudioContext | null {
   try {
@@ -46,6 +45,7 @@ function engine(): AudioContext | null {
       }
 
       shared = new make()
+      watchForTaps(shared)
     }
 
     if (shared.state === 'suspended') {
@@ -58,9 +58,85 @@ function engine(): AudioContext | null {
   }
 }
 
-/** Call this from inside a tap, so the browser lets sound through. */
-export function wakeSounds(): void {
-  engine()
+/**
+ * Try again on every tap, for as long as the browser is holding sound back.
+ *
+ * An iPad puts the sound engine to sleep when the app goes to the back, and
+ * waking it only counts from inside a tap. Without this, coming back to a
+ * game left open in another tab leaves the game silent for good.
+ */
+function watchForTaps(context: AudioContext): void {
+  try {
+    document.addEventListener(
+      'pointerdown',
+      () => {
+        if (context.state !== 'running') {
+          void context.resume()
+        }
+      },
+      { capture: true },
+    )
+  } catch {
+    // Nothing to do about it.
+  }
+}
+
+/** What happened when the player asked for sound. */
+export type SoundStart = 'running' | 'blocked' | 'none'
+
+/**
+ * Switch the sound on, from inside the tap that asked for it.
+ *
+ * The empty buffer below is the part that matters, and it is why sound
+ * worked in a browser on the computer but not on the iPad. Safari on
+ * iPadOS does not count `resume` on its own as permission. It wants a
+ * sound actually STARTED while the finger is down. One frame of silence
+ * is a sound, so this is it.
+ *
+ * It then plays two notes, so the player finds out at once whether they
+ * can hear anything. If they cannot, the iPad is set to silent, and no
+ * website can do anything about that.
+ */
+export async function startSound(): Promise<SoundStart> {
+  const context = engine()
+
+  if (context === null) {
+    return 'none'
+  }
+
+  try {
+    const permission = context.createBufferSource()
+    permission.buffer = context.createBuffer(1, 1, context.sampleRate)
+    permission.connect(context.destination)
+    permission.start(0)
+
+    await context.resume()
+  } catch {
+    // Fall through to whatever state the engine ended up in.
+  }
+
+  if (context.state !== 'running') {
+    return 'blocked'
+  }
+
+  // Two rising notes: "sound is on".
+  note(context, {
+    shape: 'triangle',
+    fromHz: 520,
+    toHz: 516,
+    level: LOUDEST * 0.5,
+    lasting: 0.12,
+  })
+  note(context, {
+    shape: 'triangle',
+    fromHz: 780,
+    toHz: 774,
+    level: LOUDEST * 0.5,
+    lasting: 0.18,
+    startAt: 0.13,
+  })
+
+  return 'running'
 }
 
 /** Two seconds of hiss, made once and used by every sound that needs it. */

@@ -520,6 +520,7 @@ time, and it improves the game people already play. See spec 11.5.
 - [x] 7.8 Build the sounds in code, one per effect, no audio files
 - [x] 7.9 A sound switch in the header, off until a player turns it on
 - [ ] 7.10 Nick: play a real game on the iPad and check nothing is slower
+- [x] 7.11 Make the sound work on the iPad, not only in a browser
 
 ### What was measured, and what had to change
 
@@ -551,6 +552,18 @@ got a convoy, because the rule only looked at deploying. A move now counts
 as a sea crossing when exactly ONE end is an island, and those armies go by
 boat. Launceston to Hobart stays a convoy, because both are on the same
 island.
+
+**Sound worked in a browser and did nothing on the iPad.** Nick found this
+by playing it. Safari on iPadOS does not accept `resume()` on its own as
+permission to make a noise. It wants a sound actually STARTED while the
+finger is still down. The switch now starts one frame of silence inside the
+tap, which counts, and everything after it is allowed.
+
+Two more things came out of that. The sound engine is now woken again on
+any later tap, because an iPad puts it to sleep when the app goes to the
+back, and waking it only counts from inside a tap. And the switch now plays
+two notes and says so, because three different things can leave a player in
+silence and only the game can tell them apart. See spec S25a and S25b.
 
 Measured after: 319 tests green. The board holds 236 shapes at rest and 252
 at the peak of an effect, so an animation adds at most 16 and nothing builds
@@ -589,4 +602,4 @@ something to play with while the interesting part gets built.
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
 | 5 - maps of your own | Not started |
 | 6 - separate devices | Not started |
-| 7 - things you can see and hear | **7.1 to 7.9 COMPLETE** 2026-09-07. 7.10 is Nick's. |
+| 7 - things you can see and hear | **Built** 2026-09-07, bar 7.10 on the iPad, which is Nick's. |

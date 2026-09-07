@@ -959,3 +959,12 @@ button.primary {
     display: none;
   }
 }
+
+/* What the sound switch has to say for itself. It wraps onto its own line
+ * under the header, and goes at the next move. */
+.sound-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}

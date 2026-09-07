@@ -12,7 +12,7 @@ import { TurnPanel } from './TurnPanel'
 import { UpdateBanner } from './UpdateBanner'
 import { WinnerScreen } from './WinnerScreen'
 import { effectFor } from './effects'
-import { playSound, rememberSound, soundWasOn, wakeSounds } from './sounds'
+import { playSound, rememberSound, soundWasOn, startSound } from './sounds'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
 import { useUpdate } from './useUpdate'
@@ -118,6 +118,15 @@ export function App() {
    */
   const [soundOn, setSoundOn] = useState(soundWasOn)
 
+  /**
+   * What to say after the sound switch was tapped, or null for nothing.
+   *
+   * Nick found sound working in a browser on the computer and not on the
+   * iPad. There are three different reasons that can happen and they need
+   * three different answers, so the game says which one it is.
+   */
+  const [soundNote, setSoundNote] = useState<string | null>(null)
+
   // Which computer player, if any, should be moving right now.
   const whoseTurn = state.players.find(
     (each) => each.id === state.turn.playerId,
@@ -154,20 +163,39 @@ export function App() {
       }
     }
 
+    setSoundNote(null)
     act(action)
   }
 
   const turnSoundOn = (): void => {
     const wanted = !soundOn
 
-    // The browser only lets sound through from inside a tap, so the switch
-    // itself has to be the thing that starts it.
-    if (wanted) {
-      wakeSounds()
-    }
-
     setSoundOn(wanted)
     rememberSound(wanted)
+
+    if (!wanted) {
+      setSoundNote(null)
+      return
+    }
+
+    // A browser only lets sound through from inside a tap, so the switch
+    // itself has to start it. What comes back says which of the three
+    // things went wrong, if any did.
+    void startSound().then((how) => {
+      if (how === 'none') {
+        setSoundNote('This browser cannot make sounds.')
+        return
+      }
+
+      if (how === 'blocked') {
+        setSoundNote('The browser is still holding sound back. Tap it again.')
+        return
+      }
+
+      setSoundNote(
+        'Two notes just played. If you heard nothing, the iPad is in silent mode.',
+      )
+    })
   }
 
   /**
@@ -368,6 +396,12 @@ export function App() {
             New game
           </button>
         </div>
+
+        {soundNote === null ? null : (
+          <p className="sound-note" role="status">
+            {soundNote}
+          </p>
+        )}
       </header>
 
       <MapView

@@ -597,8 +597,21 @@ state, and an effect is not state.
 **S25. Sound is off until a player turns it on.** Two reasons, both outside
 our control. A browser refuses to make a sound before the person has touched
 the page, so a sound at the wrong moment is silently dropped. iPadOS also
-mutes web audio with the side switch, so a player can have sound switched on
-in the game and hear nothing, and think the game is broken.
+mutes web audio in silent mode, so a player can have sound switched on in
+the game and hear nothing, and think the game is broken.
+
+**S25a. Switching sound on must START a sound inside the tap, not only ask
+for permission.** Safari on iPadOS does not count `resume()` on its own. It
+wants a sound actually playing while the finger is down. One frame of
+silence counts. This was found the hard way: sound worked in a browser on
+the computer and did nothing at all on the iPad.
+
+**S25b. The switch proves itself.** Turning sound on plays two notes and
+says so. Three different things can leave a player in silence, and they need
+three different answers: the browser has no sound engine, the browser is
+still holding sound back, or the iPad is in silent mode. Only the last one
+is common, and no website can do anything about it, so the game has to say
+which one it is rather than leave a person guessing.
 
 Every sound is built in code from an oscillator and noise. No audio files.
 That keeps the app small, keeps it working offline, and means there is
