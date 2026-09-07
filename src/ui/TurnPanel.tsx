@@ -7,6 +7,14 @@ interface TurnPanelProps {
   readonly selectedId: TerritoryId | null
   readonly onEndAttacks: () => void
   readonly onSkipFortify: () => void
+  /**
+   * What just happened, when somebody else is playing.
+   *
+   * A person watching a computer take its turn needs to be told what it
+   * did. "Tap a territory to attack from" is no use to them: it is not
+   * their turn and there is nothing to tap.
+   */
+  readonly narration?: string | null
 }
 
 const PHASE_NAMES: Readonly<Record<GameState['turn']['phase'], string>> = {
@@ -24,6 +32,7 @@ export function TurnPanel({
   selectedId,
   onEndAttacks,
   onSkipFortify,
+  narration = null,
 }: TurnPanelProps) {
   const player = state.players.find(
     (each) => each.id === state.turn.playerId,
@@ -45,7 +54,9 @@ export function TurnPanel({
         <span className="turn-round">Round {state.round}</span>
       </div>
 
-      <p className="turn-instruction">{whatToDoNow(state, selectedId)}</p>
+      <p className="turn-instruction">
+        {narration ?? whatToDoNow(state, selectedId)}
+      </p>
 
       {state.turn.phase === 'reinforce' ? (
         <p className="turn-armies">

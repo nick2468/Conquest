@@ -461,6 +461,22 @@ be. A bigger Australia is what makes strategy mean anything.
       **The first update after this ships still needs the manual close and
       reopen**, because the version currently on the iPad has no bar in it.
       From then on it will say so itself.
+- [x] 5.4 **Make a computer's turn possible to follow.** Nick: "the whole
+      sequence of deploy, attack, fortify is done in a flash and it is
+      difficult to know what happened."
+
+      Speed was only half of it. The other half was mine: the map was
+      DELIBERATELY blanked during a computer turn, so there was nothing to
+      watch however slowly it went.
+
+      Now the two places in its move light up exactly as they would for a
+      person, the attacker outlined and the target dashed, and the panel
+      says what it did in plain words: "Cautious attacks The Murray from The
+      Riverina. Attacker rolls 3, 3, 1, defender rolls 4."
+
+      An attack waits 1.5 seconds and everything else 0.7, because an attack
+      is the only move with a result worth reading. The rest just change a
+      number.
 - [ ] 5.1 A map file format, and reading it
 - [ ] 5.2 Run `validateMap()` on a loaded map and report faults in plain words
 - [ ] 5.3 Load a map from a file the player picks

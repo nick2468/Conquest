@@ -48,8 +48,15 @@ function thinnestPlacement(state: GameState): GameAction | null {
   )
 }
 
-/** How long a computer player appears to think, in milliseconds. */
-const MOVE_PAUSE = 450
+/**
+ * How long a computer player waits between moves, in milliseconds.
+ *
+ * An attack gets longer, because it is the only move with a result worth
+ * reading: the dice, and who lost what. Placing armies and fortifying just
+ * change a number.
+ */
+const MOVE_PAUSE = 700
+const PAUSE_AFTER_A_FIGHT = 1500
 
 /** Nothing lit up. Used while a computer is moving. */
 const EMPTY_HIGHLIGHTS = {
@@ -78,6 +85,17 @@ export function App() {
   const [lookingAt, setLookingAt] = useState<TerritoryId | null>(null)
 
   const update = useUpdate()
+
+  /**
+   * What the computer just did, so the map can show it.
+   *
+   * Nick: "the whole sequence is done in a flash and it is difficult to know
+   * what happened." The speed was only half of it. The other half was that
+   * the map was deliberately blanked during a computer turn, so there was
+   * nothing to watch even when it was slow. Now the two places involved in
+   * its move are lit up exactly as they would be for a person.
+   */
+  const [lastMove, setLastMove] = useState<GameAction | null>(null)
 
   // Which computer player, if any, should be moving right now.
   const whoseTurn = state.players.find(
@@ -122,7 +140,11 @@ export function App() {
    * cleanup below matters: without it a paused game could roll dice nobody
    * asked for.
    */
-  const thinkingFor = playing ? MOVE_PAUSE : 0
+  const thinkingFor = !playing
+    ? 0
+    : lastMove?.type === 'attack'
+      ? PAUSE_AFTER_A_FIGHT
+      : MOVE_PAUSE
 
   useEffect(() => {
     if (!playing) {
@@ -130,13 +152,16 @@ export function App() {
     }
 
     const timer = setTimeout(() => {
-      act(playerFor(playing).chooseAction(state, chooser))
+      const move = playerFor(playing).chooseAction(state, chooser)
+
+      setLastMove(move)
+      act(move)
       setSelectedId(null)
       setPendingFortify(null)
     }, thinkingFor)
 
     return () => clearTimeout(timer)
-  }, [playing, state, act, chooser, thinkingFor])
+  }, [playing, state, act, chooser, thinkingFor, lastMove])
 
   const run = (action: GameAction): void => {
     act(action)
@@ -146,6 +171,7 @@ export function App() {
   const start = (chosen: GameSetup): void => {
     setSetup(chosen)
     forget()
+    setLastMove(null)
     setLookingAt(null)
     newGame(chosen)
     setScreen('playing')
@@ -190,6 +216,8 @@ export function App() {
 
   // A computer player moves anywhere, so its turn is watched from above.
   const view = computer ? null : lookingAt
+
+  const watching = computer ? showing(lastMove) : null
   const closeUpOn = state.map.territories.find((each) => each.id === view)
 
   const handleTap = (territoryId: TerritoryId): void => {
@@ -274,8 +302,8 @@ export function App() {
 
       <MapView
         state={state}
-        highlights={computer ? EMPTY_HIGHLIGHTS : highlights}
-        selectedId={computer ? null : selectedId}
+        highlights={computer ? (watching?.highlights ?? EMPTY_HIGHLIGHTS) : highlights}
+        selectedId={computer ? (watching?.from ?? null) : selectedId}
         onTap={computer ? () => undefined : handleTap}
         lookingAt={view}
       />
@@ -291,6 +319,9 @@ export function App() {
           <TurnPanel
             state={state}
             selectedId={selectedId}
+            narration={
+              computer ? (state.log.at(-1)?.text ?? null) : null
+            }
             onEndAttacks={() => run({ type: 'endAttackPhase' })}
             onSkipFortify={() => run({ type: 'skipFortify' })}
           />
@@ -382,4 +413,38 @@ export function App() {
     {banner}
     </>
   )
+}
+
+/**
+ * The places a computer's move touches, so they can be lit up.
+ *
+ * An attack shows both ends. Everything else shows the one place it lands
+ * on, which is enough to follow an army being placed or moved.
+ */
+function showing(move: GameAction | null): {
+  readonly from: TerritoryId | null
+  readonly highlights: { canStart: Set<TerritoryId>; canFinish: Set<TerritoryId> }
+} | null {
+  if (move === null) {
+    return null
+  }
+
+  if (move.type === 'attack' || move.type === 'fortify') {
+    return {
+      from: move.fromId,
+      highlights: {
+        canStart: new Set([move.fromId]),
+        canFinish: new Set([move.toId]),
+      },
+    }
+  }
+
+  if (move.type === 'placeArmies') {
+    return {
+      from: move.territoryId,
+      highlights: { canStart: new Set([move.territoryId]), canFinish: new Set() },
+    }
+  }
+
+  return null
 }
