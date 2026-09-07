@@ -46,7 +46,7 @@ function defaultPlayers(count: number): NewPlayer[] {
 export const DEFAULT_SETUP: GameSetup = {
   // The detailed map by default. The small one is there to learn on, but a
   // plan means nothing on ten territories. See plan task 4.13.
-  map: mapCalled('australia-big', null),
+  map: mapCalled('world', null),
   players: defaultPlayers(3),
   options: DEFAULT_OPTIONS,
   /**

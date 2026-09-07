@@ -559,7 +559,37 @@ be. A bigger Australia is what makes strategy mean anything.
       renamed it, raised Tasmania's bonus to 9, renamed Hobart, loaded it
       back, and played it. The board said "James's Australia" and the place
       said "Hobart Town".
-- [ ] 5.8 A second map, to prove the first one was not a special case
+- [x] 5.8 **The world.** Nick's request, built 2026-09-08. Forty-two places
+      in six continents: North America 9, South America 4, Europe 7, Africa
+      6, Asia 12, Australia 4. The bonuses are 5, 2, 5, 3, 7 and 2.
+
+      This is the second map, and it was the point of the whole phase: it
+      proves the first one was not a special case. It also proves the
+      guards, because it passed all ten rules on the first run.
+
+      **It is the layout everybody who has played the classic war game
+      already knows**, so nobody has to learn a new world before they can
+      play. The names are the names of real places. The drawing is our own,
+      not a copy of anybody's artwork, and the game is Conquest.
+
+      **Australia has ONE way in, from Siam to Indonesia**, and pays the
+      least of any continent. Asia pays 7 and has five ways in. That is the
+      same lesson Tasmania teaches on the detailed Australia map, and a test
+      holds both facts.
+
+      Drawn the same way as the detailed Australia: borders inside a
+      continent are straight lines whose corners the two places share
+      exactly, and only the coasts wander. That is how the real board looks,
+      and it is the only way to be sure of no overlaps.
+
+      Two things needed fixing after looking at it. The map was called "The
+      World", and the screen reads out "The <name> board", so it announced
+      "The The World board". And the Mediterranean was ten units wide, which
+      read as one landmass rather than two continents. Africa moved 30
+      further down, and the Middle East reaches down to meet Egypt across
+      Suez.
+
+      It is now the map the game opens on.
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
       needs nothing installed, and is one link away. See spec 3.4.
@@ -756,6 +786,6 @@ something to play with while the interesting part gets built.
 | 2 - the screen | **COMPLETE** 2026-09-07, both guards included. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
-| 5 - maps of your own | **All but 5.8 done** 2026-09-07. A second map is left. |
+| 5 - maps of your own | **COMPLETE** 2026-09-08. Three maps, a file format and an editor. |
 | 6 - separate devices | Not started |
 | 7 - things you can see and hear | **Built** 2026-09-07, bar 7.10 on the iPad, which is Nick's. |

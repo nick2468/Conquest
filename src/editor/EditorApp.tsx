@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { PLAYER_COLOURS } from '../engine'
 import { AUSTRALIA } from '../maps/australia'
 import { AUSTRALIA_BIG } from '../maps/australia-big'
+import { WORLD } from '../maps/world'
 import type { MapDraft } from '../maps/format'
 import { fromDraft, readMap, toDraft, writeDraft } from '../maps/format'
 import type { MapProblem } from '../maps/validate'
@@ -57,7 +58,7 @@ function roomFor(viewBox: string): [number, number] {
 }
 
 export function EditorApp() {
-  const [draft, setDraft] = useState<MapDraft>(() => toDraft(AUSTRALIA_BIG))
+  const [draft, setDraft] = useState<MapDraft>(() => toDraft(WORLD))
   const [steps, setSteps] = useState<MapDraft[]>([])
   const [chosen, setChosen] = useState<string | null>(null)
   const [chosenCorner, setChosenCorner] = useState<number | null>(null)
@@ -245,6 +246,9 @@ export function EditorApp() {
           </label>
 
           <div className="editor-buttons">
+            <button type="button" onClick={() => startFrom(toDraft(WORLD))}>
+              Start from the world
+            </button>
             <button
               type="button"
               onClick={() => startFrom(toDraft(AUSTRALIA_BIG))}

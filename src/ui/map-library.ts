@@ -2,21 +2,23 @@ import type { GameMap } from '../engine'
 import { AUSTRALIA } from '../maps/australia'
 import { AUSTRALIA_BIG } from '../maps/australia-big'
 import { readMap } from '../maps/format'
+import { WORLD } from '../maps/world'
 import type { MapProblem } from '../maps/validate'
 
 /**
  * The maps a player may pick. Plan task 5.7.
  *
- * Two are built in. A third appears once a player loads one of their own,
- * and is remembered, so choosing the file is a thing you do once rather
- * than every time the game starts.
+ * Three are built in, the world first because it is the one most people
+ * come for. One more appears once a player loads a map of their own, and
+ * is remembered, so choosing the file is a thing you do once rather than
+ * every time the game starts.
  *
  * The choosing is worked out here with no React and no browser, so it is
  * tested. Only the remembering touches the browser, and it is wrapped, so a
  * browser with storage switched off simply forgets.
  */
 
-export const BUILT_IN: readonly GameMap[] = [AUSTRALIA_BIG, AUSTRALIA]
+export const BUILT_IN: readonly GameMap[] = [WORLD, AUSTRALIA_BIG, AUSTRALIA]
 
 export interface MapChoice {
   readonly map: GameMap
