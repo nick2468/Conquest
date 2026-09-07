@@ -1,8 +1,9 @@
 import { useState } from 'react'
 
-import type { GameAction, TerritoryId } from '../engine'
-import { GAME_NAME, armyLimitFor } from '../engine'
+import type { GameAction, GameOptions, TerritoryId } from '../engine'
+import { DEFAULT_OPTIONS, GAME_NAME, armyLimitFor } from '../engine'
 import { ArmyChooser } from './ArmyChooser'
+import { CardsPanel } from './CardsPanel'
 import { MapView } from './MapView'
 import { TurnPanel } from './TurnPanel'
 import { highlightsFor, whatATapDoes } from './taps'
@@ -17,7 +18,10 @@ interface PendingFortify {
 export function App() {
   const [playerCount, setPlayerCount] = useState(3)
   const [seed, setSeed] = useState(1)
-  const { state, act, newGame } = useGame({ playerCount, seed })
+  // Options are picked before a game starts, per spec section 7, so this
+  // is what the NEXT game will use.
+  const [options, setOptions] = useState<GameOptions>(DEFAULT_OPTIONS)
+  const { state, act, newGame } = useGame({ playerCount, seed, options })
 
   const [selectedId, setSelectedId] = useState<TerritoryId | null>(null)
   const [pendingFortify, setPendingFortify] = useState<PendingFortify | null>(
@@ -64,12 +68,17 @@ export function App() {
     }
   }
 
-  const startNewGame = (players: number, nextSeed: number): void => {
+  const startNewGame = (
+    players: number,
+    nextSeed: number,
+    nextOptions: GameOptions,
+  ): void => {
     setPlayerCount(players)
     setSeed(nextSeed)
+    setOptions(nextOptions)
     setSelectedId(null)
     setPendingFortify(null)
-    newGame({ playerCount: players, seed: nextSeed })
+    newGame({ playerCount: players, seed: nextSeed, options: nextOptions })
   }
 
   const nameOf = (territoryId: TerritoryId): string =>
@@ -88,7 +97,7 @@ export function App() {
             <select
               value={playerCount}
               onChange={(event) =>
-                startNewGame(Number(event.target.value), seed)
+                startNewGame(Number(event.target.value), seed, options)
               }
             >
               {[2, 3, 4, 5, 6].map((count) => (
@@ -99,9 +108,26 @@ export function App() {
             </select>
           </label>
 
+          <label>
+            Dice
+            <select
+              value={options.diceDisplay}
+              onChange={(event) =>
+                startNewGame(playerCount, seed, {
+                  ...options,
+                  diceDisplay: event.target
+                    .value as GameOptions['diceDisplay'],
+                })
+              }
+            >
+              <option value="allAtOnce">All at once</option>
+              <option value="oneByOne">One at a time</option>
+            </select>
+          </label>
+
           <button
             type="button"
-            onClick={() => startNewGame(playerCount, seed + 1)}
+            onClick={() => startNewGame(playerCount, seed + 1, options)}
           >
             New game
           </button>
@@ -130,7 +156,7 @@ export function App() {
             <button
               type="button"
               className="primary"
-              onClick={() => startNewGame(playerCount, seed + 1)}
+              onClick={() => startNewGame(playerCount, seed + 1, options)}
             >
               Play again
             </button>
@@ -174,6 +200,13 @@ export function App() {
             }
           />
         )}
+
+        {winner === undefined ? (
+          <CardsPanel
+            state={state}
+            onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}
+          />
+        ) : null}
 
         <table className="scores">
           <thead>

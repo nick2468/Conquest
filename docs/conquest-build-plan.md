@@ -129,10 +129,12 @@ with no screen and no real randomness.
 
 ### 2.3 Cards and dice
 
-- [ ] 2.3.1 Show the cards in the current player's hand
-- [ ] 2.3.2 Trade a set, including the forced trade at five cards
+- [x] 2.3.1 Show the cards in the current player's hand
+- [x] 2.3.2 Trade a set, including the forced trade at five cards
 - [x] 2.3.3 Show the dice after an attack. Done early with 2.2.
-- [ ] 2.3.4 Honour the `diceDisplay` setting, one by one or all at once
+- [x] 2.3.4 Honour the `diceDisplay` setting, one by one or all at once.
+      The setting is picked before a game starts, per spec section 7, so the
+      control sits beside New game and applies to the next one.
 
 ### 2.4 Around the game
 
@@ -236,7 +238,7 @@ something to play with while the interesting part gets built.
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
-| 2 - the screen | **In progress.** 2.1 and 2.2 done. The game is playable. |
+| 2 - the screen | **In progress.** 2.1, 2.2 and 2.3 done. 2.4 is left. |
 | 3 - the Home Screen app | Not started |
 | 4 - computer players | Not started |
 | 5 - maps of your own | Not started |

@@ -1,5 +1,5 @@
 import type { GameAction, GameState, TerritoryId } from '../engine'
-import { legalActions } from '../engine'
+import { legalActions, mustTradeASet } from '../engine'
 
 /**
  * What a tap on the map should do.
@@ -156,8 +156,19 @@ export function whatToDoNow(
     'Somebody'
 
   switch (state.turn.phase) {
-    case 'reinforce':
+    case 'reinforce': {
+      // Five cards blocks everything else, so say that rather than asking
+      // for taps the engine is about to refuse.
+      const cards =
+        state.players.find((each) => each.id === state.turn.playerId)?.cards ??
+        []
+
+      if (mustTradeASet(cards)) {
+        return `${player}, you hold ${cards.length} cards. Trade a set before anything else.`
+      }
+
       return `${player}, tap your territories to place ${state.turn.armiesToPlace} armies.`
+    }
 
     case 'attack':
       return selectedId === null

@@ -327,6 +327,115 @@ button.primary {
   border-color: #33608f;
 }
 
+/* ------------------------------------------------------------- the cards */
+
+.cards {
+  padding: 1rem;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 0.75rem;
+}
+
+/* A forced trade is the one thing that blocks the whole turn, so it says so
+   loudly rather than leaving the player wondering why nothing works. */
+.cards-forced {
+  border-color: var(--target);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--target) 25%, transparent);
+}
+
+.cards h2 {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+}
+
+.cards-count {
+  padding: 0.05rem 0.45rem;
+  font-size: 0.75rem;
+  background: var(--page);
+  border: 1px solid var(--edge);
+  border-radius: 1rem;
+}
+
+.cards-none,
+.cards-advice {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 0 0.4rem;
+  width: 100%;
+  min-height: 3.2rem;
+  padding: 0.4rem 0.5rem;
+  text-align: left;
+  background: var(--page);
+  border: 1px solid var(--edge);
+  border-radius: 0.5rem;
+}
+
+.card svg {
+  grid-row: 1 / 3;
+  align-self: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: var(--ink-soft);
+}
+
+.card-picked {
+  border-color: var(--pick);
+  border-width: 2px;
+  background: color-mix(in srgb, var(--pick) 10%, var(--page));
+}
+
+.card-picked svg {
+  fill: var(--ink);
+}
+
+.card-symbol {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.card-place {
+  font-size: 0.7rem;
+  color: var(--ink-soft);
+}
+
+.cards-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.cards-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.dice-result {
+  width: 100%;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
 /* ------------------------------------------------------------ the scores */
 
 .scores {

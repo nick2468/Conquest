@@ -253,6 +253,35 @@ describe('the sentence telling the player what to do', () => {
     expect(whatToDoNow(state, null)).toContain('4 armies')
   })
 
+  // With five cards the engine refuses everything but a trade. Asking for
+  // taps it is about to refuse would send the player round in circles.
+  it('says to trade first when the player holds five cards', () => {
+    const base = gameWith(boardWhere({ wa: 1 }), {
+      phase: 'reinforce',
+      armiesToPlace: 4,
+    })
+
+    const state: GameState = {
+      ...base,
+      players: base.players.map((player) =>
+        player.id === 'p1'
+          ? {
+              ...player,
+              cards: ['a', 'b', 'c', 'd', 'e'].map((id) => ({
+                id,
+                symbol: 'infantry' as const,
+                territoryId: 'wa',
+              })),
+            }
+          : player,
+      ),
+    }
+
+    expect(whatToDoNow(state, null)).toContain('5 cards')
+    expect(whatToDoNow(state, null)).toContain('Trade a set')
+    expect(whatToDoNow(state, null)).not.toContain('tap your territories')
+  })
+
   it('changes once a territory is chosen', () => {
     const state = gameWith(boardWhere({ wa: 5 }))
 

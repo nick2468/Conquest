@@ -1,4 +1,5 @@
 import type { GameState, TerritoryId } from '../engine'
+import { Dice } from './Dice'
 import { whatToDoNow } from './taps'
 
 interface TurnPanelProps {
@@ -52,23 +53,7 @@ export function TurnPanel({
       ) : null}
 
       {dice === null ? null : (
-        <div className="dice-row" aria-label="The last dice">
-          <span className="dice-side">
-            {dice.attackerDice.map((die, index) => (
-              <span className="die die-attacker" key={`a${index}`}>
-                {die}
-              </span>
-            ))}
-          </span>
-          <span className="dice-against">against</span>
-          <span className="dice-side">
-            {dice.defenderDice.map((die, index) => (
-              <span className="die die-defender" key={`d${index}`}>
-                {die}
-              </span>
-            ))}
-          </span>
-        </div>
+        <Dice outcome={dice} display={state.options.diceDisplay} />
       )}
 
       <div className="turn-buttons">
