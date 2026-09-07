@@ -617,6 +617,26 @@ Every sound is built in code from an oscillator and noise. No audio files.
 That keeps the app small, keeps it working offline, and means there is
 nothing to host.
 
+**S28. A sound is built INTO a context, not played at a speaker.**
+
+`soundInto(context, kind)` builds the sound and stops there. `playSound`
+hands it the live context. A check hands it an offline one, renders it and
+measures what came out.
+
+That is the only way to judge a sound without ears, and it is what fixed the
+explosion. Nick heard the first one as "someone using a hammer". Four things
+say HIT rather than BLAST, and it had all four, each of them a number:
+
+| Measured | Hammer | Blast | Before | After |
+|---|---|---|---|---|
+| Time to reach full loudness | instant | slow | 31 ms | 72-137 ms |
+| Time to fall to a tenth | short | long | 143 ms | 596-696 ms |
+| Share of energy below 250 Hz | low | high | 0.50 | 0.77 |
+| Something to roll away into | none | echo | none | 1.6 s |
+
+The after figures cover a range because each explosion scatters its debris
+differently, so no two are the same.
+
 **S26. Whether a place is an island is written in the map file.** It is not
 worked out from the shape.
 

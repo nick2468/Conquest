@@ -521,6 +521,7 @@ time, and it improves the game people already play. See spec 11.5.
 - [x] 7.9 A sound switch in the header, off until a player turns it on
 - [ ] 7.10 Nick: play a real game on the iPad and check nothing is slower
 - [x] 7.11 Make the sound work on the iPad, not only in a browser
+- [x] 7.12 Make a sound measurable, and turn the hammer into an explosion
 
 ### What was measured, and what had to change
 
@@ -564,6 +565,28 @@ any later tap, because an iPad puts it to sleep when the app goes to the
 back, and waking it only counts from inside a tap. And the switch now plays
 two notes and says so, because three different things can leave a player in
 silence and only the game can tell them apart. See spec S25a and S25b.
+
+**The explosion was a hammer.** Nick's words, and he was right. An ear
+hears a strike when a sound starts in an instant, is bright, stops quickly
+and has a tuned thump under it. The first attempt had all four.
+
+None of that can be fixed by listening, because I cannot listen. So a sound
+is now built into ANY audio context rather than played at a speaker, which
+means one can be rendered offline and measured. See spec S28.
+
+| Measured | Before | After |
+|---|---|---|
+| Time to reach full loudness | 31 ms | 72-137 ms |
+| Time to fall to a tenth | 143 ms | 596-696 ms |
+| Share of energy below 250 Hz | 0.50 | 0.77 |
+
+What changed to get there: the crack was cut back to a quiet edge that the
+body swallows, the roar now opens at 1100 Hz rather than 3400, the thump
+slid down to 74 Hz which is below a hammer, the fade was made to run longer
+than the sound so the tail rolls instead of stopping dead, and the whole
+thing is sent through an echo worked out in code. Everything now passes
+through a squeezer, so two explosions close together add up without
+crackling.
 
 Measured after: 319 tests green. The board holds 236 shapes at rest and 252
 at the peak of an effect, so an animation adds at most 16 and nothing builds

@@ -23,7 +23,84 @@ interface Maker {
 }
 
 let shared: AudioContext | null = null
-let hiss: AudioBuffer | null = null
+
+/**
+ * The parts each context keeps, so a sound can be built into ANY context.
+ *
+ * That is what makes these testable. The game builds into the live one, and
+ * a check can build the same sound into an offline one and measure what
+ * comes out. See plan task 7.12.
+ */
+const hisses = new WeakMap<BaseAudioContext, AudioBuffer>()
+const mixers = new WeakMap<BaseAudioContext, AudioNode>()
+const echoes = new WeakMap<BaseAudioContext, ConvolverNode>()
+
+/**
+ * Where every sound goes.
+ *
+ * A squeezer sits between the game and the speaker. Two explosions close
+ * together add up, and without this they would crackle and clip. It leans
+ * on whatever is loudest rather than letting it through.
+ */
+function output(context: BaseAudioContext): AudioNode {
+  const already = mixers.get(context)
+
+  if (already !== undefined) {
+    return already
+  }
+
+  const squeeze = context.createDynamicsCompressor()
+  squeeze.threshold.value = -18
+  squeeze.knee.value = 12
+  squeeze.ratio.value = 8
+  squeeze.attack.value = 0.004
+  squeeze.release.value = 0.2
+  squeeze.connect(context.destination)
+
+  mixers.set(context, squeeze)
+  return squeeze
+}
+
+/**
+ * The sound of the land around the blast, so it has somewhere to roll away
+ * into. This is the difference between a bang and a hit.
+ *
+ * It is hiss that fades over a second and a half. Sent through a convolver,
+ * that is what makes a sound arrive from a place rather than from a
+ * speaker. Nothing is loaded: the shape of the space is worked out here.
+ */
+function distance(context: BaseAudioContext): ConvolverNode {
+  const already = echoes.get(context)
+
+  if (already !== undefined) {
+    return already
+  }
+
+  const seconds = 1.6
+  const frames = Math.floor(context.sampleRate * seconds)
+  const shape = context.createBuffer(2, frames, context.sampleRate)
+
+  for (let channel = 0; channel < 2; channel += 1) {
+    const samples = shape.getChannelData(channel)
+
+    for (let at = 0; at < frames; at += 1) {
+      const left = 1 - at / frames
+
+      samples[at] = (Math.random() * 2 - 1) * left ** 2.5
+    }
+  }
+
+  const room = context.createConvolver()
+  room.buffer = shape
+
+  const level = context.createGain()
+  level.gain.value = 0.8
+  room.connect(level)
+  level.connect(output(context))
+
+  echoes.set(context, room)
+  return room
+}
 
 /**
  * The browser's sound engine, or null if there is not one.
@@ -140,9 +217,11 @@ export async function startSound(): Promise<SoundStart> {
 }
 
 /** Two seconds of hiss, made once and used by every sound that needs it. */
-function noise(context: AudioContext): AudioBuffer {
-  if (hiss !== null) {
-    return hiss
+function noise(context: BaseAudioContext): AudioBuffer {
+  const already = hisses.get(context)
+
+  if (already !== undefined) {
+    return already
   }
 
   const frames = context.sampleRate * 2
@@ -156,13 +235,13 @@ function noise(context: AudioContext): AudioBuffer {
     samples[at] = Math.random() * 2 - 1
   }
 
-  hiss = buffer
+  hisses.set(context, buffer)
   return buffer
 }
 
 /** A burst of hiss, shaped by a filter. Everything rough is built from this. */
 function hissBurst(
-  context: AudioContext,
+  context: BaseAudioContext,
   options: {
     readonly filter: BiquadFilterType
     readonly fromHz: number
@@ -170,12 +249,38 @@ function hissBurst(
     readonly level: number
     readonly lasting: number
     readonly startAt?: number
+    /**
+     * How long it takes to reach full loudness, in seconds.
+     *
+     * This is the setting that decides whether a sound is a hit or a blast.
+     * Anything under about five thousandths of a second is heard as
+     * something striking something else.
+     */
+    readonly attack?: number
+    /**
+     * How long the fade to silence would take if it ran to the end, in
+     * seconds. Left out, it matches `lasting`.
+     *
+     * These fades are exponential, so most of the fall happens early. A
+     * fade set to the length of the sound is two thirds gone in a third of
+     * the time, which is heard as a knock. Setting it LONGER than the
+     * sound, and cutting the sound off while it is still fading, is what
+     * gives a blast its roll.
+     */
+    readonly fade?: number
+    /** Where it goes. Left out, it goes straight out of the speaker. */
+    readonly into?: readonly AudioNode[]
   },
 ): void {
   const at = context.currentTime + (options.startAt ?? 0)
+  const attack = options.attack ?? 0.02
+  const fade = options.fade ?? options.lasting
 
   const source = context.createBufferSource()
   source.buffer = noise(context)
+  // Start somewhere different every time, so two bangs are never the same
+  // hiss twice.
+  const offset = Math.random() * 1.5
 
   const filter = context.createBiquadFilter()
   filter.type = options.filter
@@ -184,20 +289,23 @@ function hissBurst(
 
   const volume = context.createGain()
   volume.gain.setValueAtTime(0.0001, at)
-  volume.gain.exponentialRampToValueAtTime(options.level, at + 0.02)
-  volume.gain.exponentialRampToValueAtTime(0.0001, at + options.lasting)
+  volume.gain.exponentialRampToValueAtTime(options.level, at + attack)
+  volume.gain.exponentialRampToValueAtTime(0.0001, at + fade)
 
   source.connect(filter)
   filter.connect(volume)
-  volume.connect(context.destination)
 
-  source.start(at)
+  for (const target of options.into ?? [output(context)]) {
+    volume.connect(target)
+  }
+
+  source.start(at, offset)
   source.stop(at + options.lasting + 0.05)
 }
 
 /** One note. Everything with a pitch is built from this. */
 function note(
-  context: AudioContext,
+  context: BaseAudioContext,
   options: {
     readonly shape: OscillatorType
     readonly fromHz: number
@@ -205,6 +313,9 @@ function note(
     readonly level: number
     readonly lasting: number
     readonly startAt?: number
+    readonly attack?: number
+    readonly fade?: number
+    readonly into?: readonly AudioNode[]
   },
 ): void {
   const at = context.currentTime + (options.startAt ?? 0)
@@ -216,14 +327,95 @@ function note(
 
   const volume = context.createGain()
   volume.gain.setValueAtTime(0.0001, at)
-  volume.gain.exponentialRampToValueAtTime(options.level, at + 0.03)
-  volume.gain.exponentialRampToValueAtTime(0.0001, at + options.lasting)
+  volume.gain.exponentialRampToValueAtTime(
+    options.level,
+    at + (options.attack ?? 0.03),
+  )
+  volume.gain.exponentialRampToValueAtTime(
+    0.0001,
+    at + (options.fade ?? options.lasting),
+  )
 
   tone.connect(volume)
-  volume.connect(context.destination)
+
+  for (const target of options.into ?? [output(context)]) {
+    volume.connect(target)
+  }
 
   tone.start(at)
   tone.stop(at + options.lasting + 0.05)
+}
+
+/**
+ * A blast, not a bang on an anvil.
+ *
+ * Nick heard the first attempt as "someone using a hammer", and he was
+ * right. Four things say HIT to an ear, and it had all four: it started in
+ * an instant, it was bright, it stopped quickly, and it had a tuned thump
+ * under it. Change those four and the same parts become an explosion.
+ *
+ * What it is made of, loudest part first:
+ *
+ * 1. The body. Wide hiss, opened at 1100 Hz and closing to 90 Hz over a
+ *    second and a half. It takes 25 thousandths of a second to reach full,
+ *    which is slow enough that no part of it is heard as a strike.
+ * 2. The push of air underneath, falling from 74 Hz to 26 Hz. Well below a
+ *    hammer's thump, and it slides too far to be heard as a note.
+ * 3. Debris. Six short rattles of hiss, at times and loudnesses that differ
+ *    every time, so no two explosions are the same.
+ * 4. The land it happens on. The body is also sent through the echo, which
+ *    is what makes the sound roll away rather than stop dead.
+ */
+function explosion(context: BaseAudioContext): void {
+  const far = distance(context)
+  const near = output(context)
+
+  hissBurst(context, {
+    filter: 'lowpass',
+    fromHz: 1100,
+    toHz: 90,
+    level: LOUDEST,
+    lasting: 1.6,
+    fade: 2.8,
+    attack: 0.025,
+    into: [near, far],
+  })
+
+  note(context, {
+    shape: 'sine',
+    fromHz: 74,
+    toHz: 26,
+    level: LOUDEST * 1.1,
+    lasting: 1.4,
+    fade: 2.2,
+    attack: 0.03,
+    into: [near, far],
+  })
+
+  // A little edge, so it starts somewhere. Quiet, and gone in a moment, so
+  // the body swallows it rather than the ear hearing a click.
+  hissBurst(context, {
+    filter: 'bandpass',
+    fromHz: 1700,
+    toHz: 700,
+    level: LOUDEST * 0.32,
+    lasting: 0.09,
+    attack: 0.006,
+    into: [near],
+  })
+
+  for (let piece = 0; piece < 6; piece += 1) {
+    hissBurst(context, {
+      filter: 'highpass',
+      fromHz: 500 + Math.random() * 900,
+      toHz: 260,
+      level: LOUDEST * (0.16 - piece * 0.02) * (0.6 + Math.random() * 0.6),
+      lasting: 0.1 + Math.random() * 0.2,
+      startAt: 0.06 + piece * 0.11 + Math.random() * 0.09,
+      attack: 0.012,
+      into: [near, far],
+    })
+  }
 }
 
 /**
@@ -240,98 +432,88 @@ export function playSound(kind: EffectKind): void {
   }
 
   try {
-    if (kind === 'battle') {
-      // A crack, then the low roll of it, then a second smaller one.
-      hissBurst(context, {
-        filter: 'lowpass',
-        fromHz: 3400,
-        toHz: 180,
-        level: LOUDEST,
-        lasting: 0.55,
-      })
-      note(context, {
-        shape: 'sine',
-        fromHz: 110,
-        toHz: 34,
-        level: LOUDEST * 0.9,
-        lasting: 0.5,
-      })
-      hissBurst(context, {
-        filter: 'lowpass',
-        fromHz: 2200,
-        toHz: 160,
-        level: LOUDEST * 0.55,
-        lasting: 0.4,
-        startAt: 0.22,
-      })
-      return
-    }
-
-    if (kind === 'parachute') {
-      // Air over a canopy: hiss with the middle taken out, twice.
-      hissBurst(context, {
-        filter: 'bandpass',
-        fromHz: 900,
-        toHz: 400,
-        level: LOUDEST * 0.7,
-        lasting: 0.45,
-      })
-      hissBurst(context, {
-        filter: 'bandpass',
-        fromHz: 700,
-        toHz: 320,
-        level: LOUDEST * 0.5,
-        lasting: 0.4,
-        startAt: 0.18,
-      })
-      return
-    }
-
-    if (kind === 'landing') {
-      // A slow engine underneath, water against the hull on top.
-      note(context, {
-        shape: 'sawtooth',
-        fromHz: 62,
-        toHz: 48,
-        level: LOUDEST * 0.6,
-        lasting: 0.6,
-      })
-      hissBurst(context, {
-        filter: 'lowpass',
-        fromHz: 1400,
-        toHz: 500,
-        level: LOUDEST * 0.45,
-        lasting: 0.55,
-      })
-      return
-    }
-
-    // A convoy: two short horn notes over an engine.
-    note(context, {
-      shape: 'square',
-      fromHz: 300,
-      toHz: 290,
-      level: LOUDEST * 0.35,
-      lasting: 0.12,
-    })
-    note(context, {
-      shape: 'square',
-      fromHz: 240,
-      toHz: 232,
-      level: LOUDEST * 0.35,
-      lasting: 0.16,
-      startAt: 0.16,
-    })
-    note(context, {
-      shape: 'sawtooth',
-      fromHz: 84,
-      toHz: 70,
-      level: LOUDEST * 0.4,
-      lasting: 0.5,
-    })
+    soundInto(context, kind)
   } catch {
     // A sound is never worth breaking a turn over.
   }
+}
+
+/**
+ * Build one sound into a context, without needing a speaker.
+ *
+ * The game calls this with the live context. A check calls it with an
+ * offline one, renders it, and measures what came out. That is how the
+ * explosion was fixed: not by listening, but by measuring the attack, the
+ * fall and where the energy sits. See plan task 7.12.
+ */
+export function soundInto(context: BaseAudioContext, kind: EffectKind): void {
+  if (kind === 'battle') {
+    explosion(context)
+    return
+  }
+
+  if (kind === 'parachute') {
+    // Air over a canopy: hiss with the middle taken out, twice.
+    hissBurst(context, {
+      filter: 'bandpass',
+      fromHz: 900,
+      toHz: 400,
+      level: LOUDEST * 0.7,
+      lasting: 0.45,
+    })
+    hissBurst(context, {
+      filter: 'bandpass',
+      fromHz: 700,
+      toHz: 320,
+      level: LOUDEST * 0.5,
+      lasting: 0.4,
+      startAt: 0.18,
+    })
+    return
+  }
+
+  if (kind === 'landing') {
+    // A slow engine underneath, water against the hull on top.
+    note(context, {
+      shape: 'sawtooth',
+      fromHz: 62,
+      toHz: 48,
+      level: LOUDEST * 0.6,
+      lasting: 0.6,
+    })
+    hissBurst(context, {
+      filter: 'lowpass',
+      fromHz: 1400,
+      toHz: 500,
+      level: LOUDEST * 0.45,
+      lasting: 0.55,
+    })
+    return
+  }
+
+  // A convoy: two short horn notes over an engine.
+  note(context, {
+    shape: 'square',
+    fromHz: 300,
+    toHz: 290,
+    level: LOUDEST * 0.35,
+    lasting: 0.12,
+  })
+  note(context, {
+    shape: 'square',
+    fromHz: 240,
+    toHz: 232,
+    level: LOUDEST * 0.35,
+    lasting: 0.16,
+    startAt: 0.16,
+  })
+  note(context, {
+    shape: 'sawtooth',
+    fromHz: 84,
+    toHz: 70,
+    level: LOUDEST * 0.4,
+    lasting: 0.5,
+  })
 }
 
 /**
