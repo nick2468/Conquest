@@ -1,4 +1,5 @@
 import type { GameMap, Point, TerritoryDefinition } from '../engine'
+import { pathFrom } from './shapes'
 
 /**
  * Australia in detail. Nick's design, plan task 5.0.
@@ -25,11 +26,6 @@ import type { GameMap, Point, TerritoryDefinition } from '../engine'
  * deliberate, and it is the one place two shapes are allowed to overlap.
  * Cities are drawn last so they are never hidden.
  */
-
-/** Build an SVG path from a list of corners. */
-function path(corners: ReadonlyArray<readonly [number, number]>): string {
-  return `M ${corners.map(([x, y]) => `${x} ${y}`).join(' L ')} Z`
-}
 
 function at(x: number, y: number): Point {
   return { x, y }
@@ -499,10 +495,14 @@ function toTerritory(place: Place): TerritoryDefinition {
     shortName: place.shortName,
     regionId: place.regionId,
     borders: place.borders,
-    shape: path(place.corners),
+    shape: pathFrom(place.corners),
     labelAt: place.labelAt,
-    isIsland: place.isIsland === true,
-    drawnOver: place.drawnOver,
+    // Said only when true. A place that carries "isIsland: false" and
+    // "drawnOver: undefined" is not the same shape of thing as one that
+    // carries neither, and the round trip through a map file would then
+    // fail on maps that are the same in every way that matters.
+    ...(place.isIsland === true ? { isIsland: true } : {}),
+    ...(place.drawnOver === undefined ? {} : { drawnOver: place.drawnOver }),
   }
 }
 

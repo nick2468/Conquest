@@ -36,6 +36,18 @@ export function cornersOf(shape: string): Corner[] {
   return corners
 }
 
+/**
+ * Turn a list of corners into an SVG path.
+ *
+ * The maps are written as corners, not as paths. That is not a style
+ * choice. Neighbouring places then share the exact same points, so a border
+ * cannot end up with a sliver of no-man's land or an overlap along it, and
+ * a map file is something a person can read and change.
+ */
+export function pathFrom(corners: ReadonlyArray<Corner>): string {
+  return `M ${corners.map(([x, y]) => `${x} ${y}`).join(' L ')} Z`
+}
+
 /** Each side of a shape, joined back to the start. */
 function edgesOf(corners: readonly Corner[]): Array<[Corner, Corner]> {
   return corners.map((corner, at) => [

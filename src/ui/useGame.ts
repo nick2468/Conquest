@@ -7,12 +7,19 @@ import type {
   NewPlayer,
   RandomSource,
 } from '../engine'
+import type { GameMap } from '../engine'
 import { applyAction, createGame, seededRandom } from '../engine'
-import { AUSTRALIA } from '../maps/australia'
-import { AUSTRALIA_BIG } from '../maps/australia-big'
 
 export interface NewGameSettings {
-  readonly mapId: 'australia' | 'australia-big'
+  /**
+   * The board itself, not a name for it.
+   *
+   * It used to be one of two names, and the game looked up which map that
+   * meant. Once a player can load a map of their own there is no list of
+   * names to look it up in, so the setting carries the map. See plan task
+   * 5.7.
+   */
+  readonly map: GameMap
   readonly players: readonly NewPlayer[]
   readonly seed: number
   readonly options: GameOptions
@@ -50,7 +57,7 @@ function deal(settings: NewGameSettings): Holding {
 
   return {
     state: createGame({
-      map: settings.mapId === 'australia' ? AUSTRALIA : AUSTRALIA_BIG,
+      map: settings.map,
       players: settings.players,
       random: dealer,
       options: settings.options,

@@ -151,7 +151,75 @@ line pointing at them, and Perth's sits beside it on The South West. A count
 may sit on its own place, on the place its city is drawn over, or on nothing
 at all. Anywhere else it looks like somebody else's number.
 
-### 3.3 The Australia map, phase 1
+### 3.3 The map file
+
+A map is a JSON file. See plan tasks 5.5 to 5.7.
+
+**S31. A map file holds data, never code.** JSON, because a browser reads it
+without help, a person can read and change one, and nothing in it can run.
+A map written as TypeScript would have to be compiled, and loading one would
+mean running code from a file somebody else wrote.
+
+**S32. A place is written as a list of CORNERS, not as a drawn path.** This
+is the decision that matters. Neighbouring places then share the exact same
+points, so a border cannot come out with a sliver of no-man's land along it
+or a sliver of overlap. The detailed Australia was built that way for that
+reason, and it STILL had one overlap that took a guard to find, so the
+format gives every map the same protection.
+
+**S33. Every fault in a file is reported at once, in the words of the person
+who wrote it.** A file is read in two passes. First that it makes sense at
+all, then the ten rules of section 3.2. Both lists come back together,
+because somebody writing a map wants to see everything that is wrong with
+it, not one thing per attempt.
+
+The one exception is a file with a hole in it. A place with no corners is
+thrown away, and checking the RULES against a map with a missing place
+invents faults that are not in the file: a border would point at something
+that is not there, and the complaint would name the wrong mistake. Then the
+game says the rules have not been checked yet.
+
+A file from outside gets the suspicion any outside file gets. There are
+limits on how big it may be, how many places and regions it may hold, and
+how long a name may be. Colours must be written as `#b8763a`, so nothing
+else can reach an SVG attribute.
+
+The shape of a file:
+
+```json
+{
+  "conquestMap": 1,
+  "id": "australia",
+  "name": "Australia",
+  "viewBox": "136 100 690 648",
+  "regions": [
+    { "id": "tas", "name": "Tasmania", "bonus": 2, "outline": "#8a6f3a" }
+  ],
+  "places": [
+    {
+      "id": "hobart",
+      "name": "Hobart",
+      "shortName": "HOB",
+      "region": "tas",
+      "borders": ["westCoast", "launceston"],
+      "corners": [[672, 673], [738, 669], [731, 700]],
+      "labelAt": [716, 694],
+      "isIsland": true
+    }
+  ]
+}
+```
+
+`isIsland` and `drawnOver` are left out unless they are true. A place that
+says `"isIsland": false` is not the same shape of thing as one that says
+nothing, and the two would not match after a trip through a file.
+
+**There is no blank page.** The new game screen saves the map you are
+looking at, so a map of your own starts as the map we ship with one thing
+changed. That is also the only place the format needs explaining, because
+you are looking at it.
+
+### 3.4 The Australia map, phase 1
 
 Ten territories in four regions. Agreed 2026-09-06.
 

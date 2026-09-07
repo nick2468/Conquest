@@ -980,3 +980,42 @@ button.primary.ready {
 button.primary.ready:hover {
   background: #35a26a;
 }
+
+/* -------------------------------------------- a map of your own, task 5.7 */
+
+.map-file {
+  margin-top: 0.9rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--edge);
+}
+
+.map-file-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+/* What is wrong with the file, in the words of the person who wrote it. */
+.map-faults {
+  margin-top: 0.8rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #c8453b;
+  border-radius: 6px;
+  background: #fdf3f2;
+  font-size: 0.85rem;
+}
+
+.map-faults p {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+
+.map-faults ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.map-faults li {
+  margin-bottom: 0.3rem;
+}

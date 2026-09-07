@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import type { GameOptions, NewPlayer, PlayerKind } from '../engine'
+import type { GameMap, GameOptions, NewPlayer, PlayerKind } from '../engine'
 import {
   ALL_SKILLS,
   DEFAULT_OPTIONS,
@@ -10,11 +10,20 @@ import {
   PLAYER_COLOURS,
   playerFor,
 } from '../engine'
-
-export type MapChoice = 'australia' | 'australia-big'
+import { writeMap } from '../maps/format'
+import type { MapProblem } from '../maps/validate'
+import {
+  forgetMap,
+  labelFor,
+  loadMap,
+  mapCalled,
+  mapChoices,
+  mapRemembered,
+} from './map-library'
 
 export interface GameSetup {
-  readonly mapId: MapChoice
+  /** The board to play on. See plan task 5.7. */
+  readonly map: GameMap
   readonly players: readonly NewPlayer[]
   readonly options: GameOptions
   readonly seed: number
@@ -37,7 +46,7 @@ function defaultPlayers(count: number): NewPlayer[] {
 export const DEFAULT_SETUP: GameSetup = {
   // The detailed map by default. The small one is there to learn on, but a
   // plan means nothing on ten territories. See plan task 4.13.
-  mapId: 'australia-big',
+  map: mapCalled('australia-big', null),
   players: defaultPlayers(3),
   options: DEFAULT_OPTIONS,
   /**
@@ -65,7 +74,52 @@ export function NewGameScreen({
 }: NewGameScreenProps) {
   const [players, setPlayers] = useState<NewPlayer[]>([...startWith.players])
   const [options, setOptions] = useState<GameOptions>(startWith.options)
-  const [mapId, setMapId] = useState<MapChoice>(startWith.mapId)
+  const [mapId, setMapId] = useState<string>(startWith.map.id)
+
+  /** A map the player loaded from a file of their own, if any. */
+  const [ownMap, setOwnMap] = useState<GameMap | null>(mapRemembered)
+
+  /** What was wrong with the last file they picked, if anything. */
+  const [mapFaults, setMapFaults] = useState<readonly MapProblem[]>([])
+
+  const choices = mapChoices(ownMap)
+  const chosenMap = mapCalled(mapId, ownMap)
+
+  const takeFile = async (file: File | undefined): Promise<void> => {
+    if (file === undefined) {
+      return
+    }
+
+    const result = loadMap(await file.text())
+
+    if (result.problems !== undefined) {
+      setMapFaults(result.problems)
+      return
+    }
+
+    setMapFaults([])
+    setOwnMap(result.map)
+    setMapId(result.map.id)
+  }
+
+  /**
+   * Hand the player the map they are looking at, as a file.
+   *
+   * This is how a map of your own gets started. There is no blank page:
+   * you save the map we ship, change a name or a bonus or a shape in it,
+   * and load it back. It is also the one place the file format is easy to
+   * find out about, because you are looking at it.
+   */
+  const saveTheMap = (): void => {
+    const file = new Blob([writeMap(chosenMap)], { type: 'application/json' })
+    const address = URL.createObjectURL(file)
+    const link = document.createElement('a')
+
+    link.href = address
+    link.download = `${chosenMap.id}.conquest.json`
+    link.click()
+    URL.revokeObjectURL(address)
+  }
 
   const setCount = (count: number): void => {
     setPlayers((current) =>
@@ -228,16 +282,67 @@ export function NewGameScreen({
             Map
             <select
               value={mapId}
-              onChange={(event) =>
-                setMapId(event.target.value as MapChoice)
-              }
+              onChange={(event) => setMapId(event.target.value)}
             >
-              <option value="australia-big">
-                Australia in detail, 38 places
-              </option>
-              <option value="australia">Australia, 10 places</option>
+              {choices.map((choice) => (
+                <option key={choice.map.id} value={choice.map.id}>
+                  {labelFor(choice)}
+                </option>
+              ))}
             </select>
           </label>
+
+          <div className="map-file">
+            <label className="setup-field">
+              A map of your own
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={(event) => {
+                  void takeFile(event.target.files?.[0])
+                  // Clear it, so picking the SAME file again still counts.
+                  event.target.value = ''
+                }}
+              />
+            </label>
+
+            <div className="map-file-buttons">
+              <button type="button" onClick={saveTheMap}>
+                Save this map to a file
+              </button>
+
+              {ownMap === null ? null : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    forgetMap()
+                    setOwnMap(null)
+                    setMapId('australia-big')
+                    setMapFaults([])
+                  }}
+                >
+                  Forget my map
+                </button>
+              )}
+            </div>
+
+            {mapFaults.length === 0 ? null : (
+              <div className="map-faults" role="alert">
+                <p>
+                  That file cannot be played. {mapFaults.length} thing
+                  {mapFaults.length === 1 ? '' : 's'} to put right:
+                </p>
+                <ul>
+                  {mapFaults.slice(0, 8).map((fault) => (
+                    <li key={fault.message}>{fault.message}</li>
+                  ))}
+                </ul>
+                {mapFaults.length > 8 ? (
+                  <p>and {mapFaults.length - 8} more.</p>
+                ) : null}
+              </div>
+            )}
+          </div>
 
           <label className="setup-field">
             First armies
@@ -316,7 +421,7 @@ export function NewGameScreen({
             disabled={clash}
             onClick={() =>
               onStart({
-                mapId,
+                map: chosenMap,
                 players: named,
                 options,
                 seed: startWith.seed + 1,

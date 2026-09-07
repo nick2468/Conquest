@@ -516,9 +516,49 @@ be. A bigger Australia is what makes strategy mean anything.
       An attack waits 1.5 seconds and everything else 0.7, because an attack
       is the only move with a result worth reading. The rest just change a
       number.
-- [ ] 5.5 A map file format, and reading it
-- [ ] 5.6 Run `validateMap()` on a loaded map and report faults in plain words
-- [ ] 5.7 Load a map from a file the player picks
+- [x] 5.5 **A map file format, and reading it.** Built 2026-09-07. JSON,
+      because a browser reads it without help, a person can read one, and
+      nothing in it can run. See spec 3.3.
+
+      **Places are written as CORNERS, not as drawn paths.** That is the
+      decision that matters. Neighbours then share the exact same points, so
+      a border cannot come out with a sliver of no-man's land or a sliver of
+      overlap along it.
+
+      **The proof is a round trip, not a map written for a test.** Both maps
+      we ship are written out to a file, read back, and compared whole. That
+      is two maps of 38 and 10 places, every shape exact, and it is a far
+      harder test than anything written by hand for the purpose.
+
+      It found one real thing on the first run: the detailed map carried
+      `isIsland: false` and `drawnOver: undefined` on places where neither
+      applies. A file leaves both out, so the two did not match. The map now
+      says only what is true.
+- [x] 5.6 **Faults reported in plain words.** Built 2026-09-07 as part of
+      5.5. Every fault at once, not one per attempt, because the person
+      reading the complaint is the person who wrote the map.
+
+      Two passes: that the file makes sense at all, then the ten rules of
+      spec 3.2. Both lists come back together. The one exception is a file
+      with a hole in it, where a place was thrown away, because checking the
+      rules against a map with a missing place invents faults that are not
+      in the file.
+
+      Seen live with a file holding three real mistakes, and all three came
+      back: a colour written as "green", a border named on one side only,
+      and two places covering the same ground.
+- [x] 5.7 **Load a map from a file the player picks.** Built 2026-09-07. The
+      new game screen takes a file, remembers it, and offers it in the map
+      list beside the two built in.
+
+      **It also saves the map you are looking at.** There is no blank page.
+      A map of your own starts as the map we ship with one thing changed,
+      which is the only way the format is ever going to be discovered.
+
+      Driven live end to end: saved the detailed map (23 kB, 1632 lines),
+      renamed it, raised Tasmania's bonus to 9, renamed Hobart, loaded it
+      back, and played it. The board said "James's Australia" and the place
+      said "Hobart Town".
 - [ ] 5.8 A second map, to prove the first one was not a special case
 - [ ] 5.9 A map editor tool, in its own folder
 
@@ -682,6 +722,6 @@ something to play with while the interesting part gets built.
 | 2 - the screen | **COMPLETE** 2026-09-07, both guards included. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
-| 5 - maps of your own | Not started |
+| 5 - maps of your own | 5.0 to 5.7 done 2026-09-07. 5.8 and 5.9 left. |
 | 6 - separate devices | Not started |
 | 7 - things you can see and hear | **Built** 2026-09-07, bar 7.10 on the iPad, which is Nick's. |
