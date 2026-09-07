@@ -580,11 +580,14 @@ be. A bigger Australia is what makes strategy mean anything.
       map somebody wants to open in an editor.
 
       **It found a real fault in the map we ship.** Eyre Peninsula and The
-      Riverland share 28 units of edge at x=543, and neither names the other
-      as a border. The picture says you can walk across South Australia
-      there and the rules say you cannot. **Left as it is, because adding
-      the border opens a new route and changes the game. It is Nick's
-      call.**
+      Riverland share 28 units of edge at x=543, and neither named the other
+      as a border, so the picture said you could walk across South Australia
+      there and the rules said you could not.
+
+      **Nick chose to add the border, 2026-09-08.** Both places are inside
+      South Australia, so this does not change how many ways into the region
+      there are. It makes moving within it easier, and it makes the picture
+      and the rules agree. A test now watches the two stay in step.
 
       Driven live: selected a place and got its seven corners, dragged one
       into the neighbour and watched the overlap fault appear naming the

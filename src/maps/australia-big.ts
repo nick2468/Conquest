@@ -308,7 +308,7 @@ const PLACES: readonly Place[] = [
     name: 'Eyre Peninsula',
     shortName: 'EYR',
     regionId: 'sa',
-    borders: ['nullarbor', 'outbackSa', 'adelaide'],
+    borders: ['nullarbor', 'outbackSa', 'adelaide', 'riverland'],
     corners: [
       [483, 470], [483, 497], [496, 520], [512, 546], [519, 518], [530, 500],
       [543, 498], [543, 470],
@@ -330,7 +330,7 @@ const PLACES: readonly Place[] = [
     name: 'The Riverland',
     shortName: 'RIV',
     regionId: 'sa',
-    borders: ['outbackSa', 'adelaide', 'farWest', 'riverina', 'westVic'],
+    borders: ['outbackSa', 'adelaide', 'farWest', 'riverina', 'westVic', 'eyre'],
     corners: [
       [543, 470], [543, 498], [542, 522], [534, 556], [546, 528], [556, 512],
       [564, 516], [566, 546], [578, 566], [588, 582], [601, 602], [601, 470],

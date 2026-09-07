@@ -299,18 +299,13 @@ describe('working borders out from the shapes', () => {
     expect(placeIn(draft, 'island').borders).toEqual(['left'])
   })
 
-  it('finds the one border the real map draws but does not name', () => {
-    // Run against the map we ship, this adds exactly one border, both ways
-    // round. Eyre Peninsula and The Riverland share 28 units of edge at
-    // x=543, and neither names the other, so the picture says you can walk
-    // across and the rules say you cannot. Found by writing this. It is a
-    // question for Nick, not a bug to fix quietly, because adding it opens
-    // a new route across South Australia.
-    const { draft, added } = bordersFromShapes(toDraft(AUSTRALIA_BIG))
-    const eyre = draft.places.find((place) => place.id === 'eyre')
-
-    expect(added).toBe(2)
-    expect(eyre?.borders).toContain('riverland')
+  it('finds nothing left to add on the map we ship', () => {
+    // It found something the day it was written. Eyre Peninsula and The
+    // Riverland share 28 units of edge at x=543, and neither named the
+    // other, so the picture said you could walk across South Australia
+    // there and the rules said you could not. Nick chose to add the border.
+    // This test is what stops the two drifting apart again.
+    expect(bordersFromShapes(toDraft(AUSTRALIA_BIG)).added).toBe(0)
   })
 
   it('rebuilds a land border of the real map from nothing', () => {
