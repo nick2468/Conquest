@@ -968,3 +968,15 @@ button.primary {
   font-size: 0.85rem;
   color: var(--ink-soft);
 }
+
+/* A set is waiting to be traded. Nick lost games without noticing one, so
+ * this shouts. Green, and it stays green until the set is gone. The sound
+ * that goes with it is in sounds.ts. See spec S30. */
+button.primary.ready {
+  background: #2f8f5e;
+  border-color: #27784e;
+}
+
+button.primary.ready:hover {
+  background: #35a26a;
+}

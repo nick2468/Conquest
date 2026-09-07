@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import type { GameAction, GameState, Skill, TerritoryId } from '../engine'
 import { GAME_NAME, armyLimitFor, legalActions, playerFor } from '../engine'
@@ -13,6 +13,7 @@ import { UpdateBanner } from './UpdateBanner'
 import { WinnerScreen } from './WinnerScreen'
 import { effectFor } from './effects'
 import { playSound, rememberSound, soundWasOn, startSound } from './sounds'
+import { setReadyToTrade } from './hand'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
 import { useUpdate } from './useUpdate'
@@ -138,6 +139,35 @@ export function App() {
     whoseTurn.kind !== 'human'
       ? whoseTurn.kind
       : null
+
+  /**
+   * Is a person holding a set they could trade this moment?
+   *
+   * Nick: "sometimes we've lost a game and realised that we should have
+   * traded a set." Nothing ever said so. Now the trade button turns green
+   * and the game rings once.
+   *
+   * Once, not every turn. The bell means "this has just become true", and a
+   * bell that goes off over and over is a bell nobody hears.
+   */
+  const aSetIsWaiting =
+    screen === 'playing' &&
+    state.winnerId === null &&
+    whoseTurn !== undefined &&
+    whoseTurn.kind === 'human' &&
+    setReadyToTrade(state) !== null
+
+  const alreadyRung = useRef(false)
+
+  useEffect(() => {
+    if (aSetIsWaiting && !alreadyRung.current && soundOn) {
+      playSound('alert')
+    }
+
+    // Set outside the sound test on purpose. Turning the sound on later
+    // must not ring a bell for a set the player has been staring at.
+    alreadyRung.current = aSetIsWaiting
+  }, [aSetIsWaiting, soundOn])
 
   const forget = (): void => {
     setSelectedId(null)

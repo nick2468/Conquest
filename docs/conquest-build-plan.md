@@ -156,6 +156,21 @@ with no screen and no real randomness.
 - [x] 2.3.1 Show the cards in the current player's hand
 - [x] 2.3.2 Trade a set, including the forced trade at five cards
 - [x] 2.3.3 Show the dice after an attack. Done early with 2.2.
+- [x] 2.3.5 **Say when a set is waiting to be traded.** Nick's request,
+      built 2026-09-07, after losing games: "sometimes we've lost a game and
+      realised that we should have traded a set."
+
+      The trade button turns green, the game rings once, and one tap trades.
+      Green only while reinforcing, because that is the only time a set can
+      be traded. Once, not every turn, because a bell that goes off over and
+      over is a bell nobody hears.
+
+      The separate "choose a set for me" button is gone. The green button
+      does that job now, including the forced trade at five cards.
+
+      Seen live in round 8 of a real game: the button read "Trade a set for
+      8", measured green, one ring of three notes, and one tap turned three
+      armies to place into eleven.
 - [x] 2.3.4 Honour the `diceDisplay` setting, one by one or all at once.
       The setting is picked before a game starts, per spec section 7, so the
       control sits beside New game and applies to the next one.

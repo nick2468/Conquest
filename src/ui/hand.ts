@@ -68,7 +68,7 @@ export function adviseOnHand(
       forced,
       message: forced
         ? `You hold ${cards.length} cards, so you must trade a set before ` +
-          `anything else. Pick three.`
+          `anything else. The green button will do it.`
         : 'Pick three cards to trade them for armies.',
     }
   }
@@ -126,6 +126,43 @@ export function bestSetIn(
   }
 
   return best
+}
+
+/** A set the player is holding and could trade this moment. */
+export interface SetWaiting {
+  readonly cards: CardTrio
+  /** What it would be worth, right now. */
+  readonly value: number
+}
+
+/**
+ * Is there a set the player could trade this very moment?
+ *
+ * Nick asked for this after losing games: "sometimes we've lost a game and
+ * realised that we should have traded a set." Nothing on screen ever said
+ * so. The cards were all there to see, and seeing three of a kind among
+ * five cards while you are thinking about an attack is a job nobody should
+ * have to do.
+ *
+ * Null when there is no set, and null outside the reinforce phase, because
+ * a set that cannot be traded now is not worth shouting about.
+ */
+export function setReadyToTrade(state: GameState): SetWaiting | null {
+  if (state.turn.phase !== 'reinforce') {
+    return null
+  }
+
+  const player = state.players.find((each) => each.id === state.turn.playerId)
+  const best = bestSetIn(state, player?.cards ?? [])
+
+  if (best === null) {
+    return null
+  }
+
+  return {
+    cards: best,
+    value: setValue(best, state.options, state.deck.setsTraded),
+  }
 }
 
 /** What a card shows, in words a player can read. */

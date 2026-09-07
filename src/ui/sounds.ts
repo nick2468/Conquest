@@ -1,6 +1,14 @@
 import type { EffectKind } from './effects'
 
 /**
+ * Everything the game can make a noise about.
+ *
+ * The four effects, plus one that is not a thing on the map at all: a set
+ * of cards waiting to be traded. See spec S30.
+ */
+export type SoundKind = EffectKind | 'alert'
+
+/**
  * The noises the game makes. Plan task 7.8.
  *
  * Every sound is built here out of an oscillator and hiss. There are no
@@ -424,7 +432,7 @@ function explosion(context: BaseAudioContext): void {
  * Does nothing at all if the browser has no sound engine, or if it has one
  * and refuses to use it. That is the point of the wrapping.
  */
-export function playSound(kind: EffectKind): void {
+export function playSound(kind: SoundKind): void {
   const context = engine()
 
   if (context === null) {
@@ -446,7 +454,29 @@ export function playSound(kind: EffectKind): void {
  * explosion was fixed: not by listening, but by measuring the attack, the
  * fall and where the energy sits. See plan task 7.12.
  */
-export function soundInto(context: BaseAudioContext, kind: EffectKind): void {
+export function soundInto(context: BaseAudioContext, kind: SoundKind): void {
+  if (kind === 'alert') {
+    // Three rising notes, like a bell. Deliberately unlike anything else
+    // the game does, because it is the only sound that is not something
+    // happening on the map. It is the game tapping you on the shoulder.
+    const rising = [660, 880, 1170]
+
+    rising.forEach((pitch, step) => {
+      note(context, {
+        shape: 'triangle',
+        fromHz: pitch,
+        toHz: pitch * 0.995,
+        level: LOUDEST * 0.42,
+        lasting: 0.5,
+        fade: 0.9,
+        attack: 0.012,
+        startAt: step * 0.11,
+      })
+    })
+
+    return
+  }
+
   if (kind === 'battle') {
     explosion(context)
     return

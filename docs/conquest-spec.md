@@ -638,6 +638,27 @@ Every sound is built in code from an oscillator and noise. No audio files.
 That keeps the app small, keeps it working offline, and means there is
 nothing to host.
 
+**S30. The game says when a set is waiting to be traded.**
+
+Nick, after losing games: "sometimes we've lost a game and realised that we
+should have traded a set." Nothing on screen ever said so. The cards were
+all there to see, and spotting three of a kind among five cards while you
+are thinking about an attack is a job nobody should have to do.
+
+So the trade button turns green and the game rings once. It rings ONCE, when
+the set appears. A bell that goes off every turn is a bell nobody hears.
+
+Green only during the reinforce phase, because that is the only time a set
+can be traded. Green at any other moment would send a player to a button
+that does nothing.
+
+**The green button trades in one tap.** It picks the set itself when the
+player has picked nothing, and respects their choice when they have. The
+reported fault is that the trade gets forgotten, so every step between
+noticing and trading is another chance to forget. Trading is also never the
+wrong move to have made: a set traded is armies now, and holding one gains
+nothing on its own.
+
 **S29. Anything drawn from the side is never turned past upright.**
 
 A lorry and a boat are drawn from the side. Turning one to face its

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import type { Card, CardId, GameState } from '../engine'
-import { adviseOnHand, bestSetIn, describeCard } from './hand'
+import { adviseOnHand, describeCard, setReadyToTrade } from './hand'
 
 interface CardsPanelProps {
   readonly state: GameState
@@ -36,6 +36,12 @@ export function CardsPanel({ state, onTrade }: CardsPanelProps) {
   const held = chosen.filter((id) => cards.some((card) => card.id === id))
   const advice = adviseOnHand(state, cards, held)
 
+  /**
+   * A set the player is holding right now, whether or not they have picked
+   * it out. This is what turns the button green. See spec S30.
+   */
+  const waiting = setReadyToTrade(state)
+
   if (held.length !== chosen.length) {
     setChosen(held)
   }
@@ -50,14 +56,6 @@ export function CardsPanel({ state, onTrade }: CardsPanelProps) {
       // has to work out which one to unpick first.
       return [...current, cardId].slice(-3)
     })
-  }
-
-  const chooseForMe = (): void => {
-    const best = bestSetIn(state, cards)
-
-    if (best !== null) {
-      setChosen(best.map((card) => card.id))
-    }
   }
 
   if (cards.length === 0) {
@@ -104,25 +102,35 @@ export function CardsPanel({ state, onTrade }: CardsPanelProps) {
         })}
       </ul>
 
-      <p className="cards-advice">{advice.message}</p>
+      <p className="cards-advice">
+        {waiting !== null && !advice.canTrade && !advice.forced
+          ? `You are holding a set. Trade it for ${waiting.value} armies.`
+          : advice.message}
+      </p>
 
       <div className="cards-buttons">
-        {advice.forced && !advice.canTrade ? (
-          <button type="button" onClick={chooseForMe}>
-            Choose a set for me
-          </button>
-        ) : null}
-
         <button
           type="button"
-          className="primary"
-          disabled={!advice.canTrade}
+          className={
+            advice.canTrade || waiting !== null ? 'primary ready' : 'primary'
+          }
+          disabled={!advice.canTrade && waiting === null}
           onClick={() => {
-            onTrade(held)
+            // Respect what the player picked. Only when they have picked
+            // nothing does the button reach for the set itself.
+            onTrade(
+              advice.canTrade
+                ? held
+                : (waiting?.cards ?? []).map((card) => card.id),
+            )
             setChosen([])
           }}
         >
-          {advice.canTrade ? `Trade for ${advice.value}` : 'Trade'}
+          {advice.canTrade
+            ? `Trade for ${advice.value}`
+            : waiting !== null
+              ? `Trade a set for ${waiting.value}`
+              : 'Trade'}
         </button>
       </div>
     </section>
