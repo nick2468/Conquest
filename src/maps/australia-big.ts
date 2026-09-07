@@ -45,6 +45,8 @@ interface Place {
   readonly labelAt: Point
   /** Reachable only by sea. See spec S26. */
   readonly isIsland?: boolean
+  /** The place this city is drawn on top of. See spec 3.2. */
+  readonly drawnOver?: string
 }
 
 const PLACES: readonly Place[] = [
@@ -117,6 +119,7 @@ const PLACES: readonly Place[] = [
     borders: ['southWest', 'rottnest'],
     corners: [[190, 489], [206, 486], [209, 500], [193, 503]],
     labelAt: at(232, 508),
+    drawnOver: 'southWest',
   },
   {
     id: 'rottnest',
@@ -150,6 +153,7 @@ const PLACES: readonly Place[] = [
     borders: ['topEnd'],
     corners: [[432, 157], [448, 154], [451, 168], [435, 171]],
     labelAt: at(398, 138),
+    drawnOver: 'topEnd',
   },
   {
     id: 'arnhem',
@@ -323,6 +327,7 @@ const PLACES: readonly Place[] = [
     borders: ['eyre', 'outbackSa', 'riverland'],
     corners: [[558, 533], [574, 530], [577, 544], [561, 547]],
     labelAt: at(536, 584),
+    drawnOver: 'riverland',
   },
   {
     id: 'riverland',
@@ -375,6 +380,7 @@ const PLACES: readonly Place[] = [
     borders: ['hunter'],
     corners: [[754, 506], [770, 503], [773, 517], [757, 520]],
     labelAt: at(800, 500),
+    drawnOver: 'hunter',
   },
   {
     id: 'riverina',
@@ -384,7 +390,15 @@ const PLACES: readonly Place[] = [
     borders: [
       'farWest', 'hunter', 'act', 'riverland', 'murray', 'gippsland',
     ],
-    corners: [[601, 531], [765, 530], [744, 593], [640, 545]],
+    // The two corners at x=680 are not decoration. The Far West sits above
+    // the western half of this northern edge and The Hunter above the
+    // eastern half, and their southern edges are one unit apart. One
+    // straight line cannot follow both, so it cut half a unit into The Far
+    // West. Invisible on screen, and a real overlap. Found by the guard in
+    // plan task 2.2.8 on the day the guard was written.
+    corners: [
+      [601, 531], [680, 531], [680, 530], [765, 530], [744, 593], [640, 545],
+    ],
     labelAt: at(646, 546),
   },
   {
@@ -395,6 +409,7 @@ const PLACES: readonly Place[] = [
     borders: ['riverina'],
     corners: [[704, 546], [720, 543], [723, 557], [707, 560]],
     labelAt: at(762, 552),
+    drawnOver: 'riverina',
   },
 
   // --------------------------------------------------------- Victoria (4)
@@ -427,6 +442,7 @@ const PLACES: readonly Place[] = [
     borders: ['westVic', 'murray', 'gippsland', 'launceston'],
     corners: [[657, 597], [673, 594], [676, 608], [660, 611]],
     labelAt: at(614, 626),
+    drawnOver: 'westVic',
   },
   {
     id: 'gippsland',
@@ -486,6 +502,7 @@ function toTerritory(place: Place): TerritoryDefinition {
     shape: path(place.corners),
     labelAt: place.labelAt,
     isIsland: place.isIsland === true,
+    drawnOver: place.drawnOver,
   }
 }
 

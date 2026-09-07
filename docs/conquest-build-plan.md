@@ -107,18 +107,19 @@ with no screen and no real randomness.
 - [x] 2.1.2 Fill each territory with its owner's colour
 - [x] 2.1.3 Draw the army count in a circle at `labelAt`
 - [x] 2.1.4 Make the whole map scale to the window, per spec 11.3
-- [ ] 2.1.5 A guard that no army count sits on somebody else's territory.
+- [x] 2.1.5 A guard that no army count sits on somebody else's territory.
+      **Built 2026-09-07** as check 10 in `validate.ts`.
 
-      **Parked for the wrong reason, corrected 2026-09-07.** The note here
-      used to say this needed a browser, because `isPointInFill` is a browser
-      thing and jsdom has not got it. That was giving up too early. Whether
-      a point is inside a shape is arithmetic, and phase 7 did it in plain
-      code to work out which places are islands.
+      Parked for a day on a wrong belief: that this needed a browser,
+      because `isPointInFill` is a browser thing and jsdom has not got it.
+      Whether a point is inside a shape is arithmetic.
 
       The rule is not "the count sits on its own land". Rottnest and the
-      Whitsundays are too small to hold a number, so theirs sit in the sea
-      with a line pointing at them. The rule is that a count must never sit
-      on a DIFFERENT territory.
+      Whitsundays are too small to hold a number, so theirs sit out at sea
+      with a line pointing at them, and Perth's sits beside it on The South
+      West. A count may sit on its own place, on the place its city is drawn
+      over, or on nothing at all. Anywhere else it looks like somebody
+      else's number.
 
 ### 2.2 Taking a turn
 
@@ -129,20 +130,26 @@ with no screen and no real randomness.
 - [x] 2.2.5 Occupy: choose how many armies move in
 - [x] 2.2.6 Fortify, and the button to skip it
 - [x] 2.2.7 End of turn, and pass to the next player
-- [ ] 2.2.8 A guard that no two territories overlap. Queensland and South
-      Australia both claimed the same rectangle, and it sat there for days
-      because it was only ever going to be caught by somebody looking.
+- [x] 2.2.8 A guard that no two territories overlap. **Built 2026-09-07** as
+      check 9 in `validate.ts`.
 
-      **Also parked for the wrong reason, corrected 2026-09-07.** Phase 7
-      separated all 64 borders of the detailed map into the 48 that share a
-      real edge and the 16 that share nothing, in plain arithmetic with no
-      browser anywhere near it.
+      **It found a real fault on the day it was written.** The Riverina's
+      northern edge was one straight line trying to meet two neighbours
+      whose southern edges are a unit apart, so it cut half a unit into The
+      Far West. Half a unit out of 648 is invisible, and it was in a map
+      that had been played for days. Fixed by giving The Riverina the two
+      corners it needed.
 
-      One thing has to be said first. A city is drawn ON TOP of the place
-      around it, and that overlap is deliberate. So the map file needs to
-      say which place a city sits inside, the way it now says which places
-      are islands, and the guard then checks that a city really is inside
-      the place it claims and that nothing else overlaps at all.
+      One overlap is allowed and the map must declare it: a city drawn on
+      top of the place around it, with `drawnOver`. The check then makes
+      sure the claim is true, that the two border each other, really touch,
+      and that the city is the smaller of the two.
+
+      **Two rectangles can overlap with every corner sitting ON the other
+      one's outline.** Testing corners is the obvious approach and it walks
+      straight past that. Each edge is now cut at every point where it meets
+      the other outline, and the middle of each piece is tested. The first
+      version was corners-only and a test caught it.
 
 ### 2.3 Cards and dice
 
@@ -657,7 +664,7 @@ something to play with while the interesting part gets built.
 |---|---|
 | 0 - the scaffold | **Complete** 2026-09-06. 41 tests green, build clean. |
 | 1 - the rules engine | **COMPLETE** 2026-09-06. A whole game plays in code. |
-| 2 - the screen | **COMPLETE** 2026-09-07, bar the 2.1.5 overlap guard. |
+| 2 - the screen | **COMPLETE** 2026-09-07, both guards included. |
 | 3 - the Home Screen app | **Live at conquest.datacrafter.net.** Only 3.6 left. |
 | 4 - computer players | **COMPLETE** 2026-09-07. 4.1 to 4.13 all done. |
 | 5 - maps of your own | Not started |

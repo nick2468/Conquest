@@ -1,5 +1,5 @@
 /**
- * The eight checks a map must pass. See spec 3.2.
+ * The ten checks a map must pass. See spec 3.2.
  *
  * Two of these earn their place on their own. The symmetry check catches the
  * most common mistake by far, which is typing a border on one side and
@@ -9,7 +9,9 @@
  * Phase 5 loads maps other people wrote, so every message here is written to
  * be read by the person who made the mistake.
  */
-import type { GameMap, TerritoryId } from '../engine'
+import type { GameMap, TerritoryDefinition, TerritoryId } from '../engine'
+import type { Corner } from './shapes'
+import { cornersOf, isWithin, overlapBetween, roomTakenBy } from './shapes'
 
 export interface MapProblem {
   /** A short name for the rule that was broken. */
@@ -121,6 +123,185 @@ export function validateMap(map: GameMap): MapProblem[] {
 
   // 8. The map is connected.
   problems.push(...checkConnected(map))
+
+  // 9. No two places claim the same ground.
+  problems.push(...checkNoOverlap(map))
+
+  // 10. No army count sits on somebody else's place.
+  problems.push(...checkCountsAreClear(map))
+
+  return problems
+}
+
+/** The drawn corners of every place, worked out once. */
+function shapesIn(map: GameMap): Map<TerritoryId, Corner[]> {
+  return new Map(
+    map.territories.map((territory) => [
+      territory.id,
+      cornersOf(territory.shape),
+    ]),
+  )
+}
+
+function nameOf(territory: TerritoryDefinition): string {
+  return `"${territory.name}"`
+}
+
+/** A place on the map, written for a person rather than for arithmetic. */
+function round(value: number): string {
+  return (Math.round(value * 10) / 10).toString()
+}
+
+/**
+ * Check 9. No two places claim the same ground. Plan task 2.2.8.
+ *
+ * This is the fault that got through on the small map. Queensland and South
+ * Australia both owned the same rectangle and it sat there for days,
+ * because the only thing that was ever going to catch it was a person
+ * noticing.
+ *
+ * One overlap is allowed, and only one: a city drawn on top of the place
+ * around it. A map has to SAY so, with `drawnOver`, and then this checks
+ * that what it says is true.
+ */
+function checkNoOverlap(map: GameMap): MapProblem[] {
+  const problems: MapProblem[] = []
+  const shapes = shapesIn(map)
+  const known = new Set(map.territories.map((each) => each.id))
+
+  for (const territory of map.territories) {
+    const over = territory.drawnOver
+
+    if (over === undefined) {
+      continue
+    }
+
+    if (over === territory.id) {
+      problems.push({
+        rule: 'drawn over',
+        message: `${nameOf(territory)} says it is drawn over itself.`,
+      })
+      continue
+    }
+
+    if (!known.has(over)) {
+      problems.push({
+        rule: 'drawn over',
+        message:
+          `${nameOf(territory)} says it is drawn over "${over}", ` +
+          `but there is no such territory.`,
+      })
+      continue
+    }
+
+    const under = map.territories.find((each) => each.id === over)
+
+    if (under === undefined) {
+      continue
+    }
+
+    if (!territory.borders.includes(over)) {
+      problems.push({
+        rule: 'drawn over',
+        message:
+          `${nameOf(territory)} is drawn over ${nameOf(under)}, so it sits ` +
+          `inside it, but the two do not border each other.`,
+      })
+    }
+
+    if (
+      roomTakenBy(shapes.get(territory.id) ?? []) >=
+      roomTakenBy(shapes.get(over) ?? [])
+    ) {
+      problems.push({
+        rule: 'drawn over',
+        message:
+          `${nameOf(territory)} is drawn over ${nameOf(under)}, but it is ` +
+          `not the smaller of the two. That is the wrong way round.`,
+      })
+    }
+
+    if (
+      overlapBetween(
+        shapes.get(territory.id) ?? [],
+        shapes.get(over) ?? [],
+      ) === null
+    ) {
+      problems.push({
+        rule: 'drawn over',
+        message:
+          `${nameOf(territory)} says it is drawn over ${nameOf(under)}, ` +
+          `but the two shapes do not touch. Has one of them been moved?`,
+      })
+    }
+  }
+
+  for (let first = 0; first < map.territories.length; first += 1) {
+    for (let second = first + 1; second < map.territories.length; second += 1) {
+      const one = map.territories[first] as TerritoryDefinition
+      const two = map.territories[second] as TerritoryDefinition
+
+      if (one.drawnOver === two.id || two.drawnOver === one.id) {
+        continue
+      }
+
+      const where = overlapBetween(
+        shapes.get(one.id) ?? [],
+        shapes.get(two.id) ?? [],
+      )
+
+      if (where !== null) {
+        problems.push({
+          rule: 'no two places overlap',
+          message:
+            `${nameOf(one)} and ${nameOf(two)} both cover the point ` +
+            `${round(where[0])}, ${round(where[1])}. Two places may only ` +
+            `share a border, ` +
+            `never any ground. If one is a city drawn on the other, say so ` +
+            `with drawnOver.`,
+        })
+      }
+    }
+  }
+
+  return problems
+}
+
+/**
+ * Check 10. No army count sits on somebody else's place. Plan task 2.1.5.
+ *
+ * A count may sit on its own land. It may sit on nothing at all, out in the
+ * sea, which is what Rottnest and the Whitsundays do because they are too
+ * small to hold a number. It may sit on the place a city is drawn over,
+ * which is where Perth's count sits.
+ *
+ * Anywhere else and the number appears to belong to the wrong place, which
+ * is worse than no number at all.
+ */
+function checkCountsAreClear(map: GameMap): MapProblem[] {
+  const problems: MapProblem[] = []
+  const shapes = shapesIn(map)
+
+  for (const territory of map.territories) {
+    const at: Corner = [territory.labelAt.x, territory.labelAt.y]
+
+    for (const other of map.territories) {
+      if (other.id === territory.id || other.id === territory.drawnOver) {
+        continue
+      }
+
+      if (isWithin(at, shapes.get(other.id) ?? [])) {
+        problems.push({
+          rule: 'counts are clear',
+          message:
+            `The army count for ${nameOf(territory)} is drawn at ` +
+            `${at[0]}, ${at[1]}, which is inside ${nameOf(other)}. It will ` +
+            `look like ${nameOf(other)}'s count. Move it onto its own land ` +
+            `or out past the coast.`,
+        })
+      }
+    }
+  }
 
   return problems
 }

@@ -1,4 +1,5 @@
 import type { GameMap, TerritoryDefinition, TerritoryId } from '../engine'
+import { cornersOf as cornersOfShape } from '../maps/shapes'
 
 /**
  * Working out what part of the map to show.
@@ -11,18 +12,17 @@ import type { GameMap, TerritoryDefinition, TerritoryId } from '../engine'
  * asks for a viewBox and draws it.
  */
 
-/** The corners of a shape, read back out of its SVG path. */
+/**
+ * The corners of a territory, read back out of its drawn shape.
+ *
+ * The reading itself lives in `maps/shapes.ts`, because the map guards need
+ * exactly the same thing. There was a second copy of it here for a day. Two
+ * copies of the same arithmetic is how the two ever come to disagree.
+ */
 export function cornersOf(
   territory: TerritoryDefinition,
 ): Array<readonly [number, number]> {
-  const numbers = (territory.shape.match(/[\d.]+/g) ?? []).map(Number)
-  const corners: Array<readonly [number, number]> = []
-
-  for (let at = 0; at + 1 < numbers.length; at += 2) {
-    corners.push([numbers[at] as number, numbers[at + 1] as number])
-  }
-
-  return corners
+  return cornersOfShape(territory.shape)
 }
 
 /** Roughly the middle of a shape. Good enough to point a line at. */

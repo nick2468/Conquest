@@ -150,6 +150,7 @@ export const AUSTRALIA: GameMap = {
       borders: ['nsw'],
       shape: 'M 722 546 L 741 543 L 747 562 L 728 566 Z',
       labelAt: { x: 734, y: 554 },
+      drawnOver: 'nsw',
     },
     {
       id: 'vic',

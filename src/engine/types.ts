@@ -47,6 +47,15 @@ export interface TerritoryDefinition {
    * See spec S26.
    */
   readonly isIsland?: boolean
+  /**
+   * The place this one is drawn on top of, if any.
+   *
+   * A city sits inside the country around it, and the two shapes share
+   * ground on purpose. That is the ONE overlap a map is allowed, so it has
+   * to be declared. Everything else that overlaps is a fault, and the check
+   * in `validate.ts` says so. See spec 3.2.
+   */
+  readonly drawnOver?: TerritoryId
 }
 
 /** A group of territories worth a bonus if one player owns them all. */

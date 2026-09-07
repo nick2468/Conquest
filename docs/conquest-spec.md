@@ -125,10 +125,31 @@ runs it against every map we ship.
 7. Every region holds at least one territory.
 8. The map is connected. From any territory you can reach every other territory
    by crossing borders.
+9. No two places claim the same ground. They may share a border. They may not
+   share any land.
+10. No army count is drawn inside a place that is not its own.
 
 Rule 6 catches the most common mistake by far, which is typing a border on one
 side and forgetting the other. Rule 8 stops a map where part of the board can
 never be reached, which would make the game unwinnable.
+
+Rules 9 and 10 came late, in phase 7, and both were put off for a day on the
+same wrong belief: that this needs a browser, because `isPointInFill` is a
+browser thing. Whether a point is inside a shape is arithmetic. Rule 9 found
+a real fault on the day it was written, in a map that had been played for
+days.
+
+**Rule 9 allows exactly one overlap, and the map must declare it.** A city is
+drawn on top of the place around it, and that is deliberate. A city says so
+with `drawnOver`, and the check then makes sure the claim is true: the two
+must border each other, they must really touch, and the city must be the
+smaller of the two.
+
+**Rule 10 is not "the count sits on its own land".** Rottnest and the
+Whitsundays are too small to hold a number, so theirs sit out at sea with a
+line pointing at them, and Perth's sits beside it on The South West. A count
+may sit on its own place, on the place its city is drawn over, or on nothing
+at all. Anywhere else it looks like somebody else's number.
 
 ### 3.3 The Australia map, phase 1
 
