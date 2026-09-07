@@ -665,6 +665,44 @@ button.primary {
   border-radius: 0.2rem;
 }
 
+/* ------------------------------------------------------ a new version */
+
+.update-bar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem max(1rem, env(safe-area-inset-right)) max(0.9rem,
+    env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background: var(--panel);
+  border-top: 1px solid var(--edge);
+  box-shadow: 0 -6px 24px rgb(0 0 0 / 12%);
+}
+
+.update-words {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 12rem;
+  flex: 1 1 18rem;
+}
+
+.update-words span {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.update-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
 /* --------------------------------------------------------------- the log */
 
 .log ol {

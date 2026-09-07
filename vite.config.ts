@@ -16,7 +16,10 @@ export default defineConfig({
       // Waiting means a new version starts the next time the app is opened
       // fresh, which cannot lose anybody's game.
       registerType: 'prompt',
-      injectRegister: 'auto',
+      // The app registers the worker itself, through useRegisterSW, so it
+      // can show a bar when a new version is waiting. 'auto' would register
+      // it behind our back and the app would never hear about the update.
+      injectRegister: null,
       includeAssets: ['apple-touch-icon.png', 'favicon-32.png', 'icon.svg'],
 
       manifest: {

@@ -449,6 +449,18 @@ be. A bigger Australia is what makes strategy mean anything.
       from re-frames on it, because its targets are exactly what needs to be
       on screen. And a computer player's turn is always watched from above,
       since it moves anywhere on the board.
+- [x] 5.3 **Say when a new version is ready.** Built 2026-09-07, after Nick
+      asked how to get the latest version onto the iPad. There was no way to
+      tell: the service worker WAITS by choice, so an update arrived silently
+      and you had to guess whether you had it.
+
+      A bar now appears when one is waiting, and says what it will cost. Mid
+      game it warns that loading it ends the game, because a game is not
+      saved anywhere. With nothing running it says it costs nothing.
+
+      **The first update after this ships still needs the manual close and
+      reopen**, because the version currently on the iPad has no bar in it.
+      From then on it will say so itself.
 - [ ] 5.1 A map file format, and reading it
 - [ ] 5.2 Run `validateMap()` on a loaded map and report faults in plain words
 - [ ] 5.3 Load a map from a file the player picks

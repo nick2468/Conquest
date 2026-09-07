@@ -9,9 +9,11 @@ import { MapView } from './MapView'
 import type { GameSetup } from './NewGameScreen'
 import { DEFAULT_SETUP, NewGameScreen } from './NewGameScreen'
 import { TurnPanel } from './TurnPanel'
+import { UpdateBanner } from './UpdateBanner'
 import { WinnerScreen } from './WinnerScreen'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
+import { useUpdate } from './useUpdate'
 
 /** A fortify move waiting for the player to say how many armies. */
 interface PendingFortify {
@@ -75,6 +77,8 @@ export function App() {
    */
   const [lookingAt, setLookingAt] = useState<TerritoryId | null>(null)
 
+  const update = useUpdate()
+
   // Which computer player, if any, should be moving right now.
   const whoseTurn = state.players.find(
     (each) => each.id === state.turn.playerId,
@@ -92,9 +96,19 @@ export function App() {
     setPendingFortify(null)
   }
 
+  /**
+   * Step back out to the whole board, KEEPING whatever is chosen.
+   *
+   * Clearing the choice here was a real bug, found by Nick playing it. A
+   * fortify move needs two places that can be a long way apart: you zoom in
+   * to pick where the armies come from, step out to find where they are
+   * going, and zoom in again to pick it. Forgetting the first place on the
+   * way out makes that impossible.
+   *
+   * Tapping the chosen place again is how you let it go.
+   */
   const showWholeBoard = (): void => {
     setLookingAt(null)
-    setSelectedId(null)
   }
 
   /**
@@ -137,17 +151,35 @@ export function App() {
     setScreen('playing')
   }
 
+  // A game is "in progress" once somebody has actually done something. On
+  // the setup phase of round one, nothing would be lost by reloading.
+  const gameInProgress =
+    screen === 'playing' &&
+    state.winnerId === null &&
+    (state.round > 1 || state.turn.phase !== 'setup')
+
+  const banner = update.waiting ? (
+    <UpdateBanner
+      gameInProgress={gameInProgress}
+      onUpdate={update.take}
+      onLater={update.later}
+    />
+  ) : null
+
   if (screen === 'newGame') {
     return (
-      <NewGameScreen
-        startWith={setup}
-        onStart={start}
-        onCancel={
-          state.round > 1 || state.turn.phase !== 'setup'
-            ? () => setScreen('playing')
-            : undefined
-        }
-      />
+      <>
+        <NewGameScreen
+          startWith={setup}
+          onStart={start}
+          onCancel={
+            state.round > 1 || state.turn.phase !== 'setup'
+              ? () => setScreen('playing')
+              : undefined
+          }
+        />
+        {banner}
+      </>
     )
   }
 
@@ -209,6 +241,7 @@ export function App() {
   const over = state.winnerId !== null
 
   return (
+    <>
     <main className="board-page">
       <header className="board-header">
         <h1>
@@ -346,5 +379,7 @@ export function App() {
         <GameLog state={state} />
       </div>
     </main>
+    {banner}
+    </>
   )
 }
