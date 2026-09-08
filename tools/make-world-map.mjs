@@ -409,77 +409,193 @@ const OUTLINE = 'tools/data/nick-world-outline.svg'
 
 /**
  * Nick: "Why can't you just keep the outline I gave you?" So it is kept,
- * exactly. His file is a tracing of a line drawing: each coast is a thin
- * black band, and this reads the bands as rings of points. Straight
- * pieces are kept as they are and each curve is cut into four.
+ * exactly, and he edits it himself in Inkscape. Every closed shape in
+ * the file is land: a traced coast band, a filled island, or a new shape
+ * drawn with the pen. Groups and their transforms are followed, and
+ * every kind of path command Inkscape writes is read.
  */
 function loadOutline() {
   const text = readFileSync(OUTLINE, 'utf8')
-  const drawing = text.slice(text.indexOf('</metadata>'))
-  const placed = /translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/.exec(drawing)
-  const [dx, dy, sx, sy] = placed.slice(1).map(Number)
   const rings = []
+  const stack = [[1, 0, 0, 1, 0, 0]]
+  const tags = text.matchAll(/<(\/?)(g|path|polygon)\b([^>]*?)(\/?)>/g)
 
-  for (const [, path] of drawing.matchAll(/<path d="([^"]+)"/g)) {
-    rings.push(...flattened(path))
+  for (const [, closing, tag, attributes, selfClosing] of tags) {
+    if (tag === 'g') {
+      if (closing) {
+        stack.pop()
+      } else if (!selfClosing) {
+        stack.push(multiplied(stack[stack.length - 1], transformIn(attributes)))
+      }
+      continue
+    }
+
+    const here = multiplied(stack[stack.length - 1], transformIn(attributes))
+    const apply = ([x, y]) => [
+      here[0] * x + here[2] * y + here[4],
+      here[1] * x + here[3] * y + here[5],
+    ]
+
+    if (tag === 'path') {
+      const d = /\bd="([^"]*)"/.exec(attributes)
+
+      if (d) {
+        for (const ring of flattened(d[1])) {
+          rings.push(ring.map(apply))
+        }
+      }
+    } else {
+      const points = /\bpoints="([^"]*)"/.exec(attributes)
+
+      if (points) {
+        const numbers = points[1].match(/-?\d*\.?\d+(?:e-?\d+)?/g).map(Number)
+        const ring = []
+
+        for (let at = 0; at + 1 < numbers.length; at += 2) {
+          ring.push(apply([numbers[at], numbers[at + 1]]))
+        }
+        rings.push(ring)
+      }
+    }
   }
 
-  return rings.map((ring) => ring.map(([x, y]) => [dx + x * sx, dy + y * sy]))
+  return rings.filter((ring) => ring.length >= 3)
 }
 
-/** An SVG path of moves, lines and curves, as rings of points. */
+/** An SVG transform attribute as a matrix [a, b, c, d, e, f]. */
+function transformIn(attributes) {
+  const found = /\btransform="([^"]*)"/.exec(attributes)
+  let matrix = [1, 0, 0, 1, 0, 0]
+
+  if (!found) return matrix
+
+  for (const [, kind, inside] of found[1].matchAll(/(\w+)\(([^)]*)\)/g)) {
+    const n = inside.match(/-?\d*\.?\d+(?:e-?\d+)?/g).map(Number)
+    let next = [1, 0, 0, 1, 0, 0]
+
+    if (kind === 'translate') next = [1, 0, 0, 1, n[0], n[1] ?? 0]
+    else if (kind === 'scale') next = [n[0], 0, 0, n[1] ?? n[0], 0, 0]
+    else if (kind === 'matrix') next = n
+    else if (kind === 'rotate') {
+      const angle = (n[0] * Math.PI) / 180
+
+      next = [Math.cos(angle), Math.sin(angle), -Math.sin(angle), Math.cos(angle), 0, 0]
+    }
+    matrix = multiplied(matrix, next)
+  }
+
+  return matrix
+}
+
+function multiplied([a, b, c, d, e, f], [a2, b2, c2, d2, e2, f2]) {
+  return [
+    a * a2 + c * b2,
+    b * a2 + d * b2,
+    a * c2 + c * d2,
+    b * c2 + d * d2,
+    a * e2 + c * f2 + e,
+    b * e2 + d * f2 + f,
+  ]
+}
+
+/**
+ * An SVG path, as rings of points. Every command is read: moves, lines,
+ * horizontals, verticals, cubic and quadratic curves and their smooth
+ * forms, and arcs. A curve is cut into four straight pieces; an arc into
+ * one, which is enough for a coastline nobody draws with arcs.
+ */
 function flattened(path) {
-  const tokens = path.match(/[MmCcLlZz]|-?\d+\.?\d*/g) ?? []
+  const tokens = path.match(/[MmLlHhVvCcSsQqTtAaZz]|-?\d*\.?\d+(?:e-?\d+)?/g) ?? []
   const rings = []
   let ring = []
   let now = [0, 0]
   let start = [0, 0]
+  let lastControl = null
   let command = 'M'
   let at = 0
   const next = () => Number(tokens[at++])
+  const finish = () => {
+    if (ring.length >= 3) rings.push(ring)
+    ring = []
+  }
+  const curveTo = (x1, y1, x2, y2, x, y) => {
+    const [x0, y0] = now
+
+    for (const t of [0.25, 0.5, 0.75, 1]) {
+      const u = 1 - t
+
+      ring.push([
+        u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x,
+        u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y,
+      ])
+    }
+    now = [x, y]
+    lastControl = [x2, y2]
+  }
 
   while (at < tokens.length) {
     if (/[A-Za-z]/.test(tokens[at])) {
       command = tokens[at++]
     }
 
-    // A small letter means "from where the pen is".
-    const from = command === command.toLowerCase() ? now : [0, 0]
+    const relative = command === command.toLowerCase()
+    const from = relative ? now : [0, 0]
+    const upper = command.toUpperCase()
 
-    if (command === 'M' || command === 'm') {
-      if (ring.length > 0) rings.push(ring)
+    if (upper === 'Z') {
+      finish()
+      now = start
+      continue
+    }
+    if (upper === 'M') {
+      finish()
       now = [from[0] + next(), from[1] + next()]
       start = now
       ring = [now]
-      command = command === 'm' ? 'l' : 'L'
-    } else if (command === 'L' || command === 'l') {
+      command = relative ? 'l' : 'L'
+    } else if (upper === 'L') {
       now = [from[0] + next(), from[1] + next()]
       ring.push(now)
-    } else if (command === 'C' || command === 'c') {
-      const x1 = from[0] + next()
-      const y1 = from[1] + next()
-      const x2 = from[0] + next()
-      const y2 = from[1] + next()
+    } else if (upper === 'H') {
+      now = [from[0] + next(), now[1]]
+      ring.push(now)
+    } else if (upper === 'V') {
+      now = [now[0], from[1] + next()]
+      ring.push(now)
+    } else if (upper === 'C') {
+      curveTo(from[0] + next(), from[1] + next(), from[0] + next(), from[1] + next(), from[0] + next(), from[1] + next())
+    } else if (upper === 'S') {
+      const mirror = lastControl ? [2 * now[0] - lastControl[0], 2 * now[1] - lastControl[1]] : now
+
+      curveTo(mirror[0], mirror[1], from[0] + next(), from[1] + next(), from[0] + next(), from[1] + next())
+    } else if (upper === 'Q' || upper === 'T') {
+      let qx
+      let qy
+
+      if (upper === 'Q') {
+        qx = from[0] + next()
+        qy = from[1] + next()
+      } else {
+        ;[qx, qy] = lastControl ? [2 * now[0] - lastControl[0], 2 * now[1] - lastControl[1]] : now
+      }
       const x = from[0] + next()
       const y = from[1] + next()
       const [x0, y0] = now
 
-      for (const t of [0.25, 0.5, 0.75, 1]) {
-        const u = 1 - t
-
-        ring.push([
-          u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x,
-          u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y,
-        ])
-      }
-      now = [x, y]
-    } else {
-      if (ring.length > 0) rings.push(ring)
-      ring = []
-      now = start
+      curveTo(
+        x0 + (2 / 3) * (qx - x0), y0 + (2 / 3) * (qy - y0),
+        x + (2 / 3) * (qx - x), y + (2 / 3) * (qy - y),
+        x, y,
+      )
+      lastControl = [qx, qy]
+    } else if (upper === 'A') {
+      next(); next(); next(); next(); next()
+      now = [from[0] + next(), from[1] + next()]
+      ring.push(now)
     }
+    if (upper !== 'C' && upper !== 'S' && upper !== 'Q' && upper !== 'T') lastControl = null
   }
-  if (ring.length > 0) rings.push(ring)
+  finish()
 
   return rings
 }
