@@ -660,27 +660,31 @@ be. A bigger Australia is what makes strategy mean anything.
       several shapes, which the map format and three of the guards would
       all have to learn.
 
-      **PINNED TO THE BOARD, 2026-09-08.** Real borders on a real
-      projection are an atlas, and Nick wanted the board: "Looks a bit
-      odd. This is what I'm aiming for", with the classic board, six big
-      continents and almost no sea. The first go bent longitude and
-      latitude separately, and that cannot make Europe big without making
-      Africa wide and Siberia tall.
+      **LAID OUT AS THE BOARD, 2026-09-08.** Real borders on a plain
+      projection are an atlas, and Nick wanted the classic board. Two
+      wrong turns first. Bending longitude and latitude to squeeze the
+      oceans: "Looks a bit odd." Then a rubber sheet held by sixty pins so
+      any landmark could go anywhere: "very distorted and child like." The
+      pins sheared the land between them, and that shear is what looked
+      wrong.
 
-      So the world sits on a rubber sheet held by about sixty PINS, each
-      saying where one landmark goes on the board (spec S50). Between the
-      pins the sheet bends smoothly (a thin-plate spline, solved by school
-      Gaussian elimination in the tool), and every point goes through the
-      same bend so shared borders hold. Three rounds by eye: the two halves
-      of Australia drifted apart until a group went through the bend about
-      ONE middle; Kamchatka was a sliver until the Russia split gave it the
-      far north-east; Siberia and Kazakhstan overlapped by three units at
-      one corner because Russia came from the 50m province file and
-      Kazakhstan from the 110m country file, two drawings of one border,
-      and the stretch tripled the gap. Everything comes from the 50m files
-      now, so every border is one line.
+      The classic board is not a warped world. Its shapes are close to
+      Mercator, with the far north stretched, the tropics squashed, and
+      Europe given room. So that is the projection now: longitude straight
+      across with the Europe-and-Africa band half again as wide, latitude
+      down a curve with a few control points (spec S50). Stretching cannot
+      shear, so the shapes stay the ones everybody knows. Coasts are
+      rounded by cutting corners (spec S51), because the board is drawn
+      smooth and a simplified coast is not. Islands and Australia are then
+      sized for the game.
 
-      2,414 corners, all ten rules, nothing loosened.
+      On the way: Kamchatka was a sliver until the Russia split gave it
+      the far north-east, and Siberia and Kazakhstan overlapped by three
+      units because Russia came from the 50m province file and Kazakhstan
+      from the 110m country file, two drawings of one border. Everything
+      comes from the 50m files now, so every border is one line.
+
+      2,900 corners, all ten rules, nothing loosened.
 
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,

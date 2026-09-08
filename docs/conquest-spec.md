@@ -827,27 +827,37 @@ taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
 **S50. The world map is a board, not an atlas.** Nick: "The map needs to
-be representative not real world scale accurate," and then, of the first
-try, "Looks a bit odd. This is what I'm aiming for", with a picture of the
-classic board: six big continents that fill the sheet with almost no sea
-between them, and Europe alone a fifth of the width. No atlas projection
-gets there, and bending longitude and latitude separately could not
-either. It cannot make Europe big without making Africa wide and Siberia
-tall.
+be representative not real world scale accurate," and the board he is
+aiming for is the classic one, which everybody already knows. Its shapes
+are close to the Mercator map from a schoolroom wall: continents keep
+their familiar shape, the far north is stretched, the tropics are a little
+squashed, and Europe and Africa are given about half again their width.
 
-So the world is drawn on a rubber sheet held by PINS. Each pin says where
-one landmark on the earth goes on the board: "the west tip of Alaska goes
-2% in from the left and 15% down". Between the pins the sheet bends as
-smoothly as it can, the way a thin steel sheet does when pins are pushed
-through it. Every point goes through the same bend, so two places that
-shared a border still share it exactly. There are about sixty pins, in
-`tools/world-groups.json`, and they are the whole of the design.
+So longitude goes straight across, with the Europe-and-Africa band wider,
+and latitude goes down a curve with a few control points, steepest around
+Europe and Canada. Every point goes through the same curve, so two places
+that shared a border still share it exactly. The curves live in
+`tools/world-groups.json` under "board".
 
-A place that touches nothing else, an island or Australia, is drawn TRUE to
-shape: only the middle of its group goes through the bend, to decide where
-it sits, and then it can be scaled to what it is worth in a game. Without
-that Iceland came out a third as wide as it was tall, and the two halves
-of Australia drifted apart.
+Two things that did NOT work, kept so nobody tries them again. Bending
+longitude and latitude to squeeze the oceans made Brazil nearly touch
+Africa: "Looks a bit odd." A rubber sheet held by sixty pins, so that any
+landmark could go anywhere, sheared the land around every pin: "very
+distorted and child like." A curve that only ever stretches up and down
+or side to side cannot shear anything, which is why the shapes now stay
+recognisable.
+
+A place that touches nothing else, an island or Australia, is drawn at the
+scale the board has where its middle lands, and then sized for the game:
+Greenland smaller, Australia and the islands bigger. The two halves of
+Australia go through this as ONE piece, or they drift apart.
+
+**S51. Rounded coasts.** Simplifying a coast leaves straight runs meeting
+at sharp corners, which reads as jagged. So after simplifying, every
+corner is cut off twice (Chaikin's method: each run is replaced by the
+points a quarter and three quarters of the way along it). The ends of a
+run stay where they were, and a shared border is one run rounded once
+for both sides, so borders still hold.
 
 **S48. The full name where there is room, the short one where not.**
 

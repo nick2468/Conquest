@@ -38,18 +38,13 @@ const PROVINCES = 'tools/data/ne-50m-provinces.geojson'
 const GROUPS = 'tools/world-groups.json'
 const WRITE_TO = 'src/maps/world.ts'
 
-/** How many units across the picture is for each degree of longitude. */
-const ACROSS = 2.6
-
 /**
- * How much taller than wide a degree is drawn.
- *
- * Plain 1 gives the flat projection from a schoolroom wall. A board wants
- * more: the world is wide and short, and a screen is not, so at 1 the map
- * sits in a band across the top with empty room beneath. 1.5 fills the
- * pane, which is the same as making everything on it bigger.
+ * The board is this many units wide and high. The classic board is about
+ * one and a half times as wide as it is high, which also fits an iPad on
+ * its side with the score down one edge.
  */
-const TALLER = 1.65
+const WIDE = 936
+const HIGH = 645
 
 /** Islands smaller than this are left off, in square degrees. */
 const TOO_SMALL = 0.6
@@ -201,7 +196,7 @@ function joined(rings) {
  * redraw comfortably and far more than an eye can see. This keeps the
  * shape of a coast and a border and drops the wobble between.
  */
-const SIMPLIFY_TO = Number(process.env['SIMPLIFY'] ?? 0.45)
+const SIMPLIFY_TO = Number(process.env['SIMPLIFY'] ?? 0.7)
 
 function awayFromLine(point, from, to) {
   const alongX = to[0] - from[0]
@@ -254,6 +249,53 @@ function simplifiedRing(ring, tolerance) {
 }
 
 /**
+ * Round the corners off a line.
+ *
+ * Simplifying leaves a line of straight runs meeting at sharp corners,
+ * which reads as jagged and cheap. The classic board is drawn with smooth
+ * rounded coasts. So each corner is cut off: every straight run is
+ * replaced by the points a quarter and three quarters of the way along
+ * it (Chaikin's method). Done once it rounds, done twice it is a curve.
+ * The two ends stay exactly where they were, which is what lets a shared
+ * border stay shared: both sides round the identical run of points.
+ */
+function rounded(points, times = ROUND_TIMES) {
+  let line = points
+
+  for (let round = 0; round < times; round += 1) {
+    if (line.length < 3) {
+      return line
+    }
+
+    const out = [line[0]]
+
+    for (let at = 0; at + 1 < line.length; at += 1) {
+      const [fromX, fromY] = line[at]
+      const [toX, toY] = line[at + 1]
+
+      out.push([fromX * 0.75 + toX * 0.25, fromY * 0.75 + toY * 0.25])
+      out.push([fromX * 0.25 + toX * 0.75, fromY * 0.25 + toY * 0.75])
+    }
+    out.push(line[line.length - 1])
+    line = out
+  }
+
+  // The rounding adds points along nearly straight runs that add nothing
+  // to the shape. A light second pass drops those.
+  return simplified(line, SIMPLIFY_TO / 6)
+}
+
+function roundedRing(ring, times = ROUND_TIMES) {
+  const line = rounded([...ring, ring[0]], times)
+
+  line.pop()
+  return line
+}
+
+/** How many times the corners are cut. Once rounds, twice curves. */
+const ROUND_TIMES = Number(process.env['ROUND'] ?? 2)
+
+/**
  * Simplify each shared BORDER once, not each place twice.
  *
  * Simplifying two neighbours on their own simplifies the border between
@@ -300,7 +342,7 @@ function simplifyTogether(outlines, tolerance) {
 
     // Nothing shared with anybody: an island, simplified whole.
     if (junctions.length < 2) {
-      out.set(name, simplifiedRing(ring, tolerance))
+      out.set(name, roundedRing(simplifiedRing(ring, tolerance)))
       continue
     }
 
@@ -321,7 +363,7 @@ function simplifyTogether(outlines, tolerance) {
       const key = forwards < backwards ? forwards : backwards
 
       if (!done.has(key)) {
-        done.set(key, simplified(run, tolerance))
+        done.set(key, rounded(simplified(run, tolerance)))
       }
 
       const kept = done.get(key)
@@ -347,130 +389,74 @@ function simplifyTogether(outlines, tolerance) {
 // ---------------------------------------------------------- the projection
 
 /**
- * A pinned sheet, not a globe.
+ * The board, not the globe.
  *
  * Nick: "The map needs to be representative not real world scale
- * accurate," and the board he is aiming for has six big continents that
- * fill the sheet with almost no sea between them. Europe alone is a fifth
- * of the width. No atlas projection gets there.
+ * accurate," and the board he is aiming for is the classic one, which
+ * everybody already knows. Its shapes are close to the Mercator map from a
+ * schoolroom wall: continents keep their familiar shape, the far north is
+ * stretched, and the tropics are a little squashed. So that is what this
+ * does. Longitude goes straight across. Latitude goes down a curve with a
+ * few control points, steepest around Europe and Canada and gentlest in
+ * the tropics and the far south, with a straight line between each pair
+ * of points. Both live in `tools/world-groups.json` under "board".
  *
- * So the world is drawn on a rubber sheet held by PINS. Each pin says
- * where one landmark on the earth goes on the board: "the west tip of
- * Alaska goes 2% in from the left and 15% down". Between the pins the
- * sheet bends as smoothly as it can (a thin-plate spline, the shape a thin
- * steel sheet takes when you push pins through it). Because EVERY point
- * goes through the same bend, two places that shared a border still share
- * it exactly. The pins live in `tools/world-groups.json`.
+ * There was a version with sixty pins pulling a rubber sheet, so that any
+ * landmark could be put anywhere. Nick: "very distorted and child like."
+ * Every pin sheared the land around it. A curve that only ever stretches
+ * up and down cannot shear anything, and that is why the shapes stay
+ * recognisable. EVERY point goes through the same curve, so two places
+ * that shared a border still share it exactly.
  */
-function solved(matrix, answers) {
-  // Gaussian elimination, the school method, with the biggest row first.
-  const size = answers.length
-  const rows = matrix.map((row, at) => [...row, answers[at]])
+function bent(value, controls) {
+  const first = controls[0]
+  const last = controls[controls.length - 1]
 
-  for (let column = 0; column < size; column += 1) {
-    let best = column
+  // Past either end the last straight line carries on.
+  if (value <= first[0] || value >= last[0]) {
+    const [from, to] = value <= first[0] ? [controls[0], controls[1]] : [controls[controls.length - 2], last]
 
-    for (let row = column + 1; row < size; row += 1) {
-      if (Math.abs(rows[row][column]) > Math.abs(rows[best][column])) {
-        best = row
-      }
-    }
-    ;[rows[column], rows[best]] = [rows[best], rows[column]]
+    return from[1] + ((value - from[0]) / (to[0] - from[0])) * (to[1] - from[1])
+  }
 
-    for (let row = 0; row < size; row += 1) {
-      if (row === column) {
-        continue
-      }
+  for (let at = 0; at + 1 < controls.length; at += 1) {
+    const [fromIn, fromOut] = controls[at]
+    const [toIn, toOut] = controls[at + 1]
 
-      const factor = rows[row][column] / rows[column][column]
-
-      for (let at = column; at <= size; at += 1) {
-        rows[row][at] -= factor * rows[column][at]
-      }
+    if (value >= fromIn && value <= toIn) {
+      return fromOut + ((value - fromIn) / (toIn - fromIn)) * (toOut - fromOut)
     }
   }
 
-  return rows.map((row, at) => row[size] / row[at])
+  return value
 }
 
-function pinnedSheet(pins) {
-  if (pins === undefined || pins.length < 3) {
-    return (point) => point
-  }
+let BOARD = { across: [[-180, 0], [180, 1]], down: [[90, 0], [-90, 1]] }
 
-  // A pin is [lon, lat, across, down]: across and down are fractions of
-  // the board, 0 at the left or top and 1 at the right or bottom.
-  const from = pins.map(([lon, lat]) => [lon, lat])
-  const to = pins.map(([, , across, down]) => [-180 + across * 360, 90 - down * 150])
-  const count = pins.length
-  const pull = (a, b) => {
-    const squared = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
-
-    return squared === 0 ? 0 : (squared * Math.log(squared)) / 2
-  }
-
-  // The sheet is the smoothest bend through the pins: a flat part plus a
-  // pull towards each pin that fades with distance.
-  const matrix = []
-
-  for (let row = 0; row < count + 3; row += 1) {
-    matrix.push(new Array(count + 3).fill(0))
-  }
-  for (let row = 0; row < count; row += 1) {
-    for (let column = 0; column < count; column += 1) {
-      matrix[row][column] = pull(from[row], from[column])
-    }
-    matrix[row][count] = 1
-    matrix[row][count + 1] = from[row][0]
-    matrix[row][count + 2] = from[row][1]
-    matrix[count][row] = 1
-    matrix[count + 1][row] = from[row][0]
-    matrix[count + 2][row] = from[row][1]
-  }
-
-  const weightsX = solved(matrix, [...to.map(([x]) => x), 0, 0, 0])
-  const weightsY = solved(matrix, [...to.map(([, y]) => y), 0, 0, 0])
-  const bend = (weights, point) => {
-    let out = weights[count] + weights[count + 1] * point[0] + weights[count + 2] * point[1]
-
-    for (let at = 0; at < count; at += 1) {
-      out += weights[at] * pull(from[at], point)
-    }
-
-    return out
-  }
-
-  return (point) => [bend(weightsX, point), bend(weightsY, point)]
-}
-
-let SHEET = (point) => point
-
-function project(point, sheet = SHEET) {
-  const [lon, lat] = sheet(point)
-
+function project([lon, lat]) {
   return [
-    Number(((lon + 180) * ACROSS).toFixed(1)),
-    Number(((90 - lat) * ACROSS * TALLER).toFixed(1)),
+    Number((bent(lon, BOARD.across) * WIDE).toFixed(1)),
+    Number((bent(lat, BOARD.down) * HIGH).toFixed(1)),
   ]
 }
 
 /**
- * Where a place goes on the bent sheet without being bent itself.
+ * Where a place goes on the board without being bent itself.
  *
- * A squeeze on the Atlantic is meant for the sea, not for Iceland, which
- * came out a third as wide as it was tall. So a place that touches nothing
- * else is drawn TRUE to shape, and only its middle is put through the bend
- * to decide where on the board it sits. The nudge then scales and slides
- * it from there.
+ * A place that touches nothing else, an island or Australia, is drawn at
+ * the scale the board has where its middle lands, and then left alone. So
+ * it takes the stretch of its own part of the board, and no more, and
+ * the nudge below then sizes it for the game.
  */
 function projectedTrue(ring, middle) {
-  const plain = ring.map((point) => project(point, (p) => p))
-  const [wasX, wasY] = project(middle, (p) => p)
-  const [nowX, nowY] = project(middle)
+  const [midX, midY] = project(middle)
+  const step = 0.5
+  const scaleX = (project([middle[0] + step, middle[1]])[0] - project([middle[0] - step, middle[1]])[0]) / (2 * step)
+  const scaleY = (project([middle[0], middle[1] - step])[1] - project([middle[0], middle[1] + step])[1]) / (2 * step)
 
-  return plain.map(([x, y]) => [
-    Number((x - wasX + nowX).toFixed(1)),
-    Number((y - wasY + nowY).toFixed(1)),
+  return ring.map(([lon, lat]) => [
+    Number((midX + (lon - middle[0]) * scaleX).toFixed(1)),
+    Number((midY - (lat - middle[1]) * scaleY).toFixed(1)),
   ])
 }
 
@@ -661,7 +647,10 @@ function placeForProvince(rules, province) {
 function main() {
   const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
 
-  SHEET = pinnedSheet(meta.pins)
+  // The curves read top to bottom in the file, but bent() walks upwards.
+  const upwards = (controls) => [...controls].sort((a, b) => a[0] - b[0])
+
+  BOARD = { across: upwards(meta.board.across), down: upwards(meta.board.down) }
 
   const countries = loadCountries()
   const provinces = loadProvinces()
