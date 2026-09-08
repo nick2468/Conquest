@@ -21,6 +21,9 @@ interface EditorMapProps {
   readonly onMoveCorner: (at: number, to: Corner) => void
   readonly onInsertCorner: (after: number, at: Corner) => void
   readonly onMoveLabel: (to: Corner) => void
+  /** The line being drawn across a place to cut it, if one is. */
+  readonly cutting: readonly Corner[] | null
+  readonly onCutPoint: (at: Corner) => void
 }
 
 /** Where a pointer is, in the map's own numbers rather than the screen's. */
@@ -55,6 +58,8 @@ export function EditorMap({
   onMoveCorner,
   onInsertCorner,
   onMoveLabel,
+  cutting,
+  onCutPoint,
 }: EditorMapProps) {
   const board = useRef<SVGSVGElement>(null)
 
@@ -105,7 +110,7 @@ export function EditorMap({
   return (
     <svg
       ref={board}
-      className="editor-map"
+      className={cutting === null ? 'editor-map' : 'editor-map editor-cutting'}
       viewBox={draft.viewBox}
       role="group"
       aria-label={`${draft.name}, being drawn`}
@@ -116,6 +121,13 @@ export function EditorMap({
         width={width}
         height={height}
         className="editor-sea"
+        onPointerDown={(event) => {
+          if (cutting === null || board.current === null) {
+            return
+          }
+
+          onCutPoint(pointIn(board.current, event.clientX, event.clientY))
+        }}
       />
 
       {draft.places.map((each) => (
@@ -150,7 +162,19 @@ export function EditorMap({
         </text>
       ))}
 
-      {place === null ? null : (
+      {cutting === null || cutting.length === 0 ? null : (
+        <g className="editor-cut">
+          <polyline
+            points={cutting.map(([x, y]) => `${x},${y}`).join(' ')}
+            strokeWidth={size(3)}
+          />
+          {cutting.map(([x, y], at) => (
+            <circle key={`cut-${at}`} cx={x} cy={y} r={size(4)} />
+          ))}
+        </g>
+      )}
+
+      {place === null || cutting !== null ? null : (
         <g className="editor-handles">
           {/* Halfway along each side: press one to put a corner there. */}
           {place.corners.map((corner, at) => {

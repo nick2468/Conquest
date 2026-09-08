@@ -4,18 +4,19 @@ import { pathFrom } from './shapes'
 /**
  * The world. Nick's request, plan task 5.8.
  *
- * WRITTEN BY A TOOL. Do not change the shapes by hand: run
- * `node tools/make-world-map.mjs` instead. Everything a person decides
- * lives in `tools/world-groups.json`: the names, the continents, who
- * borders whom, and which real countries each place is made of.
+ * A PLAIN MAP FILE, like the Australia ones. Change it in the editor at
+ * `/editor.html`, not by hand and not with a tool.
  *
- * **Every border here is a real border.** Each place is a group of real
- * countries joined together, so the line between Peru and Brazil in the
- * game is the line between Peru and Brazil in the world. Where a place is
- * only part of a country, such as either half of the United States, it is
- * a group of that country's real provinces instead.
+ * It was written by a program once, and the program is gone. It took real
+ * country shapes, worked out where the real world sat on a drawing of
+ * Nick's, and cut his land along real borders. Every fault he found came
+ * from that guesswork, and none of it is anything a game needs. Nick:
+ * "you seem determined to map this to the real world when it is not
+ * necessary." He was right. See spec S53.
  *
- * The shapes come from Natural Earth, which is public domain and asks for
+ * So the shapes below are simply the shapes. Where they came from no
+ * longer matters to the game: the coasts are Nick's own drawing and the
+ * borders were Natural Earth's, which is public domain and asks for
  * nothing at all, not even credit.
  *
  * Forty-two places in six continents, the layout anybody who has played

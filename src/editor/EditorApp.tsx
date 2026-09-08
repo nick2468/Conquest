@@ -6,6 +6,7 @@ import { AUSTRALIA_BIG } from '../maps/australia-big'
 import { WORLD } from '../maps/world'
 import type { MapDraft } from '../maps/format'
 import { fromDraft, readMap, toDraft, writeDraft } from '../maps/format'
+import type { Corner } from '../maps/shapes'
 import type { MapProblem } from '../maps/validate'
 import { validateMap } from '../maps/validate'
 import { EditorMap } from './EditorMap'
@@ -15,6 +16,7 @@ import {
   bordersFromShapes,
   changedPlace,
   changedRegion,
+  cutPlaceInTwo,
   freeId,
   insertedCorner,
   movedCorner,
@@ -64,6 +66,7 @@ export function EditorApp() {
   const [chosenCorner, setChosenCorner] = useState<number | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const [fileFaults, setFileFaults] = useState<readonly MapProblem[]>([])
+  const [cutting, setCutting] = useState<readonly Corner[] | null>(null)
 
   const place = draft.places.find((each) => each.id === chosen) ?? null
   const faults = validateMap(fromDraft(draft))
@@ -92,6 +95,45 @@ export function EditorApp() {
     setChosen(null)
     setChosenCorner(null)
     setFileFaults([])
+    setCutting(null)
+  }
+
+  /**
+   * Cut the chosen place in two along the line drawn across it.
+   *
+   * This is how a continent becomes territories, and it is the one thing
+   * a person cannot do by dragging corners about. Nick: "How will custom
+   * non-real world maps work?" Draw the land, then cut it up.
+   */
+  const finishTheCut = (): void => {
+    if (place === null || cutting === null) {
+      return
+    }
+
+    const taken = draft.places.map((each) => each.id)
+    const id = freeId(taken, `${place.id}Part`)
+    const next = cutPlaceInTwo(draft, place.id, cutting, {
+      id,
+      name: `${place.name} part`,
+      shortName: place.shortName,
+    })
+
+    if (next === null) {
+      setNote(
+        'That line did not cut the place in two. Press your way right ' +
+          'across it, from one side to the other.',
+      )
+      return
+    }
+
+    change(next)
+    setCutting(null)
+    setChosen(id)
+    setChosenCorner(null)
+    setNote(
+      `Cut in two. Name the new place below, then press "Add borders ` +
+        `where places touch" to tidy up who borders whom.`,
+    )
   }
 
   const openFile = async (file: File | undefined): Promise<void> => {
@@ -220,6 +262,8 @@ export function EditorApp() {
             ? undefined
             : change(insertedCorner(draft, chosen, after, at))
         }
+        cutting={cutting}
+        onCutPoint={(at) => setCutting((line) => [...(line ?? []), at])}
         onMoveLabel={(to) =>
           chosen === null ? undefined : change(movedLabel(draft, chosen, to))
         }
@@ -295,6 +339,40 @@ export function EditorApp() {
             <button type="button" onClick={workOutBorders}>
               Add borders where places touch
             </button>
+            {cutting === null ? (
+              <button
+                type="button"
+                onClick={() => setCutting([])}
+                disabled={place === null}
+              >
+                Cut this place in two
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={finishTheCut}
+                  disabled={cutting.length < 2}
+                >
+                  Make the cut
+                </button>
+                <button type="button" onClick={() => setCutting(null)}>
+                  Stop cutting
+                </button>
+              </>
+            )}
+          </div>
+
+          {cutting === null ? null : (
+            <p className="editor-hint">
+              Press along the line you want to cut{' '}
+              <strong>{place?.name ?? 'the place'}</strong> with, from one side
+              of it to the other. Press as many times as you like, to bend the
+              line. Then press &ldquo;Make the cut&rdquo;.
+            </p>
+          )}
+          <div className="editor-buttons">
           </div>
 
           {place === null ? (

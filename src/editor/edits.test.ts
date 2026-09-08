@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA_BIG } from '../maps/australia-big'
-import type { MapDraft } from '../maps/format'
+import type { DraftPlace, MapDraft } from '../maps/format'
 import { fromDraft, toDraft } from '../maps/format'
 import { validateMap } from '../maps/validate'
+import type { Corner } from '../maps/shapes'
 import {
   SNAP_WITHIN,
   addedPlace,
+  cutInTwo,
+  cutPlaceInTwo,
   bordersFromShapes,
   changedPlace,
   changedRegion,
@@ -338,5 +341,133 @@ describe('a draft still makes a real map', () => {
     draft = movedLabel(draft, 'hobart', [714, 692])
 
     expect(validateMap(fromDraft(draft))).toEqual([])
+  })
+})
+
+describe('cutting a place in two', () => {
+  const square: Corner[] = [
+    [0, 0],
+    [100, 0],
+    [100, 100],
+    [0, 100],
+  ]
+
+  it('cuts a square down the middle', () => {
+    const halves = cutInTwo(square, [
+      [50, -20],
+      [50, 120],
+    ])
+
+    expect(halves).not.toBeNull()
+
+    const [one, two] = halves as [Corner[], Corner[]]
+
+    expect(one).toContainEqual([50, 0])
+    expect(one).toContainEqual([50, 100])
+    expect(two).toContainEqual([50, 0])
+    expect(two).toContainEqual([50, 100])
+  })
+
+  it('gives both halves the identical border, so no sliver can appear', () => {
+    const [one, two] = cutInTwo(square, [
+      [-20, 40],
+      [40, 55],
+      [120, 70],
+    ]) as [Corner[], Corner[]]
+    const shared = one.filter((corner) =>
+      two.some((other) => other[0] === corner[0] && other[1] === corner[1]),
+    )
+
+    // Both ends of the cut and the bend in the middle of it.
+    expect(shared).toHaveLength(3)
+    expect(shared).toContainEqual([40, 55])
+  })
+
+  it('keeps every corner of the shape between the two halves', () => {
+    const [one, two] = cutInTwo(square, [
+      [50, -20],
+      [50, 120],
+    ]) as [Corner[], Corner[]]
+
+    for (const corner of square) {
+      const kept =
+        one.some(([x, y]) => x === corner[0] && y === corner[1]) ||
+        two.some(([x, y]) => x === corner[0] && y === corner[1])
+
+      expect(kept).toBe(true)
+    }
+  })
+
+  it('says no when the line misses the shape, however far it is carried', () => {
+    expect(cutInTwo(square, [[200, 0], [200, 100]])).toBeNull()
+  })
+
+  it('carries the line on, so a line drawn inside the place still cuts', () => {
+    const halves = cutInTwo(square, [
+      [50, 20],
+      [50, 80],
+    ])
+
+    expect(halves).not.toBeNull()
+
+    const [one, two] = halves as [Corner[], Corner[]]
+
+    expect(one).toContainEqual([50, 0])
+    expect(two).toContainEqual([50, 100])
+  })
+
+  it('makes two places out of one, both in the same continent', () => {
+    const draft: MapDraft = {
+      id: 'test',
+      name: 'Test',
+      viewBox: '0 0 200 200',
+      regions: [{ id: 'here', name: 'Here', bonus: 2, outline: '#000000' }],
+      places: [
+        {
+          id: 'big',
+          name: 'Big',
+          shortName: 'BIG',
+          region: 'here',
+          borders: ['next'],
+          corners: square,
+          labelAt: [50, 50],
+        },
+        {
+          id: 'next',
+          name: 'Next',
+          shortName: 'NXT',
+          region: 'here',
+          borders: ['big'],
+          corners: [
+            [120, 0],
+            [200, 0],
+            [200, 100],
+            [120, 100],
+          ],
+          labelAt: [160, 50],
+        },
+      ],
+    }
+    const after = cutPlaceInTwo(
+      draft,
+      'big',
+      [
+        [50, -20],
+        [50, 120],
+      ],
+      { id: 'half', name: 'Half', shortName: 'HLF' },
+    ) as MapDraft
+
+    expect(after.places).toHaveLength(3)
+
+    const big = after.places.find((each) => each.id === 'big') as DraftPlace
+    const half = after.places.find((each) => each.id === 'half') as DraftPlace
+    const next = after.places.find((each) => each.id === 'next') as DraftPlace
+
+    expect(half.region).toBe('here')
+    expect(big.borders).toContain('half')
+    expect(half.borders).toContain('big')
+    // Everybody who bordered the old place borders both halves now.
+    expect(next.borders).toContain('half')
   })
 })

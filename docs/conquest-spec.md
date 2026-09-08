@@ -826,67 +826,45 @@ For a tap to reach the board, everything drawn over the sea has to ignore
 taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
-**S50. The world map's coasts are Nick's own drawing.** Four tries at
-projecting the real world were all rejected: squeezing the oceans ("looks
-a bit odd"), a rubber sheet held by sixty pins ("very distorted and child
-like"), a Mercator-like curve ("still problematic"), and the Robinson
-projection with every island ("still looks all wrong to me"). Then: "Why
-can't you just keep the outline I gave you?"
+**S50. A map is a plain list of places.** A place has an id, a name, a
+short name, a continent, a SHAPE (its corners) and a BORDERS list saying
+where you may attack from it. That is the whole of a map. The game never
+knows what a country is, where the equator is, or that the Earth exists.
 
-So the outline he gave is kept, exactly. His drawing
-(`tools/data/nick-world-outline.svg`) is every coast on the map, and he
-edits it himself in Inkscape. It has no borders inside the continents, so
-those come from Natural Earth, laid over his drawing on a SHEET: a plain
-world map bent by a grid of handles until the real coastlines sit on his
-drawn ones.
+The borders list is the truth and the shape is only a picture to tap
+(S4). So any map at all works: a fantasy island, a school playground,
+anything somebody draws.
 
-**The sheet is worked out, not typed.** `node tools/fit-world-sheet.mjs`
-slides the handles about until the two agree as well as they can, and
-writes the answer into `tools/world-groups.json`. It reaches 87%. Before
-it there were sixty pins I typed by eye, and they put Kamchatka nine
-hundred units east, out in the Pacific, and drew Japan on top of Korea.
-Run the fit again whenever Nick redraws.
+**S51. The world map is not generated.** For a while it was. A program
+took real country shapes, worked out where the real world sat on a
+drawing of Nick's, and cut his land along real borders. It produced a
+long line of faults, each needing another patch, and Nick ended it: "you
+seem determined to map this to the real world when it is not necessary...
+How will custom non-real world maps work if that is what is going on?"
 
-Then every cell of his land goes to the place whose real border encloses
-it, and the rest to the NEAREST place, over the sea as well as the land.
-The spreading has to cross water or it could never reach an island: New
-Zealand touches nothing and no real country covers it, so a spread that
-walked only on land left it drawn as nothing at all. A place whose shape
-misses the land altogether, as small Iceland did, takes the nearest
-island nobody has claimed. A patch of under ninety cells joins the place
-around it, which sweeps up the crumbs the sheet leaves on a neighbour's
-coast: one of them looked like Switzerland sitting on its own in the
-middle of Europe.
+A fair question with no good answer, because a custom map could never
+have worked that way. So the world map is a plain file like the Australia
+ones, changed in the editor, and nothing in the game or its tools reads
+real-world data any more. Nick's own drawing stays at
+`tools/data/nick-world-outline.svg`, because the coasts came from it.
 
-Each place's outline is then walked around its cells. Two neighbours are
-walked around the same cell edges, so they share their border point for
-point, which is what every rule of a map needs.
+**S52. Cutting a place in two.** This is how a continent becomes
+territories, and it is the one thing a person cannot do by dragging
+corners about. Choose a place, press "Cut this place in two", press your
+way across it from one side to the other, and press "Make the cut".
 
-A place may also say the corner of the world it LIVES IN, because Natural
-Earth's "France" holds French Guiana in South America and its "Spain"
-holds the Canary Islands off Africa. Anything outside that corner is left
-out.
+The line is carried a long way past both ends before cutting, so nobody
+has to press exactly in the sea. Where it first enters the place and last
+leaves it, the place is split, and the piece of line between those two
+points becomes the new border. BOTH halves are given the SAME points for
+that border, so they share it exactly and no sliver can appear between
+them. That is the whole reason the editor exists (S32).
 
-**S51. Rounded coasts.** A coast walked around square cells is a
-staircase, and simplifying it leaves straight runs meeting at sharp
-corners, which reads as jagged. So after simplifying, every
-corner is cut off twice (Chaikin's method: each run is replaced by the
-points a quarter and three quarters of the way along it). The ends of a
-run stay where they were, and a shared border is one run rounded once
-for both sides, so borders still hold.
-
-**S52. Every island is drawn.** Nick's drawing had every island, and the
-map without them looked like a diagram. A place's `shape` is still ONE
-ring, its biggest piece, and every rule looks only at that. Its other
-pieces are `islands`, drawn with it in its colour and tapped with it, so
-Japan is Honshu plus its chain and Indonesia is the whole archipelago.
-A map MAY also carry `scenery`, land that belongs to nobody, drawn in a
-neutral colour and never tapped. The world map does not use it any more.
-Nick, of New Zealand and the Caribbean left in that colour: "what are all
-the white areas? just grow the nearest country to cover them up." So
-every island goes to the nearest place, however far, and New Zealand is
-part of Eastern Australia. Both are pictures only. The editor keeps neither when
-it saves a map, because a map drawn by hand has no need of them.
+The bigger half keeps the id and the name. Both halves keep the old
+place's borders and border each other, and everyone who bordered the old
+place now borders both. That is more borders than the map wants, on
+purpose: "Add borders where places touch" then trims the list. Guessing
+here and getting it wrong would lose a border nobody notices missing.
 
 **S48. The full name where there is room, the short one where not.**
 

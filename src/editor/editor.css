@@ -247,3 +247,27 @@
     overflow: visible;
   }
 }
+
+/* Cutting a place in two: the line being drawn across it. */
+.editor-cutting .editor-place,
+.editor-cutting .editor-name {
+  pointer-events: none;
+}
+
+.editor-cutting {
+  cursor: crosshair;
+}
+
+.editor-cut polyline {
+  fill: none;
+  stroke: #c8453b;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 10 6;
+  pointer-events: none;
+}
+
+.editor-cut circle {
+  fill: #c8453b;
+  pointer-events: none;
+}

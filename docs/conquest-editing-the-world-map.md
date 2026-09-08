@@ -1,41 +1,51 @@
-# Editing the world map yourself
+# Making and changing maps
 
-The coasts of the world map are one file: `tools/data/nick-world-outline.svg`.
-Every closed shape in it is land. Change the file, run one command, and
-the map follows.
+Every map is a plain list of places. A place has:
 
-## The tool
+- an **id**, such as `brazil`
+- a **name** and a short name, "Brazil" and "BRA"
+- a **continent** it belongs to
+- a **shape**: a list of corners, joined up
+- a **borders** list: where you may attack from it
 
-Use **Inkscape**. It is free, open source, and made for this kind of file.
-Get it from https://inkscape.org (Windows installer, no account needed).
+That is the whole of a map. The game never knows what a country is or
+that the Earth exists. **The borders list is the truth and the shape is
+only a picture**, so any map works: a fantasy island, a school
+playground, anything you draw.
 
-## The steps
+## The editor
 
-1. In Inkscape, open `C:\Users\nick2\code\Conquest\tools\data\nick-world-outline.svg`.
-2. Press **N** for the Node tool. Click a coast to see its nodes.
-   - Drag a node to move the coast.
-   - Double-click a coast to add a node.
-   - Click a node and press **Delete** to remove it.
-3. To add an island, press **B** for the Pen tool, click around the island,
-   and click the first point again to close it. Any closed shape is land,
-   filled or not.
-4. To remove an island, press **S**, click it, and press **Delete**.
-5. **File > Save As**, choose **Plain SVG**, and keep the same file name.
-6. In a terminal in the Conquest folder, run:
+Open `/editor.html` (locally, http://localhost:5180/editor.html).
 
-```bash
-node tools/make-world-map.mjs
-```
+It never starts from a blank page. Begin from the world, either Australia
+map, or a file you saved before.
 
-7. Open http://localhost:5180/map.html and reload. The game picks it up too.
+| To do this | Do that |
+|---|---|
+| Change a place | Press it. Its corners appear. |
+| Move a corner | Drag it. Dropped near another corner, it snaps onto it exactly. |
+| Add a corner | Press the small circle halfway along a side. |
+| Remove a corner | Press the corner, then "Press a corner to remove it". |
+| Move the army count | Drag the square handle. |
+| Add a place | "Add a place". It appears in a corner, as a square. |
+| **Split a place in two** | Choose it, press "Cut this place in two", press your way across it, press "Make the cut". |
+| Fix who borders whom | "Add borders where places touch". |
+| Undo | "Undo". |
+| Try it | "Send to the game". |
+| Keep it | "Save to a file". |
 
-## What decides where a border goes
+**Corners that snap are the important part.** Two places sharing a border
+must share the exact same corners, or a sliver of no-man's land or of
+overlap appears along it. Nobody can click the same point twice by hand,
+so the editor does it for them. A cut does the same: both halves get the
+identical points along the line.
 
-The borders inside the continents are not in your file. They come from
-Natural Earth, laid over your drawing with pins in `tools/world-groups.json`.
-A pin is `[longitude, latitude, x, y]`: a point on the earth, and where
-it sits in your drawing. If a border lands in the wrong spot after you move
-a coast a long way, move the nearest pin the same way.
+**"What is wrong" is always on screen.** It lists every fault the game
+would refuse, as you work, and says "Nothing. This map can be played."
+when there are none.
 
-If a place ends up with no land at all, the command stops and names it.
-Move the pin nearest that place and run it again.
+## Where the world map came from
+
+Its coasts are Nick's own drawing, `tools/data/nick-world-outline.svg`.
+The program that turned that drawing into places is gone, and the map is
+now a plain file that the editor changes. See spec S51.

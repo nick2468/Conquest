@@ -660,60 +660,33 @@ be. A bigger Australia is what makes strategy mean anything.
       several shapes, which the map format and three of the guards would
       all have to learn.
 
-      **NICK'S OWN COASTS, 2026-09-08.** Four projections of the real
-      world, and Nick liked none: "looks a bit odd", "very distorted and
-      child like", "still problematic", "still looks all wrong to me".
-      He sent a clean drawing of the world and then asked the question
-      that settled it: "Why can't you just keep the outline I gave you?"
+      **THE GENERATOR IS GONE, 2026-09-08.** It was six goes at drawing
+      the world by program, and Nick liked none of them: "far too blocky",
+      "looks a bit odd", "very distorted and child like", "still
+      problematic", "still looks all wrong to me", "in general this is
+      worse than before". Then the question that ended it: "you seem
+      determined to map this to the real world when it is not necessary...
+      How will custom non-real world maps work if that is what is going
+      on?"
 
-      So it is kept (spec S50). His drawing is every coast on the map.
-      The borders inside the continents come from Natural Earth, laid
-      over his drawing with about sixty pins, and then every cell of HIS
-      land is given to the place whose border encloses it. A border that
-      lands a little off his coast does no harm, because each place is
-      cut out of his land, not the sheet's. Each place's outline is
-      walked around its cells, so two neighbours share their border point
-      for point, and the map passes all ten rules with nothing loosened.
+      There was no good answer. A custom map could never have worked that
+      way, because the whole machine ran on real country data. So the
+      world map is now a plain file like the Australia ones (spec S51),
+      changed in the editor, and `tools/make-world-map.mjs`,
+      `tools/fit-world-sheet.mjs`, `tools/world-groups.json` and the
+      Natural Earth data are all deleted. Nothing in the game or its tools
+      reads real-world data any more.
 
-      **THE SHEET IS NOW WORKED OUT, NOT TYPED.** The sixty pins were
-      mine, by eye, and they were wrong: Kamchatka landed nine hundred
-      units east out in the Pacific, so Japan was drawn on top of Korea
-      and New Guinea went to Indonesia. Nick: "you seem determined to
-      make this a real world representation, it's for a game," and "I'm
-      spending too much time explaining to you." Both fair.
+      The map kept is the one from before the last change, because Nick
+      said that one was better. Its coasts are his own drawing, which
+      stays in `tools/data` for the record.
 
-      `node tools/fit-world-sheet.mjs` now lays every real coastline on
-      his drawing and slides a grid of handles about until the two agree
-      as well as they can. A plain world map agrees 63%; bent, it agrees
-      87%. Nothing is typed by eye any more, and the fit runs again
-      whenever he redraws.
-
-      That one change fixed most of a list Nick gave: Kamchatka, Japan,
-      New Guinea being labelled Indonesia, and Western Europe's crumbs.
-      Three more went with it. Land now spreads to the nearest place over
-      the SEA as well as the land, so New Zealand is drawn again. A place
-      whose shape misses the land, as Iceland's did, takes the nearest
-      island nobody has claimed. And a patch under ninety cells joins the
-      place around it, which swept away the crumb in the Alps that looked
-      like Switzerland.
-
-      His tracing had gaps in the coastline, which let the sea flood into
-      North America. The lines are thickened by two cells before the sea
-      floods in and the land shrunk back by two after, so a gap up to
-      four cells wide closes and the coast stays where he drew it.
-
-      Every island is drawn (spec S52) and every island belongs to the
-      nearest place. Nick, of the ones first left neutral: "what are all
-      the white areas? just grow the nearest country to cover them up."
-      3,692 corners in places, 761 in islands.
-
-- [x] 5.10 **The map on its own.** Built 2026-09-08 at `/map.html`. Nick:
-      "We need to work on the map in isolation of the game engine. Show
-      me the map only." A third page beside the game and the editor. No
-      players, no counts. Every place is washed with its continent's
-      colour and named. Tap a place to look closer, tap the sea to see
-      the whole map. The map view gained a `bare` switch for it, and
-      nothing else changed.
+      **What the editor gained instead: cutting a place in two** (spec
+      S52, plan 5.9). Drawing a line across a place splits it, and both
+      halves are given the identical points along the cut, so the border
+      is exact. That is the one thing a person could not do by dragging
+      corners, and it is how a continent becomes territories. Driven live:
+      cutting North Africa in two left a 43-place map with no faults.
 
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
