@@ -1091,6 +1091,12 @@ button.primary.ready:hover {
  * straight through them, so a tap that misses the land reaches the board
  * itself and steps back out to the whole map. */
 .coast,
+/* Land nobody owns: the same as an idle place, but nobody is home. */
+.scenery {
+  fill: var(--land-nobody, #d9d3c3);
+  pointer-events: none;
+}
+
 .region-edge {
   pointer-events: none;
 }

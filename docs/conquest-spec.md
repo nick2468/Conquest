@@ -826,31 +826,23 @@ For a tap to reach the board, everything drawn over the sea has to ignore
 taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
-**S50. The world map is a board, not an atlas.** Nick: "The map needs to
-be representative not real world scale accurate," and the board he is
-aiming for is the classic one, which everybody already knows. Its shapes
-are close to the Mercator map from a schoolroom wall: continents keep
-their familiar shape, the far north is stretched, the tropics are a little
-squashed, and Europe and Africa are given about half again their width.
+**S50. The world map is the one everybody already knows.** Three tries
+that bent the world to fit a board all failed with Nick. Squeezing the
+oceans: "looks a bit odd." A rubber sheet held by sixty pins: "very
+distorted and child like." A Mercator-like curve with Europe widened:
+"still problematic." Then he sent a clean drawing of the world to aim at,
+and the lesson is that nobody wants a clever world. "It's a map of the
+world, it shouldn't be so hard."
 
-So longitude goes straight across, with the Europe-and-Africa band wider,
-and latitude goes down a curve with a few control points, steepest around
-Europe and Canada. Every point goes through the same curve, so two places
-that shared a border still share it exactly. The curves live in
-`tools/world-groups.json` under "board".
-
-Two things that did NOT work, kept so nobody tries them again. Bending
-longitude and latitude to squeeze the oceans made Brazil nearly touch
-Africa: "Looks a bit odd." A rubber sheet held by sixty pins, so that any
-landmark could go anywhere, sheared the land around every pin: "very
-distorted and child like." A curve that only ever stretches up and down
-or side to side cannot shear anything, which is why the shapes now stay
-recognisable.
-
-A place that touches nothing else, an island or Australia, is drawn at the
-scale the board has where its middle lands, and then sized for the game:
-Greenland smaller, Australia and the islands bigger. The two halves of
-Australia go through this as ONE piece, or they drift apart.
+So the world is drawn on the Robinson projection, the map most people
+picture when they picture the world: a table of how wide each parallel is
+and how far from the equator it sits, made in 1963 to look right rather
+than to be right. The poles are pulled in, so Greenland is its usual size
+and Alaska leans. It is drawn a quarter taller than Robinson's own, to
+match Nick's drawing and to make places easier to tap. Every point goes
+through the same table, so two places that shared a border still share
+it exactly. Islands and Australia are drawn at their natural size, with
+at most a tenth or two added so a small island can be tapped.
 
 **S51. Rounded coasts.** Simplifying a coast leaves straight runs meeting
 at sharp corners, which reads as jagged. So after simplifying, every
@@ -858,6 +850,16 @@ corner is cut off twice (Chaikin's method: each run is replaced by the
 points a quarter and three quarters of the way along it). The ends of a
 run stay where they were, and a shared border is one run rounded once
 for both sides, so borders still hold.
+
+**S52. Every island is drawn.** Nick's drawing had every island, and the
+map without them looked like a diagram. A place's `shape` is still ONE
+ring, its biggest piece, and every rule looks only at that. Its other
+pieces are `islands`, drawn with it in its colour and tapped with it, so
+Japan is Honshu plus its chain and Indonesia is the whole archipelago.
+Land that belongs to nobody is the map's `scenery`: New Zealand, the
+Philippines, the Caribbean, Ireland and so on, drawn in a neutral colour
+and never tapped. Both are pictures only. The editor keeps neither when
+it saves a map, because a map drawn by hand has no need of them.
 
 **S48. The full name where there is room, the short one where not.**
 

@@ -876,109 +876,54 @@
   ],
   "nudge": {
     "greenland": {
-      "scale": 0.65
+      "scale": 1.0
     },
     "iceland": {
-      "scale": 1.6
+      "scale": 1.2
     },
     "greatBritain": {
-      "scale": 1.4,
-      "dx": -8,
-      "dy": -6
+      "scale": 1.1
     },
     "japan": {
-      "scale": 1.4
+      "scale": 1.1
     },
     "madagascar": {
-      "scale": 1.3
+      "scale": 1.1
     },
     "indonesia": {
-      "scale": 1.15,
-      "dx": 16,
-      "dy": 18
+      "scale": 1.0
     },
     "newGuinea": {
-      "scale": 1.2,
-      "dx": 6
+      "scale": 1.0
     },
     "australiaRegion": {
-      "scale": 1.5,
-      "dx": -20,
-      "dy": 12
+      "scale": 1.0
     }
   },
-  "board": {
-    "across": [
-      [
-        -170,
-        0
-      ],
-      [
-        -10,
-        0.43
-      ],
-      [
-        40,
-        0.645
-      ],
-      [
-        180,
-        1
-      ]
-    ],
-    "down": [
-      [
-        78,
-        0
-      ],
-      [
-        70,
-        0.07
-      ],
-      [
-        60,
-        0.17
-      ],
-      [
-        50,
-        0.3
-      ],
-      [
-        40,
-        0.42
-      ],
-      [
-        30,
-        0.51
-      ],
-      [
-        20,
-        0.58
-      ],
-      [
-        10,
-        0.64
-      ],
-      [
-        0,
-        0.7
-      ],
-      [
-        -10,
-        0.76
-      ],
-      [
-        -20,
-        0.82
-      ],
-      [
-        -35,
-        0.91
-      ],
-      [
-        -56,
-        1
-      ]
-    ]
-  }
+  "scenery": [
+    "New Zealand",
+    "Philippines",
+    "Sri Lanka",
+    "Taiwan",
+    "Cuba",
+    "Haiti",
+    "Dominican Rep.",
+    "Jamaica",
+    "Puerto Rico",
+    "Bahamas",
+    "Trinidad and Tobago",
+    "Ireland",
+    "Cyprus",
+    "Solomon Is.",
+    "Vanuatu",
+    "Fiji",
+    "New Caledonia",
+    "Falkland Is.",
+    "Timor-Leste",
+    "Brunei",
+    "Malaysia",
+    "Singapore",
+    "Bahrain",
+    "Qatar"
+  ]
 }

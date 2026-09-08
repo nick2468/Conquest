@@ -38,16 +38,11 @@ const PROVINCES = 'tools/data/ne-50m-provinces.geojson'
 const GROUPS = 'tools/world-groups.json'
 const WRITE_TO = 'src/maps/world.ts'
 
-/**
- * The board is this many units wide and high. The classic board is about
- * one and a half times as wide as it is high, which also fits an iPad on
- * its side with the score down one edge.
- */
-const WIDE = 936
-const HIGH = 645
-
-/** Islands smaller than this are left off, in square degrees. */
+/** Pieces smaller than this never make a place's own shape, in square degrees. */
 const TOO_SMALL = 0.6
+
+/** Islands smaller than this are not drawn at all, in square degrees. */
+const TOO_SMALL_ISLAND = 0.12
 
 // -------------------------------------------------------------- the data
 
@@ -292,6 +287,16 @@ function roundedRing(ring, times = ROUND_TIMES) {
   return line
 }
 
+/**
+ * An island on its own, simplified and rounded. A small island gets a
+ * finer tolerance, or it comes out a triangle.
+ */
+function smallRing(ring) {
+  const tolerance = Math.min(SIMPLIFY_TO, Math.sqrt(roomTaken(ring)) / 3)
+
+  return roundedRing(simplifiedRing(ring, tolerance))
+}
+
 /** How many times the corners are cut. Once rounds, twice curves. */
 const ROUND_TIMES = Number(process.env['ROUND'] ?? 2)
 
@@ -389,54 +394,64 @@ function simplifyTogether(outlines, tolerance) {
 // ---------------------------------------------------------- the projection
 
 /**
- * The board, not the globe.
+ * The Robinson projection: the world map from a classroom wall.
  *
- * Nick: "The map needs to be representative not real world scale
- * accurate," and the board he is aiming for is the classic one, which
- * everybody already knows. Its shapes are close to the Mercator map from a
- * schoolroom wall: continents keep their familiar shape, the far north is
- * stretched, and the tropics are a little squashed. So that is what this
- * does. Longitude goes straight across. Latitude goes down a curve with a
- * few control points, steepest around Europe and Canada and gentlest in
- * the tropics and the far south, with a straight line between each pair
- * of points. Both live in `tools/world-groups.json` under "board".
+ * Nick sent a clean drawing of the world to aim at, after two tries that
+ * bent the world to fit a board. One bent longitude and latitude to
+ * squeeze the oceans: "looks a bit odd." One pulled a rubber sheet with
+ * sixty pins: "very distorted and child like." The lesson is that nobody
+ * wants a clever world. They want the one they already know.
  *
- * There was a version with sixty pins pulling a rubber sheet, so that any
- * landmark could be put anywhere. Nick: "very distorted and child like."
- * Every pin sheared the land around it. A curve that only ever stretches
- * up and down cannot shear anything, and that is why the shapes stay
- * recognisable. EVERY point goes through the same curve, so two places
- * that shared a border still share it exactly.
+ * Robinson is the map most people picture when they picture the world.
+ * It is not a formula but a TABLE, made by its author in 1963 to look
+ * right rather than to be right: how wide a parallel is and how far from
+ * the equator it sits, every five degrees, with straight lines between.
+ * The poles are pulled in, so Greenland is not a monster and Alaska
+ * leans, just as on the wall. Every point goes through the same table,
+ * so two places that shared a border still share it exactly.
  */
-function bent(value, controls) {
-  const first = controls[0]
-  const last = controls[controls.length - 1]
+const EVERY_FIVE_DEGREES = [
+  // [how wide, how far up] at 0, 5, 10 ... 90 degrees from the equator.
+  [1.0, 0.0], [0.9986, 0.062], [0.9954, 0.124], [0.99, 0.186], [0.9822, 0.248],
+  [0.973, 0.31], [0.96, 0.372], [0.9427, 0.434], [0.9216, 0.4958], [0.8962, 0.5571],
+  [0.8679, 0.6176], [0.835, 0.6769], [0.7986, 0.7346], [0.7597, 0.7903], [0.7186, 0.8435],
+  [0.6732, 0.8936], [0.6213, 0.9394], [0.5722, 0.9761], [0.5322, 1.0],
+]
 
-  // Past either end the last straight line carries on.
-  if (value <= first[0] || value >= last[0]) {
-    const [from, to] = value <= first[0] ? [controls[0], controls[1]] : [controls[controls.length - 2], last]
+/** A degree of longitude at the equator is this many units. */
+const SCALE = 2.6
 
-    return from[1] + ((value - from[0]) / (to[0] - from[0])) * (to[1] - from[1])
+/**
+ * How much taller than wide the map is drawn. 1 is Robinson's own, which
+ * is twice as wide as high once the ice is cut off. Nick's drawing of the
+ * world to aim at is about one and a half times as wide as high, and the
+ * places are easier to tap for it.
+ */
+const TALLER = Number(process.env['TALLER'] ?? 1.25)
+
+/** Robinson's height above the equator, in degrees of longitude. */
+const TO_THE_POLE = (1.3523 / 0.8487) * (180 / Math.PI)
+
+function robinson(lat) {
+  const away = Math.min(Math.abs(lat), 90) / 5
+  const step = Math.min(Math.floor(away), 17)
+  const between = away - step
+  const [wideFrom, upFrom] = EVERY_FIVE_DEGREES[step]
+  const [wideTo, upTo] = EVERY_FIVE_DEGREES[step + 1]
+  const up = upFrom + between * (upTo - upFrom)
+
+  return {
+    wide: wideFrom + between * (wideTo - wideFrom),
+    up: lat < 0 ? -up : up,
   }
-
-  for (let at = 0; at + 1 < controls.length; at += 1) {
-    const [fromIn, fromOut] = controls[at]
-    const [toIn, toOut] = controls[at + 1]
-
-    if (value >= fromIn && value <= toIn) {
-      return fromOut + ((value - fromIn) / (toIn - fromIn)) * (toOut - fromOut)
-    }
-  }
-
-  return value
 }
 
-let BOARD = { across: [[-180, 0], [180, 1]], down: [[90, 0], [-90, 1]] }
-
 function project([lon, lat]) {
+  const { wide, up } = robinson(lat)
+
   return [
-    Number((bent(lon, BOARD.across) * WIDE).toFixed(1)),
-    Number((bent(lat, BOARD.down) * HIGH).toFixed(1)),
+    Number(((wide * lon + 180) * SCALE).toFixed(1)),
+    Number(((1 - up) * TO_THE_POLE * SCALE * TALLER).toFixed(1)),
   ]
 }
 
@@ -500,11 +515,15 @@ function nudged(places, nudges) {
     const middleY = (Math.min(...ys) + Math.max(...ys)) / 2
     const scale = nudge.scale ?? 1
 
-    for (const place of group) {
-      place.corners = place.corners.map(([x, y]) => [
+    const moved = (ring) =>
+      ring.map(([x, y]) => [
         Number((middleX + (x - middleX) * scale + (nudge.dx ?? 0)).toFixed(1)),
         Number((middleY + (y - middleY) * scale + (nudge.dy ?? 0)).toFixed(1)),
       ])
+
+    for (const place of group) {
+      place.corners = moved(place.corners)
+      place.islands = place.islands.map(moved)
     }
   }
 }
@@ -647,11 +666,6 @@ function placeForProvince(rules, province) {
 function main() {
   const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
 
-  // The curves read top to bottom in the file, but bent() walks upwards.
-  const upwards = (controls) => [...controls].sort((a, b) => a[0] - b[0])
-
-  BOARD = { across: upwards(meta.board.across), down: upwards(meta.board.down) }
-
   const countries = loadCountries()
   const provinces = loadProvinces()
 
@@ -699,9 +713,34 @@ function main() {
       throw new Error(`"${place.id}" is made of nothing.`)
     }
 
-    const outlines = joined(rings)
+    const outlines = joined(rings).sort((a, b) => roomTaken(b) - roomTaken(a))
 
-    built.push({ ...place, pieces: outlines.length, outline: outlines[0] })
+    built.push({
+      ...place,
+      pieces: outlines.length,
+      outline: outlines[0],
+      // The smaller pieces: every other island of Indonesia or Japan.
+      // They are drawn with the place and can be tapped, but the place's
+      // shape for every rule is its biggest piece.
+      islands: outlines.slice(1).filter((ring) => roomTaken(ring) >= TOO_SMALL_ISLAND),
+    })
+  }
+
+  // Land that belongs to nobody, such as New Zealand and the Philippines.
+  // It is drawn so the world looks like the world, and never tapped.
+  const scenery = []
+
+  for (const name of meta.scenery ?? []) {
+    const found = countries.get(name)
+
+    if (found === undefined) {
+      unknown.push(`scenery: ${name}`)
+      continue
+    }
+
+    for (const ring of joined(found.filter((ring) => roomTaken(ring) >= TOO_SMALL_ISLAND))) {
+      scenery.push(ring)
+    }
   }
 
   // Every place at once, so a shared border is simplified once.
@@ -727,12 +766,17 @@ function main() {
               .map((other) => thinner.get(other.id)),
           )
 
-    place.corners = (middle ? projectedTrue(ring, middle) : ring.map((p) => project(p)))
-      .filter(
+    const drawn = (shape) =>
+      (middle ? projectedTrue(shape, middle) : shape.map((p) => project(p))).filter(
         (point, at, all) =>
           at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1],
       )
+
+    place.corners = drawn(ring)
+    place.islands = place.islands.map((island) => drawn(smallRing(island)))
   }
+
+  const drawnScenery = scenery.map((ring) => smallRing(ring).map((p) => project(p)))
 
   nudged(built, meta.nudge)
 
@@ -748,18 +792,25 @@ function main() {
 
   if (several.length > 0) {
     console.log(
-      'in several pieces, biggest kept: ' +
+      'in several pieces, the rest drawn as islands: ' +
         several.map((place) => `${place.id}(${place.pieces})`).join(' '),
     )
   }
 
   console.log(
     `places: ${built.length}, corners: ` +
-      built.reduce((sum, place) => sum + place.corners.length, 0),
+      built.reduce((sum, place) => sum + place.corners.length, 0) +
+      `, island corners: ` +
+      built.reduce((sum, place) => sum + place.islands.reduce((n, i) => n + i.length, 0), 0) +
+      `, scenery rings: ${drawnScenery.length}`,
   )
 
-  const xs = built.flatMap((place) => place.corners.map(([x]) => x))
-  const ys = built.flatMap((place) => place.corners.map(([, y]) => y))
+  const everyRing = [
+    ...built.flatMap((place) => [place.corners, ...place.islands]),
+    ...drawnScenery,
+  ]
+  const xs = everyRing.flatMap((ring) => ring.map(([x]) => x))
+  const ys = everyRing.flatMap((ring) => ring.map(([, y]) => y))
   const edge = 12
   // A name hangs below its count and spreads either side of it, about
   // half the font size per letter. The frame reaches past the name, not
@@ -779,7 +830,7 @@ function main() {
   const viewBox = `${left} ${top} ${right - left} ${bottom - top}`
 
   console.log(`frame: ${viewBox}`)
-  writeFileSync(WRITE_TO, asTypeScript(built, meta, viewBox))
+  writeFileSync(WRITE_TO, asTypeScript(built, meta, viewBox, drawnScenery))
   console.log(`wrote ${WRITE_TO}`)
 }
 
@@ -800,7 +851,7 @@ function asCorners(corners) {
   return rows.join('\n')
 }
 
-function asTypeScript(places, meta, viewBox) {
+function asTypeScript(places, meta, viewBox, scenery) {
   const blocks = []
 
   for (const region of meta.regions) {
@@ -824,6 +875,12 @@ ${asCorners(place.corners)}
     ],
     labelAt: at(${place.labelAt[0]}, ${place.labelAt[1]}),${
       place.isIsland ? '\n    isIsland: true,' : ''
+    }${
+      place.islands.length > 0
+        ? `\n    islands: [\n${place.islands
+            .map((island) => `      [\n${asCorners(island).replace(/^/gm, '  ')}\n      ],`)
+            .join('\n')}\n    ],`
+        : ''
     }
   },`)
     }
@@ -869,6 +926,8 @@ interface Place {
   readonly borders: readonly string[]
   readonly corners: ReadonlyArray<readonly [number, number]>
   readonly labelAt: Point
+  /** The place's other islands, drawn with it. Its shape is the biggest. */
+  readonly islands?: ReadonlyArray<ReadonlyArray<readonly [number, number]>>
   readonly isIsland?: boolean
 }
 
@@ -886,8 +945,14 @@ function toTerritory(place: Place): TerritoryDefinition {
     shape: pathFrom(place.corners),
     labelAt: place.labelAt,
     ...(place.isIsland === true ? { isIsland: true } : {}),
+    ...(place.islands ? { islands: place.islands.map(pathFrom) } : {}),
   }
 }
+
+/** Land that belongs to nobody. Drawn so the world looks like the world. */
+const SCENERY: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
+${scenery.map((ring) => `  [\n${asCorners(ring)}\n  ],`).join('\n')}
+]
 
 export const WORLD: GameMap = {
   id: 'world',
@@ -911,6 +976,7 @@ ${meta.regions
   ],
 
   territories: PLACES.map(toTerritory),
+  scenery: SCENERY.map(pathFrom),
 }
 `
 }

@@ -56,6 +56,12 @@ export interface TerritoryDefinition {
    * in `validate.ts` says so. See spec 3.2.
    */
   readonly drawnOver?: TerritoryId
+  /**
+   * The place's other islands, as SVG paths, drawn with it and tapped
+   * with it. `shape` is its biggest piece, and every rule looks only at
+   * that. Japan is Honshu plus these. See spec S52.
+   */
+  readonly islands?: readonly string[]
 }
 
 /** A group of territories worth a bonus if one player owns them all. */
@@ -75,6 +81,11 @@ export interface GameMap {
   readonly viewBox: string
   readonly territories: readonly TerritoryDefinition[]
   readonly regions: readonly RegionDefinition[]
+  /**
+   * Land that belongs to nobody, as SVG paths. New Zealand is drawn so
+   * the world looks like the world, and never tapped. See spec S52.
+   */
+  readonly scenery?: readonly string[]
 }
 
 // -------------------------------------------------------------- the cards

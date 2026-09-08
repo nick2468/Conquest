@@ -172,13 +172,18 @@ export function MapView({
    * piece of land its own coast, so the six continents each get one and
    * Australia gets one around the country rather than seven inside it.
    */
-  const allTheLand = map.territories.map((each) => each.shape).join(' ')
+  const withIslands = (each: TerritoryDefinition): string =>
+    [each.shape, ...(each.islands ?? [])].join(' ')
+  const allTheLand = [
+    ...map.territories.map(withIslands),
+    ...(map.scenery ?? []),
+  ].join(' ')
 
   /** The land of one region, as one shape, for its own heavier outline. */
   const landIn = (regionId: string): string =>
     map.territories
       .filter((each) => each.regionId === regionId)
-      .map((each) => each.shape)
+      .map(withIslands)
       .join(' ')
 
   /**
@@ -368,6 +373,11 @@ export function MapView({
         />
       ))}
 
+      {/* Land that belongs to nobody, drawn once and never tapped. */}
+      {map.scenery && map.scenery.length > 0 && (
+        <path className="scenery" d={map.scenery.join(' ')} />
+      )}
+
       {/* Every shape first, so no territory can cover another one's count. */}
       {map.territories.map((territory) => {
         const role = roleOf(territory.id)
@@ -379,7 +389,7 @@ export function MapView({
             className={`territory territory-${role}`}
             data-territory={territory.id}
             data-role={role}
-            d={territory.shape}
+            d={withIslands(territory)}
             fill={colourOf(state.territories[territory.id]?.ownerId ?? null)}
             // A quiet line between two places in the same continent. The
             // heavy line belongs to the coast, drawn underneath, and two

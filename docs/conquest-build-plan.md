@@ -660,23 +660,20 @@ be. A bigger Australia is what makes strategy mean anything.
       several shapes, which the map format and three of the guards would
       all have to learn.
 
-      **LAID OUT AS THE BOARD, 2026-09-08.** Real borders on a plain
-      projection are an atlas, and Nick wanted the classic board. Two
-      wrong turns first. Bending longitude and latitude to squeeze the
-      oceans: "Looks a bit odd." Then a rubber sheet held by sixty pins so
-      any landmark could go anywhere: "very distorted and child like." The
-      pins sheared the land between them, and that shear is what looked
-      wrong.
+      **THE WORLD EVERYBODY KNOWS, 2026-09-08.** Three tries at bending
+      the world to fit a board, and Nick liked none of them: "looks a bit
+      odd", "very distorted and child like", "still problematic". Then he
+      sent a clean drawing of the world to aim at. It is the Robinson
+      projection, near enough, with every island, and that is what the
+      map is now (spec S50). Nothing clever. Coasts are rounded by cutting
+      corners (spec S51), because a simplified coast is jagged and a drawn
+      one is smooth.
 
-      The classic board is not a warped world. Its shapes are close to
-      Mercator, with the far north stretched, the tropics squashed, and
-      Europe given room. So that is the projection now: longitude straight
-      across with the Europe-and-Africa band half again as wide, latitude
-      down a curve with a few control points (spec S50). Stretching cannot
-      shear, so the shapes stay the ones everybody knows. Coasts are
-      rounded by cutting corners (spec S51), because the board is drawn
-      smooth and a simplified coast is not. Islands and Australia are then
-      sized for the game.
+      Every island is drawn (spec S52). A place's shape is still its
+      biggest piece and every rule looks only at that; its other pieces
+      are drawn with it and tapped with it. Land that belongs to nobody,
+      New Zealand and the Philippines and the Caribbean, is drawn as
+      scenery and never tapped. Without them the map was a diagram.
 
       On the way: Kamchatka was a sliver until the Russia split gave it
       the far north-east, and Siberia and Kazakhstan overlapped by three
@@ -684,7 +681,8 @@ be. A bigger Australia is what makes strategy mean anything.
       from the 110m country file, two drawings of one border. Everything
       comes from the 50m files now, so every border is one line.
 
-      2,900 corners, all ten rules, nothing loosened.
+      2,849 corners in places, 1,056 more in islands, 48 rings of
+      scenery, all ten rules, nothing loosened.
 
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
