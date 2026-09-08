@@ -842,7 +842,7 @@ every cell of his land goes to the place whose real border encloses it,
 or to the nearest place along the coast, and each place's outline is
 walked around its cells. Two neighbours are walked around the same cell
 edges, so they share their border point for point, which is what every
-rule of a map needs. Land too far from any place is scenery (S52). The
+rule of a map needs. Every island goes to the nearest place (S52). The
 pins are the whole of the design and live in `tools/world-groups.json`.
 
 **S51. Rounded coasts.** A coast walked around square cells is a
@@ -858,9 +858,12 @@ map without them looked like a diagram. A place's `shape` is still ONE
 ring, its biggest piece, and every rule looks only at that. Its other
 pieces are `islands`, drawn with it in its colour and tapped with it, so
 Japan is Honshu plus its chain and Indonesia is the whole archipelago.
-Land that belongs to nobody is the map's `scenery`: New Zealand, the
-Philippines, the Caribbean, Ireland and so on, drawn in a neutral colour
-and never tapped. Both are pictures only. The editor keeps neither when
+A map MAY also carry `scenery`, land that belongs to nobody, drawn in a
+neutral colour and never tapped. The world map does not use it any more.
+Nick, of New Zealand and the Caribbean left in that colour: "what are all
+the white areas? just grow the nearest country to cover them up." So
+every island goes to the nearest place, however far, and New Zealand is
+part of Eastern Australia. Both are pictures only. The editor keeps neither when
 it saves a map, because a map drawn by hand has no need of them.
 
 **S48. The full name where there is room, the short one where not.**

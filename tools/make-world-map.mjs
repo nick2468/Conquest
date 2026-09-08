@@ -578,16 +578,13 @@ function pinnedSheet(pins) {
  * the sea cannot reach it from the corner of the page, which is what makes
  * the inside of a coastline count as land. Each land cell is then given to
  * the place whose real border encloses it, or, along the coast where the
- * sheet is a little off, to the nearest place. Land too far from any
- * place is scenery: New Zealand belongs to nobody.
+ * sheet is a little off, to the nearest place, however far. New Zealand
+ * goes to Eastern Australia because that is the nearest.
  *
  * Then the edge of each place's cells is walked to make its outline. Two
  * neighbours' outlines are built from the SAME cell edges, so they share
  * their border point for point, which is what every rule of a map needs.
  */
-
-/** How far a land cell may be from any place before it is scenery. */
-const NOBODYS = Number(process.env['NOBODYS'] ?? 8)
 
 /** Rings smaller than this many cells are noise from the tracing. */
 const TOO_FEW_CELLS = 4
@@ -703,7 +700,6 @@ function landOf(lines, width, height) {
 }
 
 const NOBODY = -1
-const SCENERY = -2
 
 function givenOut(land, places, width, height) {
   const owner = new Int16Array(width * height).fill(NOBODY)
@@ -720,14 +716,15 @@ function givenOut(land, places, width, height) {
   })
 
   // Then the rest of the land goes to the nearest place, spreading out
-  // one cell at a time, up to a limit.
+  // one cell at a time until nothing is left. Nick, of the land nobody
+  // owned: "just grow the nearest country to cover them up."
   let edge = []
 
   for (let cell = 0; cell < owner.length; cell += 1) {
     if (owner[cell] >= 0) edge.push(cell)
   }
 
-  for (let step = 0; step < NOBODYS && edge.length > 0; step += 1) {
+  while (edge.length > 0) {
     const grown = []
 
     for (const cell of edge) {
@@ -749,10 +746,6 @@ function givenOut(land, places, width, height) {
       }
     }
     edge = grown
-  }
-
-  for (let cell = 0; cell < owner.length; cell += 1) {
-    if (land[cell] === 1 && owner[cell] === NOBODY) owner[cell] = SCENERY
   }
 
   // A cell surrounded by another owner goes over to it. Twice over, this
@@ -1089,12 +1082,6 @@ function main() {
     place.pieces = rings.length
   })
 
-  const sceneryRings = walkedAround(owner, SCENERY, width, height).filter(
-    (ring) => Math.abs(roomTaken(ring)) >= TOO_FEW_CELLS,
-  )
-
-  sceneryRings.forEach((ring, at) => everyRing.set(`scenery/${at}`, ring))
-
   // Every ring at once, so a shared border is simplified once, then
   // rounded, because cells have square corners and coasts do not.
   const thinner = simplifyTogether(everyRing, SIMPLIFY_TO)
@@ -1114,8 +1101,6 @@ function main() {
     place.labelAt = roomiestIn(place.corners)
   }
 
-  const drawnScenery = sceneryRings.map((ring, at) => tidy(thinner.get(`scenery/${at}`)))
-
   const several = built.filter((place) => place.pieces > 1)
 
   if (several.length > 0) {
@@ -1129,14 +1114,10 @@ function main() {
     `places: ${built.length}, corners: ` +
       built.reduce((sum, place) => sum + place.corners.length, 0) +
       `, island corners: ` +
-      built.reduce((sum, place) => sum + place.islands.reduce((n, i) => n + i.length, 0), 0) +
-      `, scenery rings: ${drawnScenery.length}`,
+      built.reduce((sum, place) => sum + place.islands.reduce((n, i) => n + i.length, 0), 0),
   )
 
-  const allRings = [
-    ...built.flatMap((place) => [place.corners, ...place.islands]),
-    ...drawnScenery,
-  ]
+  const allRings = built.flatMap((place) => [place.corners, ...place.islands])
   const xs = allRings.flatMap((ring) => ring.map(([x]) => x))
   const ys = allRings.flatMap((ring) => ring.map(([, y]) => y))
   const edge = 12
@@ -1158,7 +1139,7 @@ function main() {
   const viewBox = `${left} ${top} ${right - left} ${bottom - top}`
 
   console.log(`frame: ${viewBox}`)
-  writeFileSync(WRITE_TO, asTypeScript(built, meta, viewBox, drawnScenery))
+  writeFileSync(WRITE_TO, asTypeScript(built, meta, viewBox))
   console.log(`wrote ${WRITE_TO}`)
 }
 
@@ -1179,7 +1160,7 @@ function asCorners(corners) {
   return rows.join('\n')
 }
 
-function asTypeScript(places, meta, viewBox, scenery) {
+function asTypeScript(places, meta, viewBox) {
   const blocks = []
 
   for (const region of meta.regions) {
@@ -1277,11 +1258,6 @@ function toTerritory(place: Place): TerritoryDefinition {
   }
 }
 
-/** Land that belongs to nobody. Drawn so the world looks like the world. */
-const SCENERY: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
-${scenery.map((ring) => `  [\n${asCorners(ring)}\n  ],`).join('\n')}
-]
-
 export const WORLD: GameMap = {
   id: 'world',
   name: 'World',
@@ -1304,7 +1280,6 @@ ${meta.regions
   ],
 
   territories: PLACES.map(toTerritory),
-  scenery: SCENERY.map(pathFrom),
 }
 `
 }

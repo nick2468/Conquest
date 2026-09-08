@@ -680,9 +680,10 @@ be. A bigger Australia is what makes strategy mean anything.
       floods in and the land shrunk back by two after, so a gap up to
       four cells wide closes and the coast stays where he drew it.
 
-      Every island is drawn (spec S52): a place's other pieces with it,
-      and land that belongs to nobody as scenery. 3,570 corners in
-      places, 768 in islands, 67 rings of scenery.
+      Every island is drawn (spec S52) and every island belongs to the
+      nearest place. Nick, of the ones first left neutral: "what are all
+      the white areas? just grow the nearest country to cover them up."
+      3,692 corners in places, 761 in islands.
 
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
