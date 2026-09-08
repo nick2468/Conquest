@@ -1131,6 +1131,7 @@ function main() {
   // Each place's real shape, laid on the sheet.
   const built = []
   const unknown = []
+  const overseas = []
 
   for (const place of meta.places) {
     const rings = []
@@ -1150,6 +1151,31 @@ function main() {
       rings.push(...province.rings)
     }
 
+    // Out with the overseas territories. Natural Earth's "France" holds
+    // French Guiana in South America and Reunion in the Indian Ocean, and
+    // its "Spain" holds the Canary Islands off Africa. Nick: "for western
+    // europe parts of it are scattered across north africa and even to
+    // south america." A place may say the corner of the world it lives
+    // in, and anything outside that is somebody else's problem.
+    const homeGround = place.livesIn
+
+    if (homeGround !== undefined) {
+      const [west, south, east, north] = homeGround
+      const away = rings.filter((ring) => {
+        const [lon, lat] = middleOf(ring)
+
+        return lon < west || lon > east || lat < south || lat > north
+      })
+
+      for (const ring of away) {
+        rings.splice(rings.indexOf(ring), 1)
+      }
+
+      if (away.length > 0) {
+        overseas.push(`${place.id}(${away.length})`)
+      }
+    }
+
     if (rings.length === 0) {
       throw new Error(`"${place.id}" is made of nothing.`)
     }
@@ -1163,6 +1189,10 @@ function main() {
 
   if (unknown.length > 0) {
     throw new Error(`No such country:\n  ${unknown.join('\n  ')}`)
+  }
+
+  if (overseas.length > 0) {
+    console.log(`overseas pieces left out: ${overseas.join(' ')}`)
   }
 
   // Nick's drawing, as land.

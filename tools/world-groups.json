@@ -302,6 +302,12 @@
         "Peru",
         "Ecuador",
         "Bolivia"
+      ],
+      "livesIn": [
+        -82,
+        -19,
+        -66,
+        3
       ]
     },
     {
@@ -365,6 +371,12 @@
       "countries": [
         "United Kingdom",
         "Ireland"
+      ],
+      "livesIn": [
+        -11,
+        49,
+        3,
+        61
       ]
     },
     {
@@ -447,6 +459,12 @@
         "France",
         "Spain",
         "Portugal"
+      ],
+      "livesIn": [
+        -12,
+        35,
+        10,
+        52
       ]
     },
     {
@@ -475,6 +493,12 @@
         "North Macedonia",
         "Albania",
         "Kosovo"
+      ],
+      "livesIn": [
+        -10,
+        34,
+        30,
+        48
       ]
     },
     {
@@ -798,6 +822,12 @@
         "Nepal",
         "Bhutan",
         "Sri Lanka"
+      ],
+      "livesIn": [
+        67,
+        6,
+        90,
+        36
       ]
     },
     {
