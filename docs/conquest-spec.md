@@ -826,14 +826,30 @@ For a tap to reach the board, everything drawn over the sea has to ignore
 taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
+**S50. The world map is a board, not an atlas.** Nick: "The map needs to
+be representative not real world scale accurate." Longitude and latitude
+are each bent through a few control points before being drawn, so a band
+of the world can be widened or squeezed. Every point goes through the same
+bend, so two places that shared a border still share it exactly. The
+Americas are wider, the Atlantic and the Arctic and the far east of Siberia
+are narrower, and the whole sheet is drawn half as tall again, because the
+world is wide and short and a screen is not.
+
+A place that touches nothing else, an island or Australia, is drawn TRUE to
+shape: only its middle goes through the bend, to decide where it sits, and
+then it can be scaled and slid to wherever the board has room. Without that
+Iceland came out a third as wide as it was tall.
+
 **S48. The full name where there is room, the short one where not.**
 
 Nick: "spell out the country names where there is plenty of room, use a
-small smaller font size to help." Close up there is always room. On the
-whole board it depends on the place, so the game works it out: a name is
-about half the font size per letter, and it is written ACROSS, so it is
-compared with how WIDE the place is. A tall thin place has no room however
-tall it is. On the world map 26 of the 42 names are spelled out.
+small smaller font size to help," and then: "Indonesia can be properly
+labelled because there is plenty of empty sea space for the name to
+appear." So the test is NOT whether the name fits inside its own place. It
+is whether the name would land on another place, or on another name. Sea
+is fine. Seven points along the name are tried against every other place,
+and its box is kept clear of every other count and name. Close up there is
+always room.
 
 **S49. A mild grain over the land.** Turbulence, cut to the shape of the
 land, drawn faintly over the top. It stops the map reading as flat paint.

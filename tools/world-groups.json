@@ -86,7 +86,7 @@
    },
    {
     "named": [
-     "Québec",
+     "Qu\u00e9bec",
      "Newfoundland and Labrador",
      "New Brunswick",
      "Nova Scotia",
@@ -505,7 +505,7 @@
     "Guinea",
     "Sierra Leone",
     "Liberia",
-    "Côte d'Ivoire",
+    "C\u00f4te d'Ivoire",
     "Burkina Faso",
     "Ghana",
     "Togo",
@@ -872,5 +872,99 @@
     "newGuinea"
    ]
   }
- ]
+ ],
+ "warp": {
+  "lon": [
+   [
+    -180,
+    -180
+   ],
+   [
+    -172,
+    -172
+   ],
+   [
+    -50,
+    -26
+   ],
+   [
+    -15,
+    0
+   ],
+   [
+    150,
+    165
+   ],
+   [
+    180,
+    175
+   ]
+  ],
+  "lat": [
+   [
+    90,
+    90
+   ],
+   [
+    84,
+    84
+   ],
+   [
+    72,
+    80
+   ],
+   [
+    -10,
+    -6
+   ],
+   [
+    -45,
+    -46
+   ],
+   [
+    -60,
+    -60
+   ]
+  ]
+ },
+ "nudge": {
+  "greenland": {
+   "scale": 0.6,
+   "dx": 2,
+   "dy": 6
+  },
+  "iceland": {
+   "scale": 1.3,
+   "dx": 10,
+   "dy": -2
+  },
+  "greatBritain": {
+   "scale": 1.3,
+   "dx": -8
+  },
+  "japan": {
+   "scale": 1.25,
+   "dx": 10
+  },
+  "madagascar": {
+   "scale": 1.35,
+   "dx": 8,
+   "dy": 4
+  },
+  "indonesia": {
+   "scale": 1.4,
+   "dx": 0,
+   "dy": 6
+  },
+  "newGuinea": {
+   "scale": 1.3,
+   "dx": 8,
+   "dy": 8
+  },
+  "australiaRegion": {
+   "scale": 1.3,
+   "dx": 14,
+   "dy": 20
+  }
+ }
 }

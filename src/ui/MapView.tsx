@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
 import type { GameState, TerritoryDefinition, TerritoryId } from '../engine'
-import { cornersOf as cornersOfShape, edgesBetween } from '../maps/shapes'
+import { cornersOf as cornersOfShape, edgesBetween, isWithin } from '../maps/shapes'
 import { EffectLayer } from './EffectLayer'
 import type { Effect } from './effects'
 import type { Highlights } from './taps'
@@ -133,22 +133,12 @@ export function MapView({
    * the whole board it depends on the place: Brazil has room for its name
    * and Iceland has not.
    *
-   * The width of a name is worked out from how many letters it has, at
-   * roughly half the font size each, which is near enough for this kind of
-   * lettering. It is compared with how WIDE the place is, because a name
-   * is written across. A tall thin place like Chile has no room however
-   * tall it is.
+   * See fullNameFits above for how room is decided.
    */
-  const nameFor = (territory: TerritoryDefinition): string => {
-    if (closeUp) {
-      return territory.name
-    }
-
-    const across = sizeOf.get(territory.id)?.width ?? 0
-    const needs = territory.name.length * nameSize * 0.5
-
-    return across > needs * 1.05 ? territory.name : territory.shortName
-  }
+  const nameFor = (territory: TerritoryDefinition): string =>
+    closeUp || fullNameFits.has(territory.id)
+      ? territory.name
+      : territory.shortName
 
   /** What this territory means to the tap that is half way through. */
   const roleOf = (territoryId: TerritoryId): string => {
@@ -192,26 +182,63 @@ export function MapView({
       .join(' ')
 
   /**
-   * How wide and tall each place is, in map units.
+   * Which places have room for their full name on the whole board.
    *
-   * Used to decide whether its full name will fit. Worked out once,
-   * because it depends only on the map.
+   * Nick's point: "Indonesia can be properly labelled because there is
+   * plenty of empty sea space for the name to appear." So the test is not
+   * whether the name fits inside its own place. It is whether the name
+   * lands on ANOTHER place, or on another name. Sea is fine.
+   *
+   * A name is about half the font size per letter. Seven points along it
+   * are tried against every other place, and its box is kept clear of
+   * every other count and name. Worked out once, because it depends only
+   * on the map.
    */
-  const sizeOf = useMemo(() => {
-    const found = new Map<TerritoryId, { width: number; height: number }>()
+  const fullNameFits = useMemo(() => {
+    const size = 10.5
+    const shapes = map.territories.map((each) => ({
+      id: each.id,
+      corners: cornersOfShape(each.shape),
+    }))
+    const fits = new Set<TerritoryId>()
 
     for (const territory of map.territories) {
-      const corners = cornersOfShape(territory.shape)
-      const xs = corners.map(([x]) => x)
-      const ys = corners.map(([, y]) => y)
+      const width = territory.name.length * size * 0.5
+      const y = territory.labelAt.y + 18
+      const left = territory.labelAt.x - width / 2
+      let clear = true
 
-      found.set(territory.id, {
-        width: Math.max(...xs) - Math.min(...xs),
-        height: Math.max(...ys) - Math.min(...ys),
-      })
+      for (let step = 0; step <= 6 && clear; step += 1) {
+        const point: readonly [number, number] = [left + (width * step) / 6, y]
+
+        for (const other of shapes) {
+          if (other.id !== territory.id && isWithin(point, other.corners)) {
+            clear = false
+            break
+          }
+        }
+      }
+
+      for (const other of map.territories) {
+        if (other.id === territory.id || !clear) {
+          continue
+        }
+
+        const acrossGap = Math.abs(other.labelAt.x - territory.labelAt.x)
+        const downGap = Math.abs(other.labelAt.y - territory.labelAt.y)
+
+        // Their count, or their own name just under it, would collide.
+        if (acrossGap < width / 2 + 12 && downGap < 30) {
+          clear = false
+        }
+      }
+
+      if (clear) {
+        fits.add(territory.id)
+      }
     }
 
-    return found
+    return fits
   }, [map])
 
   /**

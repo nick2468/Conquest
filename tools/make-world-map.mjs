@@ -44,11 +44,12 @@ const ACROSS = 2.6
 /**
  * How much taller than wide a degree is drawn.
  *
- * Plain 1 gives the flat projection from a schoolroom wall. Above that
- * stretches the far north, which is what a board map does so Greenland and
- * Siberia are big enough to fight over.
+ * Plain 1 gives the flat projection from a schoolroom wall. A board wants
+ * more: the world is wide and short, and a screen is not, so at 1 the map
+ * sits in a band across the top with empty room beneath. 1.5 fills the
+ * pane, which is the same as making everything on it bigger.
  */
-const TALLER = 1.25
+const TALLER = 1.5
 
 /** Islands smaller than this are left off, in square degrees. */
 const TOO_SMALL = 0.6
@@ -345,11 +346,106 @@ function simplifyTogether(outlines, tolerance) {
 
 // ---------------------------------------------------------- the projection
 
-function project([lon, lat]) {
+/**
+ * A rubber sheet, not a globe.
+ *
+ * Nick: "The map needs to be representative not real world scale
+ * accurate." A board is not an atlas. The empty Pacific and the empty
+ * Arctic are room that a game-dense continent could use, and Greenland
+ * and the far east of Siberia take up room that nobody fights over.
+ *
+ * So longitude and latitude are each bent through a set of control points
+ * before being drawn: between two points the bend is a straight line. A
+ * band of the world can be widened or squeezed, and because EVERY point
+ * goes through the same bend, two places that shared a border still share
+ * it exactly. The bends live in `tools/world-groups.json`.
+ */
+function bent(value, controls) {
+  if (controls === undefined || controls.length < 2) {
+    return value
+  }
+
+  for (let at = 0; at + 1 < controls.length; at += 1) {
+    const [fromIn, fromOut] = controls[at]
+    const [toIn, toOut] = controls[at + 1]
+
+    if (value >= fromIn && value <= toIn) {
+      const howFar = toIn === fromIn ? 0 : (value - fromIn) / (toIn - fromIn)
+
+      return fromOut + howFar * (toOut - fromOut)
+    }
+  }
+
+  return value
+}
+
+let WARP = {}
+
+function project([lon, lat], warp = WARP) {
   return [
-    Number(((lon + 180) * ACROSS).toFixed(1)),
-    Number(((90 - lat) * ACROSS * TALLER).toFixed(1)),
+    Number(((bent(lon, warp.lon) + 180) * ACROSS).toFixed(1)),
+    Number(((90 - bent(lat, warp.lat)) * ACROSS * TALLER).toFixed(1)),
   ]
+}
+
+/**
+ * Where a place goes on the bent sheet without being bent itself.
+ *
+ * A squeeze on the Atlantic is meant for the sea, not for Iceland, which
+ * came out a third as wide as it was tall. So a place that touches nothing
+ * else is drawn TRUE to shape, and only its middle is put through the bend
+ * to decide where on the board it sits. The nudge then scales and slides
+ * it from there.
+ */
+function projectedTrue(ring) {
+  const plain = ring.map((point) => project(point, {}))
+  const xs = ring.map(([lon]) => lon)
+  const ys = ring.map(([, lat]) => lat)
+  const middle = [
+    (Math.min(...xs) + Math.max(...xs)) / 2,
+    (Math.min(...ys) + Math.max(...ys)) / 2,
+  ]
+  const [wasX, wasY] = project(middle, {})
+  const [nowX, nowY] = project(middle)
+
+  return plain.map(([x, y]) => [
+    Number((x - wasX + nowX).toFixed(1)),
+    Number((y - wasY + nowY).toFixed(1)),
+  ])
+}
+
+/**
+ * Move and resize a group of places that touch nothing else.
+ *
+ * An island, or a continent with no land border, can go wherever the board
+ * has room. Australia can move to the corner it has to itself, and
+ * Greenland can shrink to what it is worth in a game. Each nudge scales
+ * the group about the middle of its own box and then slides it, in map
+ * units, after the bend above has been applied.
+ */
+function nudged(places, nudges) {
+  for (const [name, nudge] of Object.entries(nudges ?? {})) {
+    const group = places.filter(
+      (place) => place.id === name || place.region === name,
+    )
+
+    if (group.length === 0) {
+      throw new Error(`Nothing called "${name}" to nudge.`)
+    }
+
+    const xs = group.flatMap((place) => place.corners.map(([x]) => x))
+    const ys = group.flatMap((place) => place.corners.map(([, y]) => y))
+    const middleX = (Math.min(...xs) + Math.max(...xs)) / 2
+    const middleY = (Math.min(...ys) + Math.max(...ys)) / 2
+    const scale = nudge.scale ?? 1
+
+    for (const place of group) {
+      place.corners = place.corners.map(([x, y]) => [
+        Number((middleX + (x - middleX) * scale + (nudge.dx ?? 0)).toFixed(1)),
+        Number((middleY + (y - middleY) * scale + (nudge.dy ?? 0)).toFixed(1)),
+      ])
+    }
+  }
 }
 
 // ------------------------------------------------------- where a name goes
@@ -489,6 +585,9 @@ function placeForProvince(rules, province) {
 
 function main() {
   const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
+
+  WARP = meta.warp ?? {}
+
   const countries = loadCountries()
   const provinces = loadProvinces()
 
@@ -547,14 +646,24 @@ function main() {
     SIMPLIFY_TO,
   )
 
+  const standsAlone = (place) =>
+    Object.keys(meta.nudge ?? {}).some(
+      (name) => name === place.id || name === place.region,
+    )
+
   for (const place of built) {
-    place.corners = thinner
-      .get(place.id)
-      .map(project)
+    const ring = thinner.get(place.id)
+
+    place.corners = (standsAlone(place) ? projectedTrue(ring) : ring.map((p) => project(p)))
       .filter(
         (point, at, all) =>
           at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1],
       )
+  }
+
+  nudged(built, meta.nudge)
+
+  for (const place of built) {
     place.labelAt = roomiestIn(place.corners)
   }
 
@@ -578,15 +687,21 @@ function main() {
 
   const xs = built.flatMap((place) => place.corners.map(([x]) => x))
   const ys = built.flatMap((place) => place.corners.map(([, y]) => y))
-  const names = built.map((place) => place.labelAt)
-  const edge = 14
-  // A name hangs below its count, so the frame reaches past the name.
+  const edge = 12
+  // A name hangs below its count and spreads either side of it, about
+  // half the font size per letter. The frame reaches past the name, not
+  // just past the coast, or "Eastern Australia" loses its tail.
+  const halfName = (place) => (place.name.length * 10.5 * 0.5) / 2
   const nameRoom = 30
-  const left = Math.round(Math.min(...xs, ...names.map(([x]) => x)) - edge)
-  const top = Math.round(Math.min(...ys, ...names.map(([, y]) => y)) - edge)
-  const right = Math.round(Math.max(...xs, ...names.map(([x]) => x)) + edge)
+  const left = Math.round(
+    Math.min(...xs, ...built.map((p) => p.labelAt[0] - halfName(p))) - edge,
+  )
+  const top = Math.round(Math.min(...ys, ...built.map((p) => p.labelAt[1])) - edge)
+  const right = Math.round(
+    Math.max(...xs, ...built.map((p) => p.labelAt[0] + halfName(p))) + edge,
+  )
   const bottom = Math.round(
-    Math.max(...ys, ...names.map(([, y]) => y + nameRoom)) + edge,
+    Math.max(...ys, ...built.map((p) => p.labelAt[1] + nameRoom)) + edge,
   )
   const viewBox = `${left} ${top} ${right - left} ${bottom - top}`
 
