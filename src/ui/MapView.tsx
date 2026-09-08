@@ -62,6 +62,11 @@ interface MapViewProps {
    * in the corner.
    */
   readonly onTapSea?: (() => void) | undefined
+  /**
+   * The map on its own: no counts, no owners, every place tinted with its
+   * region's colour and named. For working on a map away from the game.
+   */
+  readonly bare?: boolean
 }
 
 /**
@@ -96,6 +101,7 @@ export function MapView({
   effect = null,
   moveNumber = 0,
   onTapSea,
+  bare = false,
 }: MapViewProps) {
   const { map } = state
   const viewBox = viewBoxFor(map, lookingAt)
@@ -121,6 +127,14 @@ export function MapView({
 
   const outlineOf = (regionId: string): string =>
     map.regions.find((region) => region.id === regionId)?.outline ?? '#000000'
+
+  /** A pale wash of the region's colour, for the bare map. */
+  const washOf = (regionId: string): string => `${outlineOf(regionId)}55`
+
+  const fillFor = (territory: TerritoryDefinition): string =>
+    bare
+      ? washOf(territory.regionId)
+      : colourOf(state.territories[territory.id]?.ownerId ?? null)
 
   /** How big a name is drawn. Small, so more of them fit. */
   const nameSize = closeUp ? 13 : 10.5
@@ -390,7 +404,7 @@ export function MapView({
             data-territory={territory.id}
             data-role={role}
             d={withIslands(territory)}
-            fill={colourOf(state.territories[territory.id]?.ownerId ?? null)}
+            fill={fillFor(territory)}
             // A quiet line between two places in the same continent. The
             // heavy line belongs to the coast, drawn underneath, and two
             // heavy lines competing made the map look like a grid.
@@ -439,7 +453,24 @@ export function MapView({
       {map.territories.map((territory) => {
         const armies = state.territories[territory.id]?.armies ?? 0
         const isSmall = shapeSize(territory) < smallTerritoryArea
-        const fill = colourOf(state.territories[territory.id]?.ownerId ?? null)
+        const fill = fillFor(territory)
+
+        if (bare) {
+          return (
+            <g key={territory.id} className="territory-label">
+              <text
+                className="territory-name"
+                x={territory.labelAt.x}
+                y={territory.labelAt.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={steady(nameSize)}
+              >
+                {nameFor(territory)}
+              </text>
+            </g>
+          )
+        }
 
         return (
           <g key={territory.id} className="territory-label">

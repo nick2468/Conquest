@@ -685,6 +685,14 @@ be. A bigger Australia is what makes strategy mean anything.
       the white areas? just grow the nearest country to cover them up."
       3,692 corners in places, 761 in islands.
 
+- [x] 5.10 **The map on its own.** Built 2026-09-08 at `/map.html`. Nick:
+      "We need to work on the map in isolation of the game engine. Show
+      me the map only." A third page beside the game and the editor. No
+      players, no counts. Every place is washed with its continent's
+      colour and named. Tap a place to look closer, tap the sea to see
+      the whole map. The map view gained a `bare` switch for it, and
+      nothing else changed.
+
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
       needs nothing installed, and is one link away. See spec 3.4.

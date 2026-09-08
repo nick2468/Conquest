@@ -56,12 +56,13 @@ export default defineConfig({
 
   build: {
     rollupOptions: {
-      // Two pages: the game, and the map editor beside it. The editor ships
+      // Three pages: the game, the map editor, and the map on its own. The editor ships
       // with the game rather than living somewhere else, so it works with
       // no internet and is one link away. See plan task 5.9.
       input: {
         game: 'index.html',
         editor: 'editor.html',
+        map: 'map.html',
       },
     },
   },
