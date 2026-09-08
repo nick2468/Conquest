@@ -33,7 +33,7 @@ import { readFileSync, writeFileSync } from 'node:fs'
  * Run it with:  node tools/make-world-map.mjs
  */
 
-const COUNTRIES = 'tools/data/ne-110m-countries.geojson'
+const COUNTRIES = 'tools/data/ne-50m-countries.geojson'
 const PROVINCES = 'tools/data/ne-50m-provinces.geojson'
 const GROUPS = 'tools/world-groups.json'
 const WRITE_TO = 'src/maps/world.ts'
@@ -49,7 +49,7 @@ const ACROSS = 2.6
  * sits in a band across the top with empty room beneath. 1.5 fills the
  * pane, which is the same as making everything on it bigger.
  */
-const TALLER = 1.5
+const TALLER = 1.65
 
 /** Islands smaller than this are left off, in square degrees. */
 const TOO_SMALL = 0.6
@@ -347,44 +347,110 @@ function simplifyTogether(outlines, tolerance) {
 // ---------------------------------------------------------- the projection
 
 /**
- * A rubber sheet, not a globe.
+ * A pinned sheet, not a globe.
  *
  * Nick: "The map needs to be representative not real world scale
- * accurate." A board is not an atlas. The empty Pacific and the empty
- * Arctic are room that a game-dense continent could use, and Greenland
- * and the far east of Siberia take up room that nobody fights over.
+ * accurate," and the board he is aiming for has six big continents that
+ * fill the sheet with almost no sea between them. Europe alone is a fifth
+ * of the width. No atlas projection gets there.
  *
- * So longitude and latitude are each bent through a set of control points
- * before being drawn: between two points the bend is a straight line. A
- * band of the world can be widened or squeezed, and because EVERY point
+ * So the world is drawn on a rubber sheet held by PINS. Each pin says
+ * where one landmark on the earth goes on the board: "the west tip of
+ * Alaska goes 2% in from the left and 15% down". Between the pins the
+ * sheet bends as smoothly as it can (a thin-plate spline, the shape a thin
+ * steel sheet takes when you push pins through it). Because EVERY point
  * goes through the same bend, two places that shared a border still share
- * it exactly. The bends live in `tools/world-groups.json`.
+ * it exactly. The pins live in `tools/world-groups.json`.
  */
-function bent(value, controls) {
-  if (controls === undefined || controls.length < 2) {
-    return value
-  }
+function solved(matrix, answers) {
+  // Gaussian elimination, the school method, with the biggest row first.
+  const size = answers.length
+  const rows = matrix.map((row, at) => [...row, answers[at]])
 
-  for (let at = 0; at + 1 < controls.length; at += 1) {
-    const [fromIn, fromOut] = controls[at]
-    const [toIn, toOut] = controls[at + 1]
+  for (let column = 0; column < size; column += 1) {
+    let best = column
 
-    if (value >= fromIn && value <= toIn) {
-      const howFar = toIn === fromIn ? 0 : (value - fromIn) / (toIn - fromIn)
+    for (let row = column + 1; row < size; row += 1) {
+      if (Math.abs(rows[row][column]) > Math.abs(rows[best][column])) {
+        best = row
+      }
+    }
+    ;[rows[column], rows[best]] = [rows[best], rows[column]]
 
-      return fromOut + howFar * (toOut - fromOut)
+    for (let row = 0; row < size; row += 1) {
+      if (row === column) {
+        continue
+      }
+
+      const factor = rows[row][column] / rows[column][column]
+
+      for (let at = column; at <= size; at += 1) {
+        rows[row][at] -= factor * rows[column][at]
+      }
     }
   }
 
-  return value
+  return rows.map((row, at) => row[size] / row[at])
 }
 
-let WARP = {}
+function pinnedSheet(pins) {
+  if (pins === undefined || pins.length < 3) {
+    return (point) => point
+  }
 
-function project([lon, lat], warp = WARP) {
+  // A pin is [lon, lat, across, down]: across and down are fractions of
+  // the board, 0 at the left or top and 1 at the right or bottom.
+  const from = pins.map(([lon, lat]) => [lon, lat])
+  const to = pins.map(([, , across, down]) => [-180 + across * 360, 90 - down * 150])
+  const count = pins.length
+  const pull = (a, b) => {
+    const squared = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+
+    return squared === 0 ? 0 : (squared * Math.log(squared)) / 2
+  }
+
+  // The sheet is the smoothest bend through the pins: a flat part plus a
+  // pull towards each pin that fades with distance.
+  const matrix = []
+
+  for (let row = 0; row < count + 3; row += 1) {
+    matrix.push(new Array(count + 3).fill(0))
+  }
+  for (let row = 0; row < count; row += 1) {
+    for (let column = 0; column < count; column += 1) {
+      matrix[row][column] = pull(from[row], from[column])
+    }
+    matrix[row][count] = 1
+    matrix[row][count + 1] = from[row][0]
+    matrix[row][count + 2] = from[row][1]
+    matrix[count][row] = 1
+    matrix[count + 1][row] = from[row][0]
+    matrix[count + 2][row] = from[row][1]
+  }
+
+  const weightsX = solved(matrix, [...to.map(([x]) => x), 0, 0, 0])
+  const weightsY = solved(matrix, [...to.map(([, y]) => y), 0, 0, 0])
+  const bend = (weights, point) => {
+    let out = weights[count] + weights[count + 1] * point[0] + weights[count + 2] * point[1]
+
+    for (let at = 0; at < count; at += 1) {
+      out += weights[at] * pull(from[at], point)
+    }
+
+    return out
+  }
+
+  return (point) => [bend(weightsX, point), bend(weightsY, point)]
+}
+
+let SHEET = (point) => point
+
+function project(point, sheet = SHEET) {
+  const [lon, lat] = sheet(point)
+
   return [
-    Number(((bent(lon, warp.lon) + 180) * ACROSS).toFixed(1)),
-    Number(((90 - bent(lat, warp.lat)) * ACROSS * TALLER).toFixed(1)),
+    Number(((lon + 180) * ACROSS).toFixed(1)),
+    Number(((90 - lat) * ACROSS * TALLER).toFixed(1)),
   ]
 }
 
@@ -397,21 +463,30 @@ function project([lon, lat], warp = WARP) {
  * to decide where on the board it sits. The nudge then scales and slides
  * it from there.
  */
-function projectedTrue(ring) {
-  const plain = ring.map((point) => project(point, {}))
-  const xs = ring.map(([lon]) => lon)
-  const ys = ring.map(([, lat]) => lat)
-  const middle = [
-    (Math.min(...xs) + Math.max(...xs)) / 2,
-    (Math.min(...ys) + Math.max(...ys)) / 2,
-  ]
-  const [wasX, wasY] = project(middle, {})
+function projectedTrue(ring, middle) {
+  const plain = ring.map((point) => project(point, (p) => p))
+  const [wasX, wasY] = project(middle, (p) => p)
   const [nowX, nowY] = project(middle)
 
   return plain.map(([x, y]) => [
     Number((x - wasX + nowX).toFixed(1)),
     Number((y - wasY + nowY).toFixed(1)),
   ])
+}
+
+/**
+ * The middle of a group's box, in longitude and latitude. A group that
+ * stands alone, such as the two halves of Australia, goes through the
+ * bend as ONE piece about ONE middle, or the halves drift apart.
+ */
+function middleOfAll(rings) {
+  const xs = rings.flatMap((ring) => ring.map(([lon]) => lon))
+  const ys = rings.flatMap((ring) => ring.map(([, lat]) => lat))
+
+  return [
+    (Math.min(...xs) + Math.max(...xs)) / 2,
+    (Math.min(...ys) + Math.max(...ys)) / 2,
+  ]
 }
 
 /**
@@ -586,7 +661,7 @@ function placeForProvince(rules, province) {
 function main() {
   const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
 
-  WARP = meta.warp ?? {}
+  SHEET = pinnedSheet(meta.pins)
 
   const countries = loadCountries()
   const provinces = loadProvinces()
@@ -647,14 +722,23 @@ function main() {
   )
 
   const standsAlone = (place) =>
-    Object.keys(meta.nudge ?? {}).some(
+    Object.keys(meta.nudge ?? {}).find(
       (name) => name === place.id || name === place.region,
     )
 
   for (const place of built) {
     const ring = thinner.get(place.id)
+    const group = standsAlone(place)
+    const middle =
+      group === undefined
+        ? null
+        : middleOfAll(
+            built
+              .filter((other) => standsAlone(other) === group)
+              .map((other) => thinner.get(other.id)),
+          )
 
-    place.corners = (standsAlone(place) ? projectedTrue(ring) : ring.map((p) => project(p)))
+    place.corners = (middle ? projectedTrue(ring, middle) : ring.map((p) => project(p)))
       .filter(
         (point, at, all) =>
           at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1],

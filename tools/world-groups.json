@@ -1,970 +1,1313 @@
 {
- "regions": [
-  {
-   "id": "northAmerica",
-   "name": "North America",
-   "bonus": 5,
-   "outline": "#b8763a"
-  },
-  {
-   "id": "southAmerica",
-   "name": "South America",
-   "bonus": 2,
-   "outline": "#3f8f5e"
-  },
-  {
-   "id": "europe",
-   "name": "Europe",
-   "bonus": 5,
-   "outline": "#3a6ea8"
-  },
-  {
-   "id": "africa",
-   "name": "Africa",
-   "bonus": 3,
-   "outline": "#8557a8"
-  },
-  {
-   "id": "asia",
-   "name": "Asia",
-   "bonus": 7,
-   "outline": "#c2544a"
-  },
-  {
-   "id": "australiaRegion",
-   "name": "Australia",
-   "bonus": 2,
-   "outline": "#2f7f8f"
-  }
- ],
- "provinceRules": {
-  "United States of America": [
-   {
-    "named": [
-     "Alaska"
-    ],
-    "place": "alaska"
-   },
-   {
-    "named": [
-     "Hawaii"
-    ],
-    "place": "(nowhere)"
-   },
-   {
-    "westOf": -95,
-    "place": "westernUnitedStates"
-   },
-   {
-    "eastOf": -95,
-    "place": "easternUnitedStates"
-   }
+  "regions": [
+    {
+      "id": "northAmerica",
+      "name": "North America",
+      "bonus": 5,
+      "outline": "#b8763a"
+    },
+    {
+      "id": "southAmerica",
+      "name": "South America",
+      "bonus": 2,
+      "outline": "#3f8f5e"
+    },
+    {
+      "id": "europe",
+      "name": "Europe",
+      "bonus": 5,
+      "outline": "#3a6ea8"
+    },
+    {
+      "id": "africa",
+      "name": "Africa",
+      "bonus": 3,
+      "outline": "#8557a8"
+    },
+    {
+      "id": "asia",
+      "name": "Asia",
+      "bonus": 7,
+      "outline": "#c2544a"
+    },
+    {
+      "id": "australiaRegion",
+      "name": "Australia",
+      "bonus": 2,
+      "outline": "#2f7f8f"
+    }
   ],
-  "Canada": [
-   {
-    "named": [
-     "Yukon",
-     "Northwest Territories",
-     "Nunavut"
+  "provinceRules": {
+    "United States of America": [
+      {
+        "named": [
+          "Alaska"
+        ],
+        "place": "alaska"
+      },
+      {
+        "named": [
+          "Hawaii"
+        ],
+        "place": "(nowhere)"
+      },
+      {
+        "westOf": -95,
+        "place": "westernUnitedStates"
+      },
+      {
+        "eastOf": -95,
+        "place": "easternUnitedStates"
+      }
     ],
-    "place": "northwestTerritory"
-   },
-   {
-    "named": [
-     "British Columbia",
-     "Alberta",
-     "Saskatchewan"
+    "Canada": [
+      {
+        "named": [
+          "Yukon",
+          "Northwest Territories",
+          "Nunavut"
+        ],
+        "place": "northwestTerritory"
+      },
+      {
+        "named": [
+          "British Columbia",
+          "Alberta",
+          "Saskatchewan"
+        ],
+        "place": "alberta"
+      },
+      {
+        "named": [
+          "Manitoba",
+          "Ontario"
+        ],
+        "place": "ontario"
+      },
+      {
+        "named": [
+          "Qu\u00e9bec",
+          "Newfoundland and Labrador",
+          "New Brunswick",
+          "Nova Scotia",
+          "Prince Edward Island"
+        ],
+        "place": "quebec"
+      }
     ],
-    "place": "alberta"
-   },
-   {
-    "named": [
-     "Manitoba",
-     "Ontario"
+    "Australia": [
+      {
+        "named": [
+          "Western Australia",
+          "Northern Territory",
+          "South Australia"
+        ],
+        "place": "westernAustralia"
+      },
+      {
+        "named": [
+          "Queensland",
+          "New South Wales",
+          "Victoria",
+          "Tasmania",
+          "Australian Capital Territory",
+          "Jervis Bay Territory"
+        ],
+        "place": "easternAustralia"
+      }
     ],
-    "place": "ontario"
-   },
-   {
-    "named": [
-     "Qu\u00e9bec",
-     "Newfoundland and Labrador",
-     "New Brunswick",
-     "Nova Scotia",
-     "Prince Edward Island"
-    ],
-    "place": "quebec"
-   }
+    "Russia": [
+      {
+        "westOf": 60,
+        "place": "ural"
+      },
+      {
+        "westOf": 105,
+        "place": "siberia"
+      },
+      {
+        "eastOf": 105,
+        "westOf": 140,
+        "northOf": 60,
+        "place": "yakutsk"
+      },
+      {
+        "eastOf": 105,
+        "westOf": 130,
+        "place": "irkutsk"
+      },
+      {
+        "eastOf": 130,
+        "place": "kamchatka"
+      }
+    ]
+  },
+  "places": [
+    {
+      "id": "alaska",
+      "name": "Alaska",
+      "shortName": "ALK",
+      "region": "northAmerica",
+      "borders": [
+        "northwestTerritory",
+        "alberta",
+        "kamchatka"
+      ]
+    },
+    {
+      "id": "northwestTerritory",
+      "name": "Northwest Territory",
+      "shortName": "NWT",
+      "region": "northAmerica",
+      "borders": [
+        "alaska",
+        "alberta",
+        "ontario",
+        "greenland"
+      ]
+    },
+    {
+      "id": "greenland",
+      "name": "Greenland",
+      "shortName": "GRN",
+      "region": "northAmerica",
+      "borders": [
+        "northwestTerritory",
+        "ontario",
+        "quebec",
+        "iceland"
+      ],
+      "isIsland": true,
+      "countries": [
+        "Greenland"
+      ]
+    },
+    {
+      "id": "alberta",
+      "name": "Alberta",
+      "shortName": "ALB",
+      "region": "northAmerica",
+      "borders": [
+        "alaska",
+        "northwestTerritory",
+        "ontario",
+        "westernUnitedStates"
+      ]
+    },
+    {
+      "id": "ontario",
+      "name": "Ontario",
+      "shortName": "ONT",
+      "region": "northAmerica",
+      "borders": [
+        "northwestTerritory",
+        "alberta",
+        "greenland",
+        "quebec",
+        "westernUnitedStates",
+        "easternUnitedStates"
+      ]
+    },
+    {
+      "id": "quebec",
+      "name": "Quebec",
+      "shortName": "QUE",
+      "region": "northAmerica",
+      "borders": [
+        "greenland",
+        "ontario",
+        "easternUnitedStates"
+      ]
+    },
+    {
+      "id": "westernUnitedStates",
+      "name": "Western United States",
+      "shortName": "WUS",
+      "region": "northAmerica",
+      "borders": [
+        "alberta",
+        "ontario",
+        "easternUnitedStates",
+        "centralAmerica"
+      ]
+    },
+    {
+      "id": "easternUnitedStates",
+      "name": "Eastern United States",
+      "shortName": "EUS",
+      "region": "northAmerica",
+      "borders": [
+        "ontario",
+        "quebec",
+        "westernUnitedStates",
+        "centralAmerica"
+      ]
+    },
+    {
+      "id": "centralAmerica",
+      "name": "Central America",
+      "shortName": "CAM",
+      "region": "northAmerica",
+      "borders": [
+        "westernUnitedStates",
+        "easternUnitedStates",
+        "venezuela"
+      ],
+      "countries": [
+        "Mexico",
+        "Guatemala",
+        "Belize",
+        "Honduras",
+        "El Salvador",
+        "Nicaragua",
+        "Costa Rica",
+        "Panama",
+        "Cuba",
+        "Jamaica",
+        "Haiti",
+        "Dominican Rep.",
+        "Bahamas",
+        "Puerto Rico"
+      ]
+    },
+    {
+      "id": "venezuela",
+      "name": "Venezuela",
+      "shortName": "VEN",
+      "region": "southAmerica",
+      "borders": [
+        "centralAmerica",
+        "brazil",
+        "peru"
+      ],
+      "countries": [
+        "Venezuela",
+        "Colombia",
+        "Guyana",
+        "Suriname",
+        "Trinidad and Tobago"
+      ]
+    },
+    {
+      "id": "peru",
+      "name": "Peru",
+      "shortName": "PER",
+      "region": "southAmerica",
+      "borders": [
+        "venezuela",
+        "brazil",
+        "argentina"
+      ],
+      "countries": [
+        "Peru",
+        "Ecuador",
+        "Bolivia"
+      ]
+    },
+    {
+      "id": "brazil",
+      "name": "Brazil",
+      "shortName": "BRA",
+      "region": "southAmerica",
+      "borders": [
+        "venezuela",
+        "peru",
+        "argentina",
+        "northAfrica"
+      ],
+      "countries": [
+        "Brazil"
+      ]
+    },
+    {
+      "id": "argentina",
+      "name": "Argentina",
+      "shortName": "ARG",
+      "region": "southAmerica",
+      "borders": [
+        "peru",
+        "brazil"
+      ],
+      "countries": [
+        "Argentina",
+        "Chile",
+        "Uruguay",
+        "Paraguay"
+      ]
+    },
+    {
+      "id": "iceland",
+      "name": "Iceland",
+      "shortName": "ICE",
+      "region": "europe",
+      "borders": [
+        "greenland",
+        "greatBritain",
+        "scandinavia"
+      ],
+      "isIsland": true,
+      "countries": [
+        "Iceland"
+      ]
+    },
+    {
+      "id": "greatBritain",
+      "name": "Great Britain",
+      "shortName": "GBR",
+      "region": "europe",
+      "borders": [
+        "iceland",
+        "scandinavia",
+        "northernEurope",
+        "westernEurope"
+      ],
+      "isIsland": true,
+      "countries": [
+        "United Kingdom",
+        "Ireland"
+      ]
+    },
+    {
+      "id": "scandinavia",
+      "name": "Scandinavia",
+      "shortName": "SCA",
+      "region": "europe",
+      "borders": [
+        "iceland",
+        "greatBritain",
+        "northernEurope",
+        "ukraine"
+      ],
+      "countries": [
+        "Norway",
+        "Sweden",
+        "Finland",
+        "Denmark"
+      ]
+    },
+    {
+      "id": "ukraine",
+      "name": "Ukraine",
+      "shortName": "UKR",
+      "region": "europe",
+      "borders": [
+        "scandinavia",
+        "northernEurope",
+        "southernEurope",
+        "ural",
+        "afghanistan",
+        "middleEast"
+      ],
+      "countries": [
+        "Ukraine",
+        "Belarus",
+        "Lithuania",
+        "Latvia",
+        "Estonia",
+        "Moldova"
+      ]
+    },
+    {
+      "id": "northernEurope",
+      "name": "Northern Europe",
+      "shortName": "NEU",
+      "region": "europe",
+      "borders": [
+        "scandinavia",
+        "greatBritain",
+        "ukraine",
+        "southernEurope",
+        "westernEurope"
+      ],
+      "countries": [
+        "Germany",
+        "Poland",
+        "Czechia",
+        "Slovakia",
+        "Austria",
+        "Switzerland",
+        "Netherlands",
+        "Belgium",
+        "Luxembourg",
+        "Hungary"
+      ]
+    },
+    {
+      "id": "westernEurope",
+      "name": "Western Europe",
+      "shortName": "WEU",
+      "region": "europe",
+      "borders": [
+        "greatBritain",
+        "northernEurope",
+        "southernEurope",
+        "northAfrica"
+      ],
+      "countries": [
+        "France",
+        "Spain",
+        "Portugal"
+      ]
+    },
+    {
+      "id": "southernEurope",
+      "name": "Southern Europe",
+      "shortName": "SEU",
+      "region": "europe",
+      "borders": [
+        "westernEurope",
+        "northernEurope",
+        "ukraine",
+        "middleEast",
+        "egypt",
+        "northAfrica"
+      ],
+      "countries": [
+        "Italy",
+        "Greece",
+        "Romania",
+        "Bulgaria",
+        "Serbia",
+        "Croatia",
+        "Slovenia",
+        "Bosnia and Herz.",
+        "Montenegro",
+        "North Macedonia",
+        "Albania",
+        "Kosovo"
+      ]
+    },
+    {
+      "id": "northAfrica",
+      "name": "North Africa",
+      "shortName": "NAF",
+      "region": "africa",
+      "borders": [
+        "westernEurope",
+        "southernEurope",
+        "egypt",
+        "eastAfrica",
+        "congo",
+        "brazil"
+      ],
+      "countries": [
+        "Morocco",
+        "W. Sahara",
+        "Algeria",
+        "Tunisia",
+        "Libya",
+        "Mauritania",
+        "Mali",
+        "Niger",
+        "Chad",
+        "Senegal",
+        "Gambia",
+        "Guinea-Bissau",
+        "Guinea",
+        "Sierra Leone",
+        "Liberia",
+        "C\u00f4te d'Ivoire",
+        "Burkina Faso",
+        "Ghana",
+        "Togo",
+        "Benin",
+        "Nigeria"
+      ]
+    },
+    {
+      "id": "egypt",
+      "name": "Egypt",
+      "shortName": "EGY",
+      "region": "africa",
+      "borders": [
+        "northAfrica",
+        "southernEurope",
+        "middleEast",
+        "eastAfrica"
+      ],
+      "countries": [
+        "Egypt",
+        "Sudan"
+      ]
+    },
+    {
+      "id": "eastAfrica",
+      "name": "East Africa",
+      "shortName": "EAF",
+      "region": "africa",
+      "borders": [
+        "egypt",
+        "northAfrica",
+        "congo",
+        "southAfrica",
+        "madagascar",
+        "middleEast"
+      ],
+      "countries": [
+        "Ethiopia",
+        "Eritrea",
+        "Djibouti",
+        "Somalia",
+        "Somaliland",
+        "Kenya",
+        "Uganda",
+        "Rwanda",
+        "Burundi",
+        "Tanzania",
+        "S. Sudan"
+      ]
+    },
+    {
+      "id": "congo",
+      "name": "Congo",
+      "shortName": "CON",
+      "region": "africa",
+      "borders": [
+        "northAfrica",
+        "eastAfrica",
+        "southAfrica"
+      ],
+      "countries": [
+        "Dem. Rep. Congo",
+        "Congo",
+        "Cameroon",
+        "Central African Rep.",
+        "Gabon",
+        "Eq. Guinea",
+        "Angola"
+      ]
+    },
+    {
+      "id": "southAfrica",
+      "name": "South Africa",
+      "shortName": "SAF",
+      "region": "africa",
+      "borders": [
+        "congo",
+        "eastAfrica",
+        "madagascar"
+      ],
+      "countries": [
+        "South Africa",
+        "Namibia",
+        "Botswana",
+        "Zimbabwe",
+        "Zambia",
+        "Mozambique",
+        "Malawi",
+        "Lesotho",
+        "eSwatini"
+      ]
+    },
+    {
+      "id": "madagascar",
+      "name": "Madagascar",
+      "shortName": "MAD",
+      "region": "africa",
+      "borders": [
+        "southAfrica",
+        "eastAfrica"
+      ],
+      "isIsland": true,
+      "countries": [
+        "Madagascar"
+      ]
+    },
+    {
+      "id": "ural",
+      "name": "Ural",
+      "shortName": "URA",
+      "region": "asia",
+      "borders": [
+        "ukraine",
+        "siberia",
+        "china",
+        "afghanistan"
+      ]
+    },
+    {
+      "id": "siberia",
+      "name": "Siberia",
+      "shortName": "SIB",
+      "region": "asia",
+      "borders": [
+        "ural",
+        "yakutsk",
+        "irkutsk",
+        "mongolia",
+        "china"
+      ]
+    },
+    {
+      "id": "yakutsk",
+      "name": "Yakutsk",
+      "shortName": "YAK",
+      "region": "asia",
+      "borders": [
+        "siberia",
+        "irkutsk",
+        "kamchatka"
+      ]
+    },
+    {
+      "id": "irkutsk",
+      "name": "Irkutsk",
+      "shortName": "IRK",
+      "region": "asia",
+      "borders": [
+        "siberia",
+        "yakutsk",
+        "kamchatka",
+        "mongolia"
+      ]
+    },
+    {
+      "id": "kamchatka",
+      "name": "Kamchatka",
+      "shortName": "KAM",
+      "region": "asia",
+      "borders": [
+        "yakutsk",
+        "irkutsk",
+        "mongolia",
+        "japan",
+        "alaska"
+      ]
+    },
+    {
+      "id": "mongolia",
+      "name": "Mongolia",
+      "shortName": "MON",
+      "region": "asia",
+      "borders": [
+        "siberia",
+        "irkutsk",
+        "kamchatka",
+        "japan",
+        "china"
+      ],
+      "countries": [
+        "Mongolia"
+      ]
+    },
+    {
+      "id": "japan",
+      "name": "Japan",
+      "shortName": "JAP",
+      "region": "asia",
+      "borders": [
+        "mongolia",
+        "kamchatka"
+      ],
+      "isIsland": true,
+      "countries": [
+        "Japan",
+        "South Korea",
+        "North Korea"
+      ]
+    },
+    {
+      "id": "afghanistan",
+      "name": "Afghanistan",
+      "shortName": "AFG",
+      "region": "asia",
+      "borders": [
+        "ukraine",
+        "ural",
+        "china",
+        "india",
+        "middleEast"
+      ],
+      "countries": [
+        "Afghanistan",
+        "Pakistan",
+        "Kazakhstan",
+        "Uzbekistan",
+        "Turkmenistan",
+        "Tajikistan",
+        "Kyrgyzstan"
+      ]
+    },
+    {
+      "id": "china",
+      "name": "China",
+      "shortName": "CHI",
+      "region": "asia",
+      "borders": [
+        "siberia",
+        "ural",
+        "afghanistan",
+        "india",
+        "siam",
+        "mongolia"
+      ],
+      "countries": [
+        "China",
+        "Taiwan"
+      ]
+    },
+    {
+      "id": "middleEast",
+      "name": "Middle East",
+      "shortName": "MEA",
+      "region": "asia",
+      "borders": [
+        "ukraine",
+        "southernEurope",
+        "egypt",
+        "eastAfrica",
+        "afghanistan",
+        "india"
+      ],
+      "countries": [
+        "Turkey",
+        "Syria",
+        "Lebanon",
+        "Israel",
+        "Palestine",
+        "Jordan",
+        "Iraq",
+        "Iran",
+        "Saudi Arabia",
+        "Kuwait",
+        "Qatar",
+        "United Arab Emirates",
+        "Oman",
+        "Yemen",
+        "Georgia",
+        "Armenia",
+        "Azerbaijan",
+        "Cyprus",
+        "N. Cyprus"
+      ]
+    },
+    {
+      "id": "india",
+      "name": "India",
+      "shortName": "IND",
+      "region": "asia",
+      "borders": [
+        "middleEast",
+        "afghanistan",
+        "china",
+        "siam"
+      ],
+      "countries": [
+        "India",
+        "Bangladesh",
+        "Nepal",
+        "Bhutan",
+        "Sri Lanka"
+      ]
+    },
+    {
+      "id": "siam",
+      "name": "Siam",
+      "shortName": "SIA",
+      "region": "asia",
+      "borders": [
+        "india",
+        "china",
+        "indonesia"
+      ],
+      "countries": [
+        "Myanmar",
+        "Thailand",
+        "Laos",
+        "Cambodia",
+        "Vietnam",
+        "Malaysia"
+      ]
+    },
+    {
+      "id": "indonesia",
+      "name": "Indonesia",
+      "shortName": "INO",
+      "region": "australiaRegion",
+      "borders": [
+        "siam",
+        "newGuinea",
+        "westernAustralia"
+      ],
+      "isIsland": true,
+      "countries": [
+        "Indonesia",
+        "Brunei",
+        "Timor-Leste",
+        "Philippines"
+      ]
+    },
+    {
+      "id": "newGuinea",
+      "name": "New Guinea",
+      "shortName": "NGU",
+      "region": "australiaRegion",
+      "borders": [
+        "indonesia",
+        "westernAustralia",
+        "easternAustralia"
+      ],
+      "isIsland": true,
+      "countries": [
+        "Papua New Guinea"
+      ]
+    },
+    {
+      "id": "westernAustralia",
+      "name": "Western Australia",
+      "shortName": "WAU",
+      "region": "australiaRegion",
+      "borders": [
+        "indonesia",
+        "newGuinea",
+        "easternAustralia"
+      ]
+    },
+    {
+      "id": "easternAustralia",
+      "name": "Eastern Australia",
+      "shortName": "EAU",
+      "region": "australiaRegion",
+      "borders": [
+        "westernAustralia",
+        "newGuinea"
+      ]
+    }
   ],
-  "Australia": [
-   {
-    "named": [
-     "Western Australia",
-     "Northern Territory",
-     "South Australia"
+  "nudge": {
+    "greenland": {
+      "scale": 1.15
+    },
+    "iceland": {
+      "scale": 1.4
+    },
+    "greatBritain": {
+      "scale": 1.5
+    },
+    "japan": {
+      "scale": 1.4
+    },
+    "madagascar": {
+      "scale": 1.5
+    },
+    "indonesia": {
+      "scale": 1.3
+    },
+    "newGuinea": {
+      "scale": 1.3
+    },
+    "australiaRegion": {
+      "scale": 1.5
+    }
+  },
+  "pins": [
+    [
+      -172,
+      66,
+      0.0,
+      0.1
     ],
-    "place": "westernAustralia"
-   },
-   {
-    "named": [
-     "Queensland",
-     "New South Wales",
-     "Victoria",
-     "Tasmania",
-     "Australian Capital Territory",
-     "Jervis Bay Territory"
+    [
+      -165,
+      58,
+      0.01,
+      0.2
     ],
-    "place": "easternAustralia"
-   }
-  ],
-  "Russia": [
-   {
-    "westOf": 75,
-    "place": "ural"
-   },
-   {
-    "westOf": 105,
-    "place": "siberia"
-   },
-   {
-    "eastOf": 105,
-    "northOf": 60,
-    "place": "yakutsk"
-   },
-   {
-    "eastOf": 105,
-    "westOf": 130,
-    "place": "irkutsk"
-   },
-   {
-    "eastOf": 130,
-    "place": "kamchatka"
-   }
+    [
+      -150,
+      70,
+      0.05,
+      0.05
+    ],
+    [
+      -141,
+      60,
+      0.12,
+      0.22
+    ],
+    [
+      -141,
+      69,
+      0.12,
+      0.08
+    ],
+    [
+      -110,
+      70,
+      0.2,
+      0.08
+    ],
+    [
+      -95,
+      60,
+      0.25,
+      0.2
+    ],
+    [
+      -72,
+      52,
+      0.31,
+      0.32
+    ],
+    [
+      -60,
+      48,
+      0.36,
+      0.36
+    ],
+    [
+      -120,
+      45,
+      0.13,
+      0.36
+    ],
+    [
+      -115,
+      35,
+      0.15,
+      0.46
+    ],
+    [
+      -85,
+      37,
+      0.25,
+      0.42
+    ],
+    [
+      -80,
+      30,
+      0.28,
+      0.48
+    ],
+    [
+      -95,
+      20,
+      0.2,
+      0.55
+    ],
+    [
+      -80,
+      9,
+      0.24,
+      0.6
+    ],
+    [
+      -65,
+      7,
+      0.27,
+      0.62
+    ],
+    [
+      -50,
+      -10,
+      0.35,
+      0.72
+    ],
+    [
+      -75,
+      -12,
+      0.25,
+      0.75
+    ],
+    [
+      -68,
+      -52,
+      0.27,
+      0.98
+    ],
+    [
+      -40,
+      -5,
+      0.38,
+      0.68
+    ],
+    [
+      -42,
+      72,
+      0.38,
+      0.14
+    ],
+    [
+      -18,
+      65,
+      0.42,
+      0.25
+    ],
+    [
+      -2,
+      54,
+      0.42,
+      0.32
+    ],
+    [
+      15,
+      63,
+      0.5,
+      0.15
+    ],
+    [
+      25,
+      71,
+      0.52,
+      0.06
+    ],
+    [
+      12,
+      50,
+      0.48,
+      0.38
+    ],
+    [
+      30,
+      50,
+      0.56,
+      0.36
+    ],
+    [
+      40,
+      50,
+      0.6,
+      0.34
+    ],
+    [
+      -3,
+      42,
+      0.42,
+      0.45
+    ],
+    [
+      15,
+      41,
+      0.5,
+      0.48
+    ],
+    [
+      -9,
+      38,
+      0.4,
+      0.5
+    ],
+    [
+      5,
+      22,
+      0.42,
+      0.62
+    ],
+    [
+      -17,
+      15,
+      0.36,
+      0.6
+    ],
+    [
+      25,
+      25,
+      0.49,
+      0.6
+    ],
+    [
+      36,
+      22,
+      0.56,
+      0.62
+    ],
+    [
+      38,
+      2,
+      0.58,
+      0.72
+    ],
+    [
+      20,
+      -3,
+      0.52,
+      0.75
+    ],
+    [
+      25,
+      -30,
+      0.52,
+      0.9
+    ],
+    [
+      20,
+      -34,
+      0.52,
+      0.95
+    ],
+    [
+      47,
+      -20,
+      0.6,
+      0.85
+    ],
+    [
+      50,
+      13,
+      0.63,
+      0.62
+    ],
+    [
+      45,
+      30,
+      0.6,
+      0.5
+    ],
+    [
+      48,
+      60,
+      0.65,
+      0.2
+    ],
+    [
+      55,
+      68,
+      0.68,
+      0.1
+    ],
+    [
+      65,
+      35,
+      0.67,
+      0.41
+    ],
+    [
+      78,
+      22,
+      0.7,
+      0.55
+    ],
+    [
+      77,
+      8,
+      0.72,
+      0.65
+    ],
+    [
+      80,
+      65,
+      0.75,
+      0.14
+    ],
+    [
+      95,
+      76,
+      0.76,
+      0.04
+    ],
+    [
+      105,
+      33,
+      0.8,
+      0.47
+    ],
+    [
+      100,
+      47,
+      0.8,
+      0.34
+    ],
+    [
+      110,
+      60,
+      0.86,
+      0.22
+    ],
+    [
+      108,
+      68,
+      0.8,
+      0.1
+    ],
+    [
+      130,
+      66,
+      0.86,
+      0.1
+    ],
+    [
+      132,
+      58,
+      0.87,
+      0.22
+    ],
+    [
+      160,
+      60,
+      0.95,
+      0.2
+    ],
+    [
+      180,
+      66,
+      1.0,
+      0.1
+    ],
+    [
+      140,
+      48,
+      0.93,
+      0.32
+    ],
+    [
+      138,
+      37,
+      0.95,
+      0.42
+    ],
+    [
+      102,
+      15,
+      0.82,
+      0.58
+    ],
+    [
+      102,
+      2,
+      0.83,
+      0.66
+    ],
+    [
+      115,
+      -3,
+      0.84,
+      0.78
+    ],
+    [
+      142,
+      -6,
+      0.93,
+      0.72
+    ],
+    [
+      122,
+      -25,
+      0.8,
+      0.88
+    ],
+    [
+      145,
+      -25,
+      0.92,
+      0.88
+    ],
+    [
+      147,
+      -42,
+      0.9,
+      0.98
+    ],
+    [
+      155,
+      68,
+      0.94,
+      0.06
+    ],
+    [
+      72,
+      54,
+      0.7,
+      0.29
+    ]
   ]
- },
- "places": [
-  {
-   "id": "alaska",
-   "name": "Alaska",
-   "shortName": "ALK",
-   "region": "northAmerica",
-   "borders": [
-    "northwestTerritory",
-    "alberta",
-    "kamchatka"
-   ]
-  },
-  {
-   "id": "northwestTerritory",
-   "name": "Northwest Territory",
-   "shortName": "NWT",
-   "region": "northAmerica",
-   "borders": [
-    "alaska",
-    "alberta",
-    "ontario",
-    "greenland"
-   ]
-  },
-  {
-   "id": "greenland",
-   "name": "Greenland",
-   "shortName": "GRN",
-   "region": "northAmerica",
-   "borders": [
-    "northwestTerritory",
-    "ontario",
-    "quebec",
-    "iceland"
-   ],
-   "isIsland": true,
-   "countries": [
-    "Greenland"
-   ]
-  },
-  {
-   "id": "alberta",
-   "name": "Alberta",
-   "shortName": "ALB",
-   "region": "northAmerica",
-   "borders": [
-    "alaska",
-    "northwestTerritory",
-    "ontario",
-    "westernUnitedStates"
-   ]
-  },
-  {
-   "id": "ontario",
-   "name": "Ontario",
-   "shortName": "ONT",
-   "region": "northAmerica",
-   "borders": [
-    "northwestTerritory",
-    "alberta",
-    "greenland",
-    "quebec",
-    "westernUnitedStates",
-    "easternUnitedStates"
-   ]
-  },
-  {
-   "id": "quebec",
-   "name": "Quebec",
-   "shortName": "QUE",
-   "region": "northAmerica",
-   "borders": [
-    "greenland",
-    "ontario",
-    "easternUnitedStates"
-   ]
-  },
-  {
-   "id": "westernUnitedStates",
-   "name": "Western United States",
-   "shortName": "WUS",
-   "region": "northAmerica",
-   "borders": [
-    "alberta",
-    "ontario",
-    "easternUnitedStates",
-    "centralAmerica"
-   ]
-  },
-  {
-   "id": "easternUnitedStates",
-   "name": "Eastern United States",
-   "shortName": "EUS",
-   "region": "northAmerica",
-   "borders": [
-    "ontario",
-    "quebec",
-    "westernUnitedStates",
-    "centralAmerica"
-   ]
-  },
-  {
-   "id": "centralAmerica",
-   "name": "Central America",
-   "shortName": "CAM",
-   "region": "northAmerica",
-   "borders": [
-    "westernUnitedStates",
-    "easternUnitedStates",
-    "venezuela"
-   ],
-   "countries": [
-    "Mexico",
-    "Guatemala",
-    "Belize",
-    "Honduras",
-    "El Salvador",
-    "Nicaragua",
-    "Costa Rica",
-    "Panama",
-    "Cuba",
-    "Jamaica",
-    "Haiti",
-    "Dominican Rep.",
-    "Bahamas",
-    "Puerto Rico"
-   ]
-  },
-  {
-   "id": "venezuela",
-   "name": "Venezuela",
-   "shortName": "VEN",
-   "region": "southAmerica",
-   "borders": [
-    "centralAmerica",
-    "brazil",
-    "peru"
-   ],
-   "countries": [
-    "Venezuela",
-    "Colombia",
-    "Guyana",
-    "Suriname",
-    "Trinidad and Tobago"
-   ]
-  },
-  {
-   "id": "peru",
-   "name": "Peru",
-   "shortName": "PER",
-   "region": "southAmerica",
-   "borders": [
-    "venezuela",
-    "brazil",
-    "argentina"
-   ],
-   "countries": [
-    "Peru",
-    "Ecuador",
-    "Bolivia"
-   ]
-  },
-  {
-   "id": "brazil",
-   "name": "Brazil",
-   "shortName": "BRA",
-   "region": "southAmerica",
-   "borders": [
-    "venezuela",
-    "peru",
-    "argentina",
-    "northAfrica"
-   ],
-   "countries": [
-    "Brazil"
-   ]
-  },
-  {
-   "id": "argentina",
-   "name": "Argentina",
-   "shortName": "ARG",
-   "region": "southAmerica",
-   "borders": [
-    "peru",
-    "brazil"
-   ],
-   "countries": [
-    "Argentina",
-    "Chile",
-    "Uruguay",
-    "Paraguay"
-   ]
-  },
-  {
-   "id": "iceland",
-   "name": "Iceland",
-   "shortName": "ICE",
-   "region": "europe",
-   "borders": [
-    "greenland",
-    "greatBritain",
-    "scandinavia"
-   ],
-   "isIsland": true,
-   "countries": [
-    "Iceland"
-   ]
-  },
-  {
-   "id": "greatBritain",
-   "name": "Great Britain",
-   "shortName": "GBR",
-   "region": "europe",
-   "borders": [
-    "iceland",
-    "scandinavia",
-    "northernEurope",
-    "westernEurope"
-   ],
-   "isIsland": true,
-   "countries": [
-    "United Kingdom",
-    "Ireland"
-   ]
-  },
-  {
-   "id": "scandinavia",
-   "name": "Scandinavia",
-   "shortName": "SCA",
-   "region": "europe",
-   "borders": [
-    "iceland",
-    "greatBritain",
-    "northernEurope",
-    "ukraine"
-   ],
-   "countries": [
-    "Norway",
-    "Sweden",
-    "Finland",
-    "Denmark"
-   ]
-  },
-  {
-   "id": "ukraine",
-   "name": "Ukraine",
-   "shortName": "UKR",
-   "region": "europe",
-   "borders": [
-    "scandinavia",
-    "northernEurope",
-    "southernEurope",
-    "ural",
-    "afghanistan",
-    "middleEast"
-   ],
-   "countries": [
-    "Ukraine",
-    "Belarus",
-    "Lithuania",
-    "Latvia",
-    "Estonia",
-    "Moldova"
-   ]
-  },
-  {
-   "id": "northernEurope",
-   "name": "Northern Europe",
-   "shortName": "NEU",
-   "region": "europe",
-   "borders": [
-    "scandinavia",
-    "greatBritain",
-    "ukraine",
-    "southernEurope",
-    "westernEurope"
-   ],
-   "countries": [
-    "Germany",
-    "Poland",
-    "Czechia",
-    "Slovakia",
-    "Austria",
-    "Switzerland",
-    "Netherlands",
-    "Belgium",
-    "Luxembourg",
-    "Hungary"
-   ]
-  },
-  {
-   "id": "westernEurope",
-   "name": "Western Europe",
-   "shortName": "WEU",
-   "region": "europe",
-   "borders": [
-    "greatBritain",
-    "northernEurope",
-    "southernEurope",
-    "northAfrica"
-   ],
-   "countries": [
-    "France",
-    "Spain",
-    "Portugal"
-   ]
-  },
-  {
-   "id": "southernEurope",
-   "name": "Southern Europe",
-   "shortName": "SEU",
-   "region": "europe",
-   "borders": [
-    "westernEurope",
-    "northernEurope",
-    "ukraine",
-    "middleEast",
-    "egypt",
-    "northAfrica"
-   ],
-   "countries": [
-    "Italy",
-    "Greece",
-    "Romania",
-    "Bulgaria",
-    "Serbia",
-    "Croatia",
-    "Slovenia",
-    "Bosnia and Herz.",
-    "Montenegro",
-    "North Macedonia",
-    "Albania",
-    "Kosovo"
-   ]
-  },
-  {
-   "id": "northAfrica",
-   "name": "North Africa",
-   "shortName": "NAF",
-   "region": "africa",
-   "borders": [
-    "westernEurope",
-    "southernEurope",
-    "egypt",
-    "eastAfrica",
-    "congo",
-    "brazil"
-   ],
-   "countries": [
-    "Morocco",
-    "W. Sahara",
-    "Algeria",
-    "Tunisia",
-    "Libya",
-    "Mauritania",
-    "Mali",
-    "Niger",
-    "Chad",
-    "Senegal",
-    "Gambia",
-    "Guinea-Bissau",
-    "Guinea",
-    "Sierra Leone",
-    "Liberia",
-    "C\u00f4te d'Ivoire",
-    "Burkina Faso",
-    "Ghana",
-    "Togo",
-    "Benin",
-    "Nigeria"
-   ]
-  },
-  {
-   "id": "egypt",
-   "name": "Egypt",
-   "shortName": "EGY",
-   "region": "africa",
-   "borders": [
-    "northAfrica",
-    "southernEurope",
-    "middleEast",
-    "eastAfrica"
-   ],
-   "countries": [
-    "Egypt",
-    "Sudan"
-   ]
-  },
-  {
-   "id": "eastAfrica",
-   "name": "East Africa",
-   "shortName": "EAF",
-   "region": "africa",
-   "borders": [
-    "egypt",
-    "northAfrica",
-    "congo",
-    "southAfrica",
-    "madagascar",
-    "middleEast"
-   ],
-   "countries": [
-    "Ethiopia",
-    "Eritrea",
-    "Djibouti",
-    "Somalia",
-    "Somaliland",
-    "Kenya",
-    "Uganda",
-    "Rwanda",
-    "Burundi",
-    "Tanzania",
-    "S. Sudan"
-   ]
-  },
-  {
-   "id": "congo",
-   "name": "Congo",
-   "shortName": "CON",
-   "region": "africa",
-   "borders": [
-    "northAfrica",
-    "eastAfrica",
-    "southAfrica"
-   ],
-   "countries": [
-    "Dem. Rep. Congo",
-    "Congo",
-    "Cameroon",
-    "Central African Rep.",
-    "Gabon",
-    "Eq. Guinea",
-    "Angola"
-   ]
-  },
-  {
-   "id": "southAfrica",
-   "name": "South Africa",
-   "shortName": "SAF",
-   "region": "africa",
-   "borders": [
-    "congo",
-    "eastAfrica",
-    "madagascar"
-   ],
-   "countries": [
-    "South Africa",
-    "Namibia",
-    "Botswana",
-    "Zimbabwe",
-    "Zambia",
-    "Mozambique",
-    "Malawi",
-    "Lesotho",
-    "eSwatini"
-   ]
-  },
-  {
-   "id": "madagascar",
-   "name": "Madagascar",
-   "shortName": "MAD",
-   "region": "africa",
-   "borders": [
-    "southAfrica",
-    "eastAfrica"
-   ],
-   "isIsland": true,
-   "countries": [
-    "Madagascar"
-   ]
-  },
-  {
-   "id": "ural",
-   "name": "Ural",
-   "shortName": "URA",
-   "region": "asia",
-   "borders": [
-    "ukraine",
-    "siberia",
-    "china",
-    "afghanistan"
-   ]
-  },
-  {
-   "id": "siberia",
-   "name": "Siberia",
-   "shortName": "SIB",
-   "region": "asia",
-   "borders": [
-    "ural",
-    "yakutsk",
-    "irkutsk",
-    "mongolia",
-    "china"
-   ]
-  },
-  {
-   "id": "yakutsk",
-   "name": "Yakutsk",
-   "shortName": "YAK",
-   "region": "asia",
-   "borders": [
-    "siberia",
-    "irkutsk",
-    "kamchatka"
-   ]
-  },
-  {
-   "id": "irkutsk",
-   "name": "Irkutsk",
-   "shortName": "IRK",
-   "region": "asia",
-   "borders": [
-    "siberia",
-    "yakutsk",
-    "kamchatka",
-    "mongolia"
-   ]
-  },
-  {
-   "id": "kamchatka",
-   "name": "Kamchatka",
-   "shortName": "KAM",
-   "region": "asia",
-   "borders": [
-    "yakutsk",
-    "irkutsk",
-    "mongolia",
-    "japan",
-    "alaska"
-   ]
-  },
-  {
-   "id": "mongolia",
-   "name": "Mongolia",
-   "shortName": "MON",
-   "region": "asia",
-   "borders": [
-    "siberia",
-    "irkutsk",
-    "kamchatka",
-    "japan",
-    "china"
-   ],
-   "countries": [
-    "Mongolia"
-   ]
-  },
-  {
-   "id": "japan",
-   "name": "Japan",
-   "shortName": "JAP",
-   "region": "asia",
-   "borders": [
-    "mongolia",
-    "kamchatka"
-   ],
-   "isIsland": true,
-   "countries": [
-    "Japan",
-    "South Korea",
-    "North Korea"
-   ]
-  },
-  {
-   "id": "afghanistan",
-   "name": "Afghanistan",
-   "shortName": "AFG",
-   "region": "asia",
-   "borders": [
-    "ukraine",
-    "ural",
-    "china",
-    "india",
-    "middleEast"
-   ],
-   "countries": [
-    "Afghanistan",
-    "Pakistan",
-    "Kazakhstan",
-    "Uzbekistan",
-    "Turkmenistan",
-    "Tajikistan",
-    "Kyrgyzstan"
-   ]
-  },
-  {
-   "id": "china",
-   "name": "China",
-   "shortName": "CHI",
-   "region": "asia",
-   "borders": [
-    "siberia",
-    "ural",
-    "afghanistan",
-    "india",
-    "siam",
-    "mongolia"
-   ],
-   "countries": [
-    "China",
-    "Taiwan"
-   ]
-  },
-  {
-   "id": "middleEast",
-   "name": "Middle East",
-   "shortName": "MEA",
-   "region": "asia",
-   "borders": [
-    "ukraine",
-    "southernEurope",
-    "egypt",
-    "eastAfrica",
-    "afghanistan",
-    "india"
-   ],
-   "countries": [
-    "Turkey",
-    "Syria",
-    "Lebanon",
-    "Israel",
-    "Palestine",
-    "Jordan",
-    "Iraq",
-    "Iran",
-    "Saudi Arabia",
-    "Kuwait",
-    "Qatar",
-    "United Arab Emirates",
-    "Oman",
-    "Yemen",
-    "Georgia",
-    "Armenia",
-    "Azerbaijan",
-    "Cyprus",
-    "N. Cyprus"
-   ]
-  },
-  {
-   "id": "india",
-   "name": "India",
-   "shortName": "IND",
-   "region": "asia",
-   "borders": [
-    "middleEast",
-    "afghanistan",
-    "china",
-    "siam"
-   ],
-   "countries": [
-    "India",
-    "Bangladesh",
-    "Nepal",
-    "Bhutan",
-    "Sri Lanka"
-   ]
-  },
-  {
-   "id": "siam",
-   "name": "Siam",
-   "shortName": "SIA",
-   "region": "asia",
-   "borders": [
-    "india",
-    "china",
-    "indonesia"
-   ],
-   "countries": [
-    "Myanmar",
-    "Thailand",
-    "Laos",
-    "Cambodia",
-    "Vietnam",
-    "Malaysia"
-   ]
-  },
-  {
-   "id": "indonesia",
-   "name": "Indonesia",
-   "shortName": "INO",
-   "region": "australiaRegion",
-   "borders": [
-    "siam",
-    "newGuinea",
-    "westernAustralia"
-   ],
-   "isIsland": true,
-   "countries": [
-    "Indonesia",
-    "Brunei",
-    "Timor-Leste",
-    "Philippines"
-   ]
-  },
-  {
-   "id": "newGuinea",
-   "name": "New Guinea",
-   "shortName": "NGU",
-   "region": "australiaRegion",
-   "borders": [
-    "indonesia",
-    "westernAustralia",
-    "easternAustralia"
-   ],
-   "isIsland": true,
-   "countries": [
-    "Papua New Guinea"
-   ]
-  },
-  {
-   "id": "westernAustralia",
-   "name": "Western Australia",
-   "shortName": "WAU",
-   "region": "australiaRegion",
-   "borders": [
-    "indonesia",
-    "newGuinea",
-    "easternAustralia"
-   ]
-  },
-  {
-   "id": "easternAustralia",
-   "name": "Eastern Australia",
-   "shortName": "EAU",
-   "region": "australiaRegion",
-   "borders": [
-    "westernAustralia",
-    "newGuinea"
-   ]
-  }
- ],
- "warp": {
-  "lon": [
-   [
-    -180,
-    -180
-   ],
-   [
-    -172,
-    -172
-   ],
-   [
-    -50,
-    -26
-   ],
-   [
-    -15,
-    0
-   ],
-   [
-    150,
-    165
-   ],
-   [
-    180,
-    175
-   ]
-  ],
-  "lat": [
-   [
-    90,
-    90
-   ],
-   [
-    84,
-    84
-   ],
-   [
-    72,
-    80
-   ],
-   [
-    -10,
-    -6
-   ],
-   [
-    -45,
-    -46
-   ],
-   [
-    -60,
-    -60
-   ]
-  ]
- },
- "nudge": {
-  "greenland": {
-   "scale": 0.6,
-   "dx": 2,
-   "dy": 6
-  },
-  "iceland": {
-   "scale": 1.3,
-   "dx": 10,
-   "dy": -2
-  },
-  "greatBritain": {
-   "scale": 1.3,
-   "dx": -8
-  },
-  "japan": {
-   "scale": 1.25,
-   "dx": 10
-  },
-  "madagascar": {
-   "scale": 1.35,
-   "dx": 8,
-   "dy": 4
-  },
-  "indonesia": {
-   "scale": 1.4,
-   "dx": 0,
-   "dy": 6
-  },
-  "newGuinea": {
-   "scale": 1.3,
-   "dx": 8,
-   "dy": 8
-  },
-  "australiaRegion": {
-   "scale": 1.3,
-   "dx": 14,
-   "dy": 20
-  }
- }
 }

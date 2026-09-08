@@ -827,18 +827,27 @@ taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
 **S50. The world map is a board, not an atlas.** Nick: "The map needs to
-be representative not real world scale accurate." Longitude and latitude
-are each bent through a few control points before being drawn, so a band
-of the world can be widened or squeezed. Every point goes through the same
-bend, so two places that shared a border still share it exactly. The
-Americas are wider, the Atlantic and the Arctic and the far east of Siberia
-are narrower, and the whole sheet is drawn half as tall again, because the
-world is wide and short and a screen is not.
+be representative not real world scale accurate," and then, of the first
+try, "Looks a bit odd. This is what I'm aiming for", with a picture of the
+classic board: six big continents that fill the sheet with almost no sea
+between them, and Europe alone a fifth of the width. No atlas projection
+gets there, and bending longitude and latitude separately could not
+either. It cannot make Europe big without making Africa wide and Siberia
+tall.
+
+So the world is drawn on a rubber sheet held by PINS. Each pin says where
+one landmark on the earth goes on the board: "the west tip of Alaska goes
+2% in from the left and 15% down". Between the pins the sheet bends as
+smoothly as it can, the way a thin steel sheet does when pins are pushed
+through it. Every point goes through the same bend, so two places that
+shared a border still share it exactly. There are about sixty pins, in
+`tools/world-groups.json`, and they are the whole of the design.
 
 A place that touches nothing else, an island or Australia, is drawn TRUE to
-shape: only its middle goes through the bend, to decide where it sits, and
-then it can be scaled and slid to wherever the board has room. Without that
-Iceland came out a third as wide as it was tall.
+shape: only the middle of its group goes through the bend, to decide where
+it sits, and then it can be scaled to what it is worth in a game. Without
+that Iceland came out a third as wide as it was tall, and the two halves
+of Australia drifted apart.
 
 **S48. The full name where there is room, the short one where not.**
 

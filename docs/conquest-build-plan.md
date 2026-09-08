@@ -660,6 +660,28 @@ be. A bigger Australia is what makes strategy mean anything.
       several shapes, which the map format and three of the guards would
       all have to learn.
 
+      **PINNED TO THE BOARD, 2026-09-08.** Real borders on a real
+      projection are an atlas, and Nick wanted the board: "Looks a bit
+      odd. This is what I'm aiming for", with the classic board, six big
+      continents and almost no sea. The first go bent longitude and
+      latitude separately, and that cannot make Europe big without making
+      Africa wide and Siberia tall.
+
+      So the world sits on a rubber sheet held by about sixty PINS, each
+      saying where one landmark goes on the board (spec S50). Between the
+      pins the sheet bends smoothly (a thin-plate spline, solved by school
+      Gaussian elimination in the tool), and every point goes through the
+      same bend so shared borders hold. Three rounds by eye: the two halves
+      of Australia drifted apart until a group went through the bend about
+      ONE middle; Kamchatka was a sliver until the Russia split gave it the
+      far north-east; Siberia and Kazakhstan overlapped by three units at
+      one corner because Russia came from the 50m province file and
+      Kazakhstan from the 110m country file, two drawings of one border,
+      and the stretch tripled the gap. Everything comes from the 50m files
+      now, so every border is one line.
+
+      2,414 corners, all ten rules, nothing loosened.
+
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
       needs nothing installed, and is one link away. See spec 3.4.
