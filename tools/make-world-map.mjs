@@ -1,34 +1,39 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 /**
  * Draw the world map. Plan task 5.8.
  *
- * OURS, with no strings attached, and now with borders that WANDER.
+ * NICK'S COASTS, THE WORLD'S BORDERS.
  *
- * Three goes at this. The first was drawn from rectangles by hand: "far
- * too blocky". The second traced somebody else's drawing, which meant a
- * licence asking for credit and share-alike, and Nick did not want that.
- * The third cut real coastlines with straight cells of our own, which fixed
- * the coast and left the inland borders dead straight: "the inner borders
- * have too many straight lines, I'd like the maps to be more impressive
- * and realistic."
+ * Nick: "Why can't you just keep the outline I gave you?" So this keeps
+ * it. Every coast on the map is his drawing (`tools/data/nick-world-
+ * outline.svg`), read from his file and used as it is. What his drawing
+ * does not have is the borders inside the continents, and those come from
+ * Natural Earth, public domain: "No permission is needed to use Natural
+ * Earth. Crediting the authors is unnecessary." The data sits in
+ * `tools/data`, so a build needs no internet.
  *
- * **So the inland borders are real borders now.** Each place is a group of
- * real countries, joined together. Where a place is part of ONE country,
- * such as the two halves of the United States, it is a group of that
- * country's real provinces instead. The border between Peru and Brazil in
- * the game is the border between Peru and Brazil in the world.
+ * Six goes at this before it. Rectangles by hand: "far too blocky". A
+ * tracing of somebody else's board: a licence Nick did not want. Real
+ * coasts cut with straight cells: "too many straight lines". Real borders
+ * on a squeezed globe, then on a rubber sheet with sixty pins, then on a
+ * Mercator-like curve: "looks a bit odd", "very distorted and child
+ * like", "still problematic". Then his own drawing on the Robinson
+ * projection: "still looks all wrong to me." The lesson was that he had
+ * already drawn the map he wanted.
  *
- * Everything is public domain: Natural Earth's own words are "No permission
- * is needed to use Natural Earth. Crediting the authors is unnecessary."
- * The data sits in `tools/data`, so a build needs no internet.
+ * **How it goes together.** Each place is a group of real countries,
+ * joined; where a place is part of ONE country, such as either half of
+ * the United States, it is a group of that country's real provinces. Those
+ * shapes are laid over Nick's drawing with pins, then every cell of his
+ * land is given to the place whose border encloses it, and each place's
+ * outline is walked around its cells. Two neighbours are walked around
+ * the same cell edges, so they share their border point for point.
  *
  * **Joining countries works because the data shares its edges.** Where two
  * countries meet, both hold the SAME line, one running each way. So the
  * join is: throw away every edge that appears in both directions, because
  * that is a border inside the group, and stitch what is left into a ring.
- * Half the edges in the file have their reverse present, which is exactly
- * the half that is a land border.
  *
  * Run it with:  node tools/make-world-map.mjs
  */
@@ -76,12 +81,25 @@ function middleOf(ring) {
   ]
 }
 
+/**
+ * The far east of Russia is west of the date line, so its longitude reads
+ * as -170, which would put it beside Alaska. Read it as 190 instead.
+ */
+function acrossTheDateLine(ring) {
+  return ring.map(([lon, lat]) => [lon < -100 ? lon + 360 : lon, lat])
+}
+
 /** Every country, by name, as a list of rings. */
 function loadCountries() {
   const found = new Map()
 
   for (const feature of JSON.parse(readFileSync(COUNTRIES, 'utf8')).features) {
-    found.set(feature.properties.NAME, ringsOf(feature.geometry))
+    found.set(
+      feature.properties.NAME,
+      feature.properties.NAME === 'Russia'
+        ? ringsOf(feature.geometry).map(acrossTheDateLine)
+        : ringsOf(feature.geometry),
+    )
   }
 
   return found
@@ -95,7 +113,10 @@ function loadProvinces() {
     found.push({
       country: feature.properties.admin,
       name: feature.properties.name,
-      rings: ringsOf(feature.geometry),
+      rings:
+        feature.properties.admin === 'Russia'
+          ? ringsOf(feature.geometry).map(acrossTheDateLine)
+          : ringsOf(feature.geometry),
     })
   }
 
@@ -191,7 +212,7 @@ function joined(rings) {
  * redraw comfortably and far more than an eye can see. This keeps the
  * shape of a coast and a border and drops the wobble between.
  */
-const SIMPLIFY_TO = Number(process.env['SIMPLIFY'] ?? 0.7)
+const SIMPLIFY_TO = Number(process.env['SIMPLIFY'] ?? 1.6)
 
 function awayFromLine(point, from, to) {
   const alongX = to[0] - from[0]
@@ -285,16 +306,6 @@ function roundedRing(ring, times = ROUND_TIMES) {
 
   line.pop()
   return line
-}
-
-/**
- * An island on its own, simplified and rounded. A small island gets a
- * finer tolerance, or it comes out a triangle.
- */
-function smallRing(ring) {
-  const tolerance = Math.min(SIMPLIFY_TO, Math.sqrt(roomTaken(ring)) / 3)
-
-  return roundedRing(simplifiedRing(ring, tolerance))
 }
 
 /** How many times the corners are cut. Once rounds, twice curves. */
@@ -391,141 +402,461 @@ function simplifyTogether(outlines, tolerance) {
   return out
 }
 
-// ---------------------------------------------------------- the projection
+// ------------------------------------------- Nick's outline, and the sheet
+
+/** Nick's drawing of the world, traced. Every coast on the map is his. */
+const OUTLINE = 'tools/data/nick-world-outline.svg'
 
 /**
- * The Robinson projection: the world map from a classroom wall.
- *
- * Nick sent a clean drawing of the world to aim at, after two tries that
- * bent the world to fit a board. One bent longitude and latitude to
- * squeeze the oceans: "looks a bit odd." One pulled a rubber sheet with
- * sixty pins: "very distorted and child like." The lesson is that nobody
- * wants a clever world. They want the one they already know.
- *
- * Robinson is the map most people picture when they picture the world.
- * It is not a formula but a TABLE, made by its author in 1963 to look
- * right rather than to be right: how wide a parallel is and how far from
- * the equator it sits, every five degrees, with straight lines between.
- * The poles are pulled in, so Greenland is not a monster and Alaska
- * leans, just as on the wall. Every point goes through the same table,
- * so two places that shared a border still share it exactly.
+ * Nick: "Why can't you just keep the outline I gave you?" So it is kept,
+ * exactly. His file is a tracing of a line drawing: each coast is a thin
+ * black band, and this reads the bands as rings of points. Straight
+ * pieces are kept as they are and each curve is cut into four.
  */
-const EVERY_FIVE_DEGREES = [
-  // [how wide, how far up] at 0, 5, 10 ... 90 degrees from the equator.
-  [1.0, 0.0], [0.9986, 0.062], [0.9954, 0.124], [0.99, 0.186], [0.9822, 0.248],
-  [0.973, 0.31], [0.96, 0.372], [0.9427, 0.434], [0.9216, 0.4958], [0.8962, 0.5571],
-  [0.8679, 0.6176], [0.835, 0.6769], [0.7986, 0.7346], [0.7597, 0.7903], [0.7186, 0.8435],
-  [0.6732, 0.8936], [0.6213, 0.9394], [0.5722, 0.9761], [0.5322, 1.0],
-]
+function loadOutline() {
+  const text = readFileSync(OUTLINE, 'utf8')
+  const drawing = text.slice(text.indexOf('</metadata>'))
+  const placed = /translate\(([-\d.]+),([-\d.]+)\) scale\(([-\d.]+),([-\d.]+)\)/.exec(drawing)
+  const [dx, dy, sx, sy] = placed.slice(1).map(Number)
+  const rings = []
 
-/** A degree of longitude at the equator is this many units. */
-const SCALE = 2.6
-
-/**
- * How much taller than wide the map is drawn. 1 is Robinson's own, which
- * is twice as wide as high once the ice is cut off. Nick's drawing of the
- * world to aim at is about one and a half times as wide as high, and the
- * places are easier to tap for it.
- */
-const TALLER = Number(process.env['TALLER'] ?? 1.25)
-
-/** Robinson's height above the equator, in degrees of longitude. */
-const TO_THE_POLE = (1.3523 / 0.8487) * (180 / Math.PI)
-
-function robinson(lat) {
-  const away = Math.min(Math.abs(lat), 90) / 5
-  const step = Math.min(Math.floor(away), 17)
-  const between = away - step
-  const [wideFrom, upFrom] = EVERY_FIVE_DEGREES[step]
-  const [wideTo, upTo] = EVERY_FIVE_DEGREES[step + 1]
-  const up = upFrom + between * (upTo - upFrom)
-
-  return {
-    wide: wideFrom + between * (wideTo - wideFrom),
-    up: lat < 0 ? -up : up,
+  for (const [, path] of drawing.matchAll(/<path d="([^"]+)"/g)) {
+    rings.push(...flattened(path))
   }
+
+  return rings.map((ring) => ring.map(([x, y]) => [dx + x * sx, dy + y * sy]))
 }
 
-function project([lon, lat]) {
-  const { wide, up } = robinson(lat)
+/** An SVG path of moves, lines and curves, as rings of points. */
+function flattened(path) {
+  const tokens = path.match(/[MmCcLlZz]|-?\d+\.?\d*/g) ?? []
+  const rings = []
+  let ring = []
+  let now = [0, 0]
+  let start = [0, 0]
+  let command = 'M'
+  let at = 0
+  const next = () => Number(tokens[at++])
 
-  return [
-    Number(((wide * lon + 180) * SCALE).toFixed(1)),
-    Number(((1 - up) * TO_THE_POLE * SCALE * TALLER).toFixed(1)),
-  ]
-}
-
-/**
- * Where a place goes on the board without being bent itself.
- *
- * A place that touches nothing else, an island or Australia, is drawn at
- * the scale the board has where its middle lands, and then left alone. So
- * it takes the stretch of its own part of the board, and no more, and
- * the nudge below then sizes it for the game.
- */
-function projectedTrue(ring, middle) {
-  const [midX, midY] = project(middle)
-  const step = 0.5
-  const scaleX = (project([middle[0] + step, middle[1]])[0] - project([middle[0] - step, middle[1]])[0]) / (2 * step)
-  const scaleY = (project([middle[0], middle[1] - step])[1] - project([middle[0], middle[1] + step])[1]) / (2 * step)
-
-  return ring.map(([lon, lat]) => [
-    Number((midX + (lon - middle[0]) * scaleX).toFixed(1)),
-    Number((midY - (lat - middle[1]) * scaleY).toFixed(1)),
-  ])
-}
-
-/**
- * The middle of a group's box, in longitude and latitude. A group that
- * stands alone, such as the two halves of Australia, goes through the
- * bend as ONE piece about ONE middle, or the halves drift apart.
- */
-function middleOfAll(rings) {
-  const xs = rings.flatMap((ring) => ring.map(([lon]) => lon))
-  const ys = rings.flatMap((ring) => ring.map(([, lat]) => lat))
-
-  return [
-    (Math.min(...xs) + Math.max(...xs)) / 2,
-    (Math.min(...ys) + Math.max(...ys)) / 2,
-  ]
-}
-
-/**
- * Move and resize a group of places that touch nothing else.
- *
- * An island, or a continent with no land border, can go wherever the board
- * has room. Australia can move to the corner it has to itself, and
- * Greenland can shrink to what it is worth in a game. Each nudge scales
- * the group about the middle of its own box and then slides it, in map
- * units, after the bend above has been applied.
- */
-function nudged(places, nudges) {
-  for (const [name, nudge] of Object.entries(nudges ?? {})) {
-    const group = places.filter(
-      (place) => place.id === name || place.region === name,
-    )
-
-    if (group.length === 0) {
-      throw new Error(`Nothing called "${name}" to nudge.`)
+  while (at < tokens.length) {
+    if (/[A-Za-z]/.test(tokens[at])) {
+      command = tokens[at++]
     }
 
-    const xs = group.flatMap((place) => place.corners.map(([x]) => x))
-    const ys = group.flatMap((place) => place.corners.map(([, y]) => y))
-    const middleX = (Math.min(...xs) + Math.max(...xs)) / 2
-    const middleY = (Math.min(...ys) + Math.max(...ys)) / 2
-    const scale = nudge.scale ?? 1
+    // A small letter means "from where the pen is".
+    const from = command === command.toLowerCase() ? now : [0, 0]
 
-    const moved = (ring) =>
-      ring.map(([x, y]) => [
-        Number((middleX + (x - middleX) * scale + (nudge.dx ?? 0)).toFixed(1)),
-        Number((middleY + (y - middleY) * scale + (nudge.dy ?? 0)).toFixed(1)),
-      ])
+    if (command === 'M' || command === 'm') {
+      if (ring.length > 0) rings.push(ring)
+      now = [from[0] + next(), from[1] + next()]
+      start = now
+      ring = [now]
+      command = command === 'm' ? 'l' : 'L'
+    } else if (command === 'L' || command === 'l') {
+      now = [from[0] + next(), from[1] + next()]
+      ring.push(now)
+    } else if (command === 'C' || command === 'c') {
+      const x1 = from[0] + next()
+      const y1 = from[1] + next()
+      const x2 = from[0] + next()
+      const y2 = from[1] + next()
+      const x = from[0] + next()
+      const y = from[1] + next()
+      const [x0, y0] = now
 
-    for (const place of group) {
-      place.corners = moved(place.corners)
-      place.islands = place.islands.map(moved)
+      for (const t of [0.25, 0.5, 0.75, 1]) {
+        const u = 1 - t
+
+        ring.push([
+          u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x,
+          u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y,
+        ])
+      }
+      now = [x, y]
+    } else {
+      if (ring.length > 0) rings.push(ring)
+      ring = []
+      now = start
     }
   }
+  if (ring.length > 0) rings.push(ring)
+
+  return rings
+}
+
+/**
+ * Where the real borders go on Nick's drawing.
+ *
+ * His drawing has every coast and no borders. Natural Earth has both, on
+ * a globe. So the globe is laid over his drawing with PINS: each pin says
+ * where one landmark on the earth is in his picture, and between the pins
+ * a rubber sheet bends as smoothly as it can (a thin-plate spline). Then
+ * the real borders ride the sheet onto his drawing.
+ *
+ * The sheet only has to be roughly right. A border that lands a little
+ * off the coast does no harm, because every place is finally cut out of
+ * HIS land, not the sheet's. The pins live in `tools/world-groups.json`.
+ */
+function solved(matrix, answers) {
+  // Gaussian elimination, the school method, with the biggest row first.
+  const size = answers.length
+  const rows = matrix.map((row, at) => [...row, answers[at]])
+
+  for (let column = 0; column < size; column += 1) {
+    let best = column
+
+    for (let row = column + 1; row < size; row += 1) {
+      if (Math.abs(rows[row][column]) > Math.abs(rows[best][column])) {
+        best = row
+      }
+    }
+    ;[rows[column], rows[best]] = [rows[best], rows[column]]
+
+    for (let row = 0; row < size; row += 1) {
+      if (row === column) continue
+
+      const factor = rows[row][column] / rows[column][column]
+
+      for (let at = column; at <= size; at += 1) {
+        rows[row][at] -= factor * rows[column][at]
+      }
+    }
+  }
+
+  return rows.map((row, at) => row[size] / row[at])
+}
+
+function pinnedSheet(pins) {
+  // A pin is [lon, lat, x, y]: a point on the earth, and where it is in
+  // Nick's drawing.
+  const from = pins.map(([lon, lat]) => [lon, lat])
+  const to = pins.map(([, , x, y]) => [x, y])
+  const count = pins.length
+  const pull = (a, b) => {
+    const squared = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+
+    return squared === 0 ? 0 : (squared * Math.log(squared)) / 2
+  }
+  const matrix = []
+
+  for (let row = 0; row < count + 3; row += 1) {
+    matrix.push(new Array(count + 3).fill(0))
+  }
+  for (let row = 0; row < count; row += 1) {
+    for (let column = 0; column < count; column += 1) {
+      matrix[row][column] = pull(from[row], from[column])
+    }
+    matrix[row][count] = 1
+    matrix[row][count + 1] = from[row][0]
+    matrix[row][count + 2] = from[row][1]
+    matrix[count][row] = 1
+    matrix[count + 1][row] = from[row][0]
+    matrix[count + 2][row] = from[row][1]
+  }
+
+  const weightsX = solved(matrix, [...to.map(([x]) => x), 0, 0, 0])
+  const weightsY = solved(matrix, [...to.map(([, y]) => y), 0, 0, 0])
+  const bend = (weights, point) => {
+    let out = weights[count] + weights[count + 1] * point[0] + weights[count + 2] * point[1]
+
+    for (let at = 0; at < count; at += 1) {
+      out += weights[at] * pull(from[at], point)
+    }
+
+    return out
+  }
+
+  return (point) => [bend(weightsX, point), bend(weightsY, point)]
+}
+
+// ------------------------------------------------------------- the cutting
+
+/**
+ * Every place is cut out of Nick's land, one cell at a time.
+ *
+ * The drawing is laid on a grid of cells, one to a unit. A cell is LAND if
+ * the sea cannot reach it from the corner of the page, which is what makes
+ * the inside of a coastline count as land. Each land cell is then given to
+ * the place whose real border encloses it, or, along the coast where the
+ * sheet is a little off, to the nearest place. Land too far from any
+ * place is scenery: New Zealand belongs to nobody.
+ *
+ * Then the edge of each place's cells is walked to make its outline. Two
+ * neighbours' outlines are built from the SAME cell edges, so they share
+ * their border point for point, which is what every rule of a map needs.
+ */
+
+/** How far a land cell may be from any place before it is scenery. */
+const NOBODYS = Number(process.env['NOBODYS'] ?? 8)
+
+/** Rings smaller than this many cells are noise from the tracing. */
+const TOO_FEW_CELLS = 4
+
+function painted(rings, width, height) {
+  // Even-odd: a cell is inside where an odd number of rings cover it.
+  // That is how the thin bands of Nick's tracing come out as lines.
+  const grid = new Uint8Array(width * height)
+
+  for (const ring of rings) {
+    let top = Infinity
+    let bottom = -Infinity
+
+    for (const [, y] of ring) {
+      top = Math.min(top, y)
+      bottom = Math.max(bottom, y)
+    }
+
+    for (let row = Math.max(0, Math.floor(top)); row <= Math.min(height - 1, Math.ceil(bottom)); row += 1) {
+      const y = row + 0.5
+      const crossings = []
+
+      for (let at = 0; at < ring.length; at += 1) {
+        const [x1, y1] = ring[at]
+        const [x2, y2] = ring[(at + 1) % ring.length]
+
+        if (y1 > y !== y2 > y) {
+          crossings.push(x1 + ((y - y1) * (x2 - x1)) / (y2 - y1))
+        }
+      }
+      crossings.sort((a, b) => a - b)
+
+      for (let k = 0; k + 1 < crossings.length; k += 2) {
+        const from = Math.max(0, Math.round(crossings[k]))
+        const to = Math.min(width - 1, Math.round(crossings[k + 1]) - 1)
+
+        for (let column = from; column <= to; column += 1) {
+          grid[row * width + column] ^= 1
+        }
+      }
+    }
+  }
+
+  return grid
+}
+
+/** A gap in a coastline up to twice this many cells wide is closed. */
+const GAP = Number(process.env['GAP'] ?? 2)
+
+function grown(grid, width, height, by, value) {
+  // Every cell within `by` of a set cell becomes `value` (1 to grow the
+  // set, 0 to shrink it: then it is the unset cells that spread).
+  const out = Uint8Array.from(grid)
+
+  for (let row = 0; row < height; row += 1) {
+    for (let column = 0; column < width; column += 1) {
+      if (grid[row * width + column] !== value) continue
+
+      for (let dy = -by; dy <= by; dy += 1) {
+        for (let dx = -by; dx <= by; dx += 1) {
+          const y = row + dy
+          const x = column + dx
+
+          if (y >= 0 && y < height && x >= 0 && x < width) {
+            out[y * width + x] = value
+          }
+        }
+      }
+    }
+  }
+
+  return out
+}
+
+function landOf(lines, width, height) {
+  // The lines, thicker, so a gap in the drawing does not let the sea in.
+  // Nick: "there are some coast gaps I can see." The land is shrunk back
+  // by the same amount afterwards, so the coast stays where he drew it.
+  const thick = grown(lines, width, height, GAP, 1)
+
+  // The sea floods in from the corner of the page.
+  const sea = new Uint8Array(width * height)
+  const queue = [0]
+
+  sea[0] = 1
+  while (queue.length > 0) {
+    const cell = queue.pop()
+    const x = cell % width
+    const y = (cell - x) / width
+
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx
+      const ny = y + dy
+
+      if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+      const next = ny * width + nx
+
+      if (sea[next] === 0 && thick[next] === 0) {
+        sea[next] = 1
+        queue.push(next)
+      }
+    }
+  }
+
+  const land = new Uint8Array(width * height)
+
+  for (let cell = 0; cell < land.length; cell += 1) {
+    land[cell] = sea[cell] === 0 ? 1 : 0
+  }
+
+  return grown(land, width, height, GAP, 0)
+}
+
+const NOBODY = -1
+const SCENERY = -2
+
+function givenOut(land, places, width, height) {
+  const owner = new Int16Array(width * height).fill(NOBODY)
+
+  // First, every land cell inside a place's real border.
+  places.forEach((place, index) => {
+    const inside = painted(place.onTheSheet, width, height)
+
+    for (let cell = 0; cell < owner.length; cell += 1) {
+      if (inside[cell] === 1 && land[cell] === 1 && owner[cell] === NOBODY) {
+        owner[cell] = index
+      }
+    }
+  })
+
+  // Then the rest of the land goes to the nearest place, spreading out
+  // one cell at a time, up to a limit.
+  let edge = []
+
+  for (let cell = 0; cell < owner.length; cell += 1) {
+    if (owner[cell] >= 0) edge.push(cell)
+  }
+
+  for (let step = 0; step < NOBODYS && edge.length > 0; step += 1) {
+    const grown = []
+
+    for (const cell of edge) {
+      const x = cell % width
+      const y = (cell - x) / width
+
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx
+        const ny = y + dy
+
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+        const next = ny * width + nx
+
+        if (land[next] === 1 && owner[next] === NOBODY) {
+          owner[next] = owner[cell]
+          grown.push(next)
+        }
+      }
+    }
+    edge = grown
+  }
+
+  for (let cell = 0; cell < owner.length; cell += 1) {
+    if (land[cell] === 1 && owner[cell] === NOBODY) owner[cell] = SCENERY
+  }
+
+  // A cell surrounded by another owner goes over to it. Twice over, this
+  // takes the pimples and pinholes off every border.
+  for (let pass = 0; pass < 2; pass += 1) {
+    const before = Int16Array.from(owner)
+
+    for (let row = 1; row < height - 1; row += 1) {
+      for (let column = 1; column < width - 1; column += 1) {
+        const cell = row * width + column
+
+        if (land[cell] === 0) continue
+
+        const votes = new Map()
+
+        for (let dy = -1; dy <= 1; dy += 1) {
+          for (let dx = -1; dx <= 1; dx += 1) {
+            const near = before[(row + dy) * width + column + dx]
+
+            if (near !== NOBODY) votes.set(near, (votes.get(near) ?? 0) + 1)
+          }
+        }
+        for (const [who, count] of votes) {
+          if (count >= 6 && who !== before[cell]) owner[cell] = who
+        }
+      }
+    }
+  }
+
+  return owner
+}
+
+/** The outline of every separate patch of one owner's cells. */
+function walkedAround(owner, who, width, height) {
+  const leaving = new Map()
+  const add = (from, to) => {
+    const key = `${from[0]},${from[1]}`
+
+    leaving.set(key, [...(leaving.get(key) ?? []), to])
+  }
+
+  for (let row = 0; row < height; row += 1) {
+    for (let column = 0; column < width; column += 1) {
+      if (owner[row * width + column] !== who) continue
+
+      const mine = (x, y) =>
+        x >= 0 && y >= 0 && x < width && y < height && owner[y * width + x] === who
+
+      // Clockwise around the cell, so the land is always on the right.
+      if (!mine(column, row - 1)) add([column, row], [column + 1, row])
+      if (!mine(column + 1, row)) add([column + 1, row], [column + 1, row + 1])
+      if (!mine(column, row + 1)) add([column + 1, row + 1], [column, row + 1])
+      if (!mine(column - 1, row)) add([column, row + 1], [column, row])
+    }
+  }
+
+  const rings = []
+
+  while (leaving.size > 0) {
+    const [firstKey, firstOut] = leaving.entries().next().value
+    let now = firstKey.split(',').map(Number)
+    let heading = [0, 0]
+    const ring = []
+
+    while (true) {
+      const key = `${now[0]},${now[1]}`
+      const outs = leaving.get(key)
+
+      if (outs === undefined) break
+
+      // At a pinch, where two patches of the same owner touch at a
+      // corner, turn right, which keeps to this patch.
+      let pick = 0
+
+      if (outs.length > 1) {
+        let bestTurn = -Infinity
+
+        outs.forEach((to, at) => {
+          const turn = heading[0] * (to[1] - now[1]) - heading[1] * (to[0] - now[0])
+
+          if (turn > bestTurn) {
+            bestTurn = turn
+            pick = at
+          }
+        })
+      }
+
+      const to = outs[pick]
+
+      outs.splice(pick, 1)
+      if (outs.length === 0) leaving.delete(key)
+      ring.push(now)
+      heading = [to[0] - now[0], to[1] - now[1]]
+      now = to
+      if (now[0] === firstOut[0] && now[1] === firstOut[1] && ring.length > 0 && key === firstKey) {
+        // Back where the first step began.
+      }
+      if (`${now[0]},${now[1]}` === firstKey) break
+    }
+
+    if (ring.length >= 4) rings.push(ring)
+  }
+
+  return rings
 }
 
 // ------------------------------------------------------- where a name goes
@@ -665,13 +996,13 @@ function placeForProvince(rules, province) {
 
 function main() {
   const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
-
   const countries = loadCountries()
   const provinces = loadProvinces()
+  const sheet = pinnedSheet(meta.pins)
 
   // Every province, sorted into the place it belongs to.
   const provincesFor = new Map()
-  let homeless = []
+  const homeless = []
 
   for (const province of provinces) {
     const place = placeForProvince(meta.provinceRules, province)
@@ -688,6 +1019,7 @@ function main() {
     console.log(`provinces left out: ${homeless.length}`)
   }
 
+  // Each place's real shape, laid on the sheet.
   const built = []
   const unknown = []
 
@@ -702,91 +1034,87 @@ function main() {
         continue
       }
 
-      rings.push(...found.filter((ring) => roomTaken(ring) >= TOO_SMALL))
+      rings.push(...found)
     }
 
     for (const province of provincesFor.get(place.id) ?? []) {
-      rings.push(...province.rings.filter((ring) => roomTaken(ring) >= TOO_SMALL))
+      rings.push(...province.rings)
     }
 
     if (rings.length === 0) {
       throw new Error(`"${place.id}" is made of nothing.`)
     }
 
-    const outlines = joined(rings).sort((a, b) => roomTaken(b) - roomTaken(a))
-
-    built.push({
-      ...place,
-      pieces: outlines.length,
-      outline: outlines[0],
-      // The smaller pieces: every other island of Indonesia or Japan.
-      // They are drawn with the place and can be tapped, but the place's
-      // shape for every rule is its biggest piece.
-      islands: outlines.slice(1).filter((ring) => roomTaken(ring) >= TOO_SMALL_ISLAND),
-    })
-  }
-
-  // Land that belongs to nobody, such as New Zealand and the Philippines.
-  // It is drawn so the world looks like the world, and never tapped.
-  const scenery = []
-
-  for (const name of meta.scenery ?? []) {
-    const found = countries.get(name)
-
-    if (found === undefined) {
-      unknown.push(`scenery: ${name}`)
-      continue
-    }
-
-    for (const ring of joined(found.filter((ring) => roomTaken(ring) >= TOO_SMALL_ISLAND))) {
-      scenery.push(ring)
-    }
-  }
-
-  // Every place at once, so a shared border is simplified once.
-  const thinner = simplifyTogether(
-    new Map(built.map((place) => [place.id, place.outline])),
-    SIMPLIFY_TO,
-  )
-
-  const standsAlone = (place) =>
-    Object.keys(meta.nudge ?? {}).find(
-      (name) => name === place.id || name === place.region,
+    const onTheSheet = joined(rings.filter((ring) => roomTaken(ring) >= TOO_SMALL_ISLAND)).map(
+      (ring) => simplifiedRing(ring, 0.1).map(sheet),
     )
 
-  for (const place of built) {
-    const ring = thinner.get(place.id)
-    const group = standsAlone(place)
-    const middle =
-      group === undefined
-        ? null
-        : middleOfAll(
-            built
-              .filter((other) => standsAlone(other) === group)
-              .map((other) => thinner.get(other.id)),
-          )
-
-    const drawn = (shape) =>
-      (middle ? projectedTrue(shape, middle) : shape.map((p) => project(p))).filter(
-        (point, at, all) =>
-          at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1],
-      )
-
-    place.corners = drawn(ring)
-    place.islands = place.islands.map((island) => drawn(smallRing(island)))
-  }
-
-  const drawnScenery = scenery.map((ring) => smallRing(ring).map((p) => project(p)))
-
-  nudged(built, meta.nudge)
-
-  for (const place of built) {
-    place.labelAt = roomiestIn(place.corners)
+    built.push({ ...place, onTheSheet })
   }
 
   if (unknown.length > 0) {
     throw new Error(`No such country:\n  ${unknown.join('\n  ')}`)
   }
+
+  // Nick's drawing, as land.
+  const outline = loadOutline()
+  const width = Math.ceil(Math.max(...outline.flatMap((ring) => ring.map(([x]) => x)))) + 3
+  const height = Math.ceil(Math.max(...outline.flatMap((ring) => ring.map(([, y]) => y)))) + 3
+  const land = landOf(painted(outline, width, height), width, height)
+
+  // A picture of how the sheet fits, for the person tuning the pins.
+  mkdirSync('public/scratch', { recursive: true })
+  writeFileSync(
+    'public/scratch/fit-check.svg',
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width * 2}" height="${height * 2}" style="background:#fff">\n` +
+      outline.map((ring) => `<path d="M ${ring.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L ')} Z" fill="none" stroke="#000" stroke-width="0.5"/>`).join('\n') +
+      built.flatMap((place) => place.onTheSheet.map((ring) => `<path d="M ${ring.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(' L ')} Z" fill="none" stroke="#e00" stroke-width="0.6"/>`)).join('\n') +
+      `\n</svg>\n`,
+  )
+
+  // Cut every place out of the land.
+  const owner = givenOut(land, built, width, height)
+  const everyRing = new Map()
+
+  built.forEach((place, index) => {
+    const rings = walkedAround(owner, index, width, height)
+      .filter((ring) => Math.abs(roomTaken(ring)) >= TOO_FEW_CELLS)
+      .sort((a, b) => Math.abs(roomTaken(b)) - Math.abs(roomTaken(a)))
+
+    if (rings.length === 0) {
+      throw new Error(`"${place.id}" got no land at all. Check the pins around it.`)
+    }
+
+    rings.forEach((ring, at) => everyRing.set(`${place.id}/${at}`, ring))
+    place.pieces = rings.length
+  })
+
+  const sceneryRings = walkedAround(owner, SCENERY, width, height).filter(
+    (ring) => Math.abs(roomTaken(ring)) >= TOO_FEW_CELLS,
+  )
+
+  sceneryRings.forEach((ring, at) => everyRing.set(`scenery/${at}`, ring))
+
+  // Every ring at once, so a shared border is simplified once, then
+  // rounded, because cells have square corners and coasts do not.
+  const thinner = simplifyTogether(everyRing, SIMPLIFY_TO)
+  const tidy = (ring) =>
+    ring
+      .map(([x, y]) => [Number(x.toFixed(1)), Number(y.toFixed(1))])
+      .filter((point, at, all) => at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1])
+
+  for (const place of built) {
+    const rings = []
+
+    for (let at = 0; at < place.pieces; at += 1) {
+      rings.push(tidy(thinner.get(`${place.id}/${at}`)))
+    }
+    place.corners = rings[0]
+    place.islands = rings.slice(1)
+    place.labelAt = roomiestIn(place.corners)
+  }
+
+  const drawnScenery = sceneryRings.map((ring, at) => tidy(thinner.get(`scenery/${at}`)))
 
   const several = built.filter((place) => place.pieces > 1)
 
@@ -805,12 +1133,12 @@ function main() {
       `, scenery rings: ${drawnScenery.length}`,
   )
 
-  const everyRing = [
+  const allRings = [
     ...built.flatMap((place) => [place.corners, ...place.islands]),
     ...drawnScenery,
   ]
-  const xs = everyRing.flatMap((ring) => ring.map(([x]) => x))
-  const ys = everyRing.flatMap((ring) => ring.map(([, y]) => y))
+  const xs = allRings.flatMap((ring) => ring.map(([x]) => x))
+  const ys = allRings.flatMap((ring) => ring.map(([, y]) => y))
   const edge = 12
   // A name hangs below its count and spreads either side of it, about
   // half the font size per letter. The frame reaches past the name, not

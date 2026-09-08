@@ -431,15 +431,15 @@ export function NewGameScreen({
 
         {/*
           Not an obligation. Natural Earth asks for nothing at all, not even
-          credit, and the shapes we cut from it are our own. Saying where
-          the coastlines came from is just the truth, and it costs a line.
+          credit, and the shapes we cut with it are our own. Saying where
+          the borders came from is just the truth, and it costs a line.
         */}
         <p className="setup-credit">
-          Coastlines from{' '}
+          Borders from{' '}
           <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
             Natural Earth
           </a>
-          , which is public domain. The maps themselves are ours.
+          , which is public domain. The coastlines and the maps themselves are ours.
         </p>
 
         <div className="setup-buttons">

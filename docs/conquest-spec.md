@@ -826,26 +826,28 @@ For a tap to reach the board, everything drawn over the sea has to ignore
 taps: the coast, the region lines, the borders inside a region and the
 army counts are all drawing rather than targets.
 
-**S50. The world map is the one everybody already knows.** Three tries
-that bent the world to fit a board all failed with Nick. Squeezing the
-oceans: "looks a bit odd." A rubber sheet held by sixty pins: "very
-distorted and child like." A Mercator-like curve with Europe widened:
-"still problematic." Then he sent a clean drawing of the world to aim at,
-and the lesson is that nobody wants a clever world. "It's a map of the
-world, it shouldn't be so hard."
+**S50. The world map's coasts are Nick's own drawing.** Four tries at
+projecting the real world were all rejected: squeezing the oceans ("looks
+a bit odd"), a rubber sheet held by sixty pins ("very distorted and child
+like"), a Mercator-like curve ("still problematic"), and the Robinson
+projection with every island ("still looks all wrong to me"). Then: "Why
+can't you just keep the outline I gave you?"
 
-So the world is drawn on the Robinson projection, the map most people
-picture when they picture the world: a table of how wide each parallel is
-and how far from the equator it sits, made in 1963 to look right rather
-than to be right. The poles are pulled in, so Greenland is its usual size
-and Alaska leans. It is drawn a quarter taller than Robinson's own, to
-match Nick's drawing and to make places easier to tap. Every point goes
-through the same table, so two places that shared a border still share
-it exactly. Islands and Australia are drawn at their natural size, with
-at most a tenth or two added so a small island can be tapped.
+So the outline he gave is kept, exactly. His drawing
+(`tools/data/nick-world-outline.svg`) is every coast on the map. It has
+no borders inside the continents, so those come from Natural Earth, laid
+over his drawing with pins (each pin says where one landmark on the earth
+is in his picture, and a rubber sheet bends smoothly between them). Then
+every cell of his land goes to the place whose real border encloses it,
+or to the nearest place along the coast, and each place's outline is
+walked around its cells. Two neighbours are walked around the same cell
+edges, so they share their border point for point, which is what every
+rule of a map needs. Land too far from any place is scenery (S52). The
+pins are the whole of the design and live in `tools/world-groups.json`.
 
-**S51. Rounded coasts.** Simplifying a coast leaves straight runs meeting
-at sharp corners, which reads as jagged. So after simplifying, every
+**S51. Rounded coasts.** A coast walked around square cells is a
+staircase, and simplifying it leaves straight runs meeting at sharp
+corners, which reads as jagged. So after simplifying, every
 corner is cut off twice (Chaikin's method: each run is replaced by the
 points a quarter and three quarters of the way along it). The ends of a
 run stay where they were, and a shared border is one run rounded once

@@ -660,29 +660,29 @@ be. A bigger Australia is what makes strategy mean anything.
       several shapes, which the map format and three of the guards would
       all have to learn.
 
-      **THE WORLD EVERYBODY KNOWS, 2026-09-08.** Three tries at bending
-      the world to fit a board, and Nick liked none of them: "looks a bit
-      odd", "very distorted and child like", "still problematic". Then he
-      sent a clean drawing of the world to aim at. It is the Robinson
-      projection, near enough, with every island, and that is what the
-      map is now (spec S50). Nothing clever. Coasts are rounded by cutting
-      corners (spec S51), because a simplified coast is jagged and a drawn
-      one is smooth.
+      **NICK'S OWN COASTS, 2026-09-08.** Four projections of the real
+      world, and Nick liked none: "looks a bit odd", "very distorted and
+      child like", "still problematic", "still looks all wrong to me".
+      He sent a clean drawing of the world and then asked the question
+      that settled it: "Why can't you just keep the outline I gave you?"
 
-      Every island is drawn (spec S52). A place's shape is still its
-      biggest piece and every rule looks only at that; its other pieces
-      are drawn with it and tapped with it. Land that belongs to nobody,
-      New Zealand and the Philippines and the Caribbean, is drawn as
-      scenery and never tapped. Without them the map was a diagram.
+      So it is kept (spec S50). His drawing is every coast on the map.
+      The borders inside the continents come from Natural Earth, laid
+      over his drawing with about sixty pins, and then every cell of HIS
+      land is given to the place whose border encloses it. A border that
+      lands a little off his coast does no harm, because each place is
+      cut out of his land, not the sheet's. Each place's outline is
+      walked around its cells, so two neighbours share their border point
+      for point, and the map passes all ten rules with nothing loosened.
 
-      On the way: Kamchatka was a sliver until the Russia split gave it
-      the far north-east, and Siberia and Kazakhstan overlapped by three
-      units because Russia came from the 50m province file and Kazakhstan
-      from the 110m country file, two drawings of one border. Everything
-      comes from the 50m files now, so every border is one line.
+      His tracing had gaps in the coastline, which let the sea flood into
+      North America. The lines are thickened by two cells before the sea
+      floods in and the land shrunk back by two after, so a gap up to
+      four cells wide closes and the coast stays where he drew it.
 
-      2,849 corners in places, 1,056 more in islands, 48 rings of
-      scenery, all ten rules, nothing loosened.
+      Every island is drawn (spec S52): a place's other pieces with it,
+      and land that belongs to nobody as scenery. 3,570 corners in
+      places, 768 in islands, 67 rings of scenery.
 
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
