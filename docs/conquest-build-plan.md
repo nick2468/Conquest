@@ -675,6 +675,28 @@ be. A bigger Australia is what makes strategy mean anything.
       walked around its cells, so two neighbours share their border point
       for point, and the map passes all ten rules with nothing loosened.
 
+      **THE SHEET IS NOW WORKED OUT, NOT TYPED.** The sixty pins were
+      mine, by eye, and they were wrong: Kamchatka landed nine hundred
+      units east out in the Pacific, so Japan was drawn on top of Korea
+      and New Guinea went to Indonesia. Nick: "you seem determined to
+      make this a real world representation, it's for a game," and "I'm
+      spending too much time explaining to you." Both fair.
+
+      `node tools/fit-world-sheet.mjs` now lays every real coastline on
+      his drawing and slides a grid of handles about until the two agree
+      as well as they can. A plain world map agrees 63%; bent, it agrees
+      87%. Nothing is typed by eye any more, and the fit runs again
+      whenever he redraws.
+
+      That one change fixed most of a list Nick gave: Kamchatka, Japan,
+      New Guinea being labelled Indonesia, and Western Europe's crumbs.
+      Three more went with it. Land now spreads to the nearest place over
+      the SEA as well as the land, so New Zealand is drawn again. A place
+      whose shape misses the land, as Iceland's did, takes the nearest
+      island nobody has claimed. And a patch under ninety cells joins the
+      place around it, which swept away the crumb in the Alps that looked
+      like Switzerland.
+
       His tracing had gaps in the coastline, which let the sea flood into
       North America. The lines are thickened by two cells before the sea
       floods in and the land shrunk back by two after, so a gap up to

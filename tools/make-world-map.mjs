@@ -604,85 +604,78 @@ function flattened(path) {
  * Where the real borders go on Nick's drawing.
  *
  * His drawing has every coast and no borders. Natural Earth has both, on
- * a globe. So the globe is laid over his drawing with PINS: each pin says
- * where one landmark on the earth is in his picture, and between the pins
- * a rubber sheet bends as smoothly as it can (a thin-plate spline). Then
- * the real borders ride the sheet onto his drawing.
+ * a globe. So the globe is laid over his drawing on a SHEET: a plain
+ * world map, bent by a grid of handles until the real coastlines sit on
+ * top of his drawn ones.
+ *
+ * Nothing here is typed by eye. `node tools/fit-world-sheet.mjs` works
+ * the sheet out by sliding the handles about, and writes it into
+ * `tools/world-groups.json`. Sixty pins typed by hand came before it,
+ * and they put Kamchatka out in the Pacific and drew Japan on Korea.
  *
  * The sheet only has to be roughly right. A border that lands a little
  * off the coast does no harm, because every place is finally cut out of
- * HIS land, not the sheet's. The pins live in `tools/world-groups.json`.
+ * HIS land, not the sheet's.
  */
-function solved(matrix, answers) {
-  // Gaussian elimination, the school method, with the biggest row first.
-  const size = answers.length
-  const rows = matrix.map((row, at) => [...row, answers[at]])
+const EVERY_FIVE_DEGREES = [
+  // [how wide, how far up] at 0, 5, 10 ... 90 degrees from the equator,
+  // from the Robinson projection: the world map on a classroom wall.
+  [1, 0], [0.9986, 0.062], [0.9954, 0.124], [0.99, 0.186], [0.9822, 0.248],
+  [0.973, 0.31], [0.96, 0.372], [0.9427, 0.434], [0.9216, 0.4958], [0.8962, 0.5571],
+  [0.8679, 0.6176], [0.835, 0.6769], [0.7986, 0.7346], [0.7597, 0.7903], [0.7186, 0.8435],
+  [0.6732, 0.8936], [0.6213, 0.9394], [0.5722, 0.9761], [0.5322, 1],
+]
 
-  for (let column = 0; column < size; column += 1) {
-    let best = column
+function robinson(lat) {
+  const away = Math.min(Math.abs(lat), 90) / 5
+  const step = Math.min(Math.floor(away), 17)
+  const between = away - step
+  const [wideFrom, upFrom] = EVERY_FIVE_DEGREES[step]
+  const [wideTo, upTo] = EVERY_FIVE_DEGREES[step + 1]
+  const up = upFrom + between * (upTo - upFrom)
 
-    for (let row = column + 1; row < size; row += 1) {
-      if (Math.abs(rows[row][column]) > Math.abs(rows[best][column])) {
-        best = row
-      }
-    }
-    ;[rows[column], rows[best]] = [rows[best], rows[column]]
-
-    for (let row = 0; row < size; row += 1) {
-      if (row === column) continue
-
-      const factor = rows[row][column] / rows[column][column]
-
-      for (let at = column; at <= size; at += 1) {
-        rows[row][at] -= factor * rows[column][at]
-      }
-    }
-  }
-
-  return rows.map((row, at) => row[size] / row[at])
+  return [wideFrom + between * (wideTo - wideFrom), lat < 0 ? -up : up]
 }
 
-function pinnedSheet(pins) {
-  // A pin is [lon, lat, x, y]: a point on the earth, and where it is in
-  // Nick's drawing.
-  const from = pins.map(([lon, lat]) => [lon, lat])
-  const to = pins.map(([, , x, y]) => [x, y])
-  const count = pins.length
-  const pull = (a, b) => {
-    const squared = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
-
-    return squared === 0 ? 0 : (squared * Math.log(squared)) / 2
+function sheetFrom(sheet) {
+  if (sheet === undefined) {
+    throw new Error('No sheet yet. Run: node tools/fit-world-sheet.mjs')
   }
-  const matrix = []
 
-  for (let row = 0; row < count + 3; row += 1) {
-    matrix.push(new Array(count + 3).fill(0))
-  }
-  for (let row = 0; row < count; row += 1) {
-    for (let column = 0; column < count; column += 1) {
-      matrix[row][column] = pull(from[row], from[column])
+  const { base, handles, across, down, wide, high } = sheet
+  const acrossStep = wide / across
+  const downStep = high / down
+
+  return ([lon, lat]) => {
+    const [wideHere, up] = robinson(lat)
+    const x = (wideHere * lon - base.lon0) * base.across
+    const y = (base.lat0 - up * 100) * base.down
+
+    // A point takes a blend of the four handles around it, so the
+    // bending is smooth.
+    const column = Math.min(Math.max(x / acrossStep, 0), across - 0.0001)
+    const row = Math.min(Math.max(y / downStep, 0), down - 0.0001)
+    const left = Math.floor(column)
+    const top = Math.floor(row)
+    const alongX = column - left
+    const alongY = row - top
+    let dx = 0
+    let dy = 0
+
+    for (const [cx, cy, share] of [
+      [left, top, (1 - alongX) * (1 - alongY)],
+      [left + 1, top, alongX * (1 - alongY)],
+      [left, top + 1, (1 - alongX) * alongY],
+      [left + 1, top + 1, alongX * alongY],
+    ]) {
+      const handle = handles[cy * (across + 1) + cx]
+
+      dx += handle[0] * share
+      dy += handle[1] * share
     }
-    matrix[row][count] = 1
-    matrix[row][count + 1] = from[row][0]
-    matrix[row][count + 2] = from[row][1]
-    matrix[count][row] = 1
-    matrix[count + 1][row] = from[row][0]
-    matrix[count + 2][row] = from[row][1]
+
+    return [x + dx, y + dy]
   }
-
-  const weightsX = solved(matrix, [...to.map(([x]) => x), 0, 0, 0])
-  const weightsY = solved(matrix, [...to.map(([, y]) => y), 0, 0, 0])
-  const bend = (weights, point) => {
-    let out = weights[count] + weights[count + 1] * point[0] + weights[count + 2] * point[1]
-
-    for (let at = 0; at < count; at += 1) {
-      out += weights[at] * pull(from[at], point)
-    }
-
-    return out
-  }
-
-  return (point) => [bend(weightsX, point), bend(weightsY, point)]
 }
 
 // ------------------------------------------------------------- the cutting
@@ -817,6 +810,12 @@ function landOf(lines, width, height) {
 
 const NOBODY = -1
 
+/**
+ * A patch smaller than this many cells is a scrap, and joins the place
+ * around it. A place's LAST patch is never taken away.
+ */
+const A_SCRAP = Number(process.env['SCRAP'] ?? 90)
+
 function givenOut(land, places, width, height) {
   const owner = new Int16Array(width * height).fill(NOBODY)
 
@@ -831,17 +830,72 @@ function givenOut(land, places, width, height) {
     }
   })
 
-  // Then the rest of the land goes to the nearest place, spreading out
-  // one cell at a time until nothing is left. Nick, of the land nobody
-  // owned: "just grow the nearest country to cover them up."
+  // A place whose shape misses the drawn land altogether takes the
+  // nearest island nobody has claimed. Iceland is small and the sheet is
+  // rough, so its shape sat just off Nick's Iceland and it came out with
+  // nothing at all.
+  const homeless = places
+    .map((place, index) => index)
+    .filter((index) => !owner.includes(index))
+
+  if (homeless.length > 0) {
+    const free = patchesOf(owner, land, width, height, NOBODY)
+
+    for (const index of homeless) {
+      const everyPoint = places[index].onTheSheet.flat()
+      const middle = [
+        everyPoint.reduce((sum, [x]) => sum + x, 0) / everyPoint.length,
+        everyPoint.reduce((sum, [, y]) => sum + y, 0) / everyPoint.length,
+      ]
+      let best = null
+      let closest = Infinity
+
+      for (const patch of free) {
+        if (patch.taken === true) continue
+        // Not a speck. Iceland's shape sat nearer a five-cell rock than
+        // it did to Nick's Iceland.
+        if (patch.cells.length < A_SCRAP) continue
+
+        for (const cell of patch.cells) {
+          const x = cell % width
+          const y = (cell - x) / width
+          const away = (x - middle[0]) ** 2 + (y - middle[1]) ** 2
+
+          if (away < closest) {
+            closest = away
+            best = patch
+          }
+        }
+      }
+
+      if (best === null) {
+        throw new Error(`"${places[index].id}" found no free land at all.`)
+      }
+
+      best.taken = true
+      for (const cell of best.cells) owner[cell] = index
+    }
+  }
+
+  // Then every other cell of land goes to the NEAREST place. Nick, of the
+  // land nobody owned: "just grow the nearest country to cover them up."
+  //
+  // The spreading goes over the sea as well as the land, or it could
+  // never reach an island. New Zealand touches nothing and no real
+  // country covers it, so a spread that walked only on land left it
+  // owned by nobody, which drew it as nothing at all.
+  const reached = new Int16Array(width * height).fill(NOBODY)
   let edge = []
 
   for (let cell = 0; cell < owner.length; cell += 1) {
-    if (owner[cell] >= 0) edge.push(cell)
+    if (owner[cell] >= 0) {
+      reached[cell] = owner[cell]
+      edge.push(cell)
+    }
   }
 
   while (edge.length > 0) {
-    const grown = []
+    const spreading = []
 
     for (const cell of edge) {
       const x = cell % width
@@ -855,13 +909,17 @@ function givenOut(land, places, width, height) {
 
         const next = ny * width + nx
 
-        if (land[next] === 1 && owner[next] === NOBODY) {
-          owner[next] = owner[cell]
-          grown.push(next)
+        if (reached[next] === NOBODY) {
+          reached[next] = reached[cell]
+          spreading.push(next)
         }
       }
     }
-    edge = grown
+    edge = spreading
+  }
+
+  for (let cell = 0; cell < owner.length; cell += 1) {
+    if (land[cell] === 1) owner[cell] = reached[cell]
   }
 
   // A cell surrounded by another owner goes over to it. Twice over, this
@@ -891,7 +949,153 @@ function givenOut(land, places, width, height) {
     }
   }
 
+  tidiedAway(owner, land, places.length, width, height)
+
+  if (process.env['SHOW'] !== undefined) {
+    const count = new Array(places.length).fill(0)
+
+    for (const who of owner) if (who >= 0) count[who] += 1
+    places.forEach((place, at) => {
+      if (count[at] < 200) console.log(`  small: ${place.id} ${count[at]} cells`)
+    })
+  }
+
   return owner
+}
+
+/** Every run of land cells with the same owner, joined side by side. */
+function patchesOf(owner, land, width, height, only) {
+  const seen = new Uint8Array(width * height)
+  const patches = []
+
+  for (let cell = 0; cell < owner.length; cell += 1) {
+    if (land[cell] === 0 || seen[cell] === 1) continue
+    if (only !== undefined && owner[cell] !== only) continue
+
+    const cells = []
+    const queue = [cell]
+
+    seen[cell] = 1
+    while (queue.length > 0) {
+      const here = queue.pop()
+      const x = here % width
+      const y = (here - x) / width
+
+      cells.push(here)
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx
+        const ny = y + dy
+
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+        const next = ny * width + nx
+
+        if (seen[next] === 0 && land[next] === 1 && owner[next] === owner[here]) {
+          seen[next] = 1
+          queue.push(next)
+        }
+      }
+    }
+    patches.push({ owner: owner[cell], cells })
+  }
+
+  return patches
+}
+
+/**
+ * Scraps join the place around them.
+ *
+ * The sheet is a rough fit, so a place's border sometimes lands a few
+ * cells over a neighbour's coast and takes a crumb with it. Nick: "is
+ * that Switzerland in the middle of europe?" It was a crumb of Western
+ * Europe left in the Alps. So any patch under A_SCRAP cells joins
+ * whichever place shares the most edge with it. A place's last patch is
+ * never taken, or a place could vanish.
+ */
+function tidiedAway(owner, land, howManyPlaces, width, height) {
+  for (let pass = 0; pass < 3; pass += 1) {
+    const patchOf = new Int32Array(width * height).fill(-1)
+    const patches = []
+
+    for (let cell = 0; cell < owner.length; cell += 1) {
+      if (land[cell] === 0 || owner[cell] === NOBODY || patchOf[cell] >= 0) continue
+
+      const which = patches.length
+      const cells = []
+      const queue = [cell]
+
+      patchOf[cell] = which
+      while (queue.length > 0) {
+        const here = queue.pop()
+        const x = here % width
+        const y = (here - x) / width
+
+        cells.push(here)
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx
+          const ny = y + dy
+
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+          const next = ny * width + nx
+
+          if (patchOf[next] === -1 && land[next] === 1 && owner[next] === owner[here]) {
+            patchOf[next] = which
+            queue.push(next)
+          }
+        }
+      }
+      patches.push({ owner: owner[cell], cells })
+    }
+
+    const biggest = new Array(howManyPlaces).fill(0)
+
+    for (const patch of patches) {
+      biggest[patch.owner] = Math.max(biggest[patch.owner], patch.cells.length)
+    }
+
+    let tidied = 0
+
+    for (const patch of patches) {
+      if (patch.cells.length >= A_SCRAP) continue
+      if (patch.cells.length === biggest[patch.owner]) continue
+
+      const shares = new Map()
+
+      for (const cell of patch.cells) {
+        const x = cell % width
+        const y = (cell - x) / width
+
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx
+          const ny = y + dy
+
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+          const near = owner[ny * width + nx]
+
+          if (land[ny * width + nx] === 1 && near !== NOBODY && near !== patch.owner) {
+            shares.set(near, (shares.get(near) ?? 0) + 1)
+          }
+        }
+      }
+      if (shares.size === 0) continue
+
+      let takes = NOBODY
+      let most = 0
+
+      for (const [who, count] of shares) {
+        if (count > most) {
+          most = count
+          takes = who
+        }
+      }
+      for (const cell of patch.cells) owner[cell] = takes
+      tidied += 1
+    }
+
+    if (tidied === 0) return
+  }
 }
 
 /** The outline of every separate patch of one owner's cells. */
@@ -1107,7 +1311,7 @@ function main() {
   const meta = JSON.parse(readFileSync(GROUPS, 'utf8'))
   const countries = loadCountries()
   const provinces = loadProvinces()
-  const sheet = pinnedSheet(meta.pins)
+  const sheet = sheetFrom(meta.sheet)
 
   // Every province, sorted into the place it belongs to.
   const provincesFor = new Map()
@@ -1221,7 +1425,7 @@ function main() {
       .sort((a, b) => Math.abs(roomTaken(b)) - Math.abs(roomTaken(a)))
 
     if (rings.length === 0) {
-      throw new Error(`"${place.id}" got no land at all. Check the pins around it.`)
+      throw new Error(`"${place.id}" got no land at all. Run: node tools/fit-world-sheet.mjs`)
     }
 
     rings.forEach((ring, at) => everyRing.set(`${place.id}/${at}`, ring))

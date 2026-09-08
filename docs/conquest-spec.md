@@ -834,16 +834,38 @@ projection with every island ("still looks all wrong to me"). Then: "Why
 can't you just keep the outline I gave you?"
 
 So the outline he gave is kept, exactly. His drawing
-(`tools/data/nick-world-outline.svg`) is every coast on the map. It has
-no borders inside the continents, so those come from Natural Earth, laid
-over his drawing with pins (each pin says where one landmark on the earth
-is in his picture, and a rubber sheet bends smoothly between them). Then
-every cell of his land goes to the place whose real border encloses it,
-or to the nearest place along the coast, and each place's outline is
-walked around its cells. Two neighbours are walked around the same cell
-edges, so they share their border point for point, which is what every
-rule of a map needs. Every island goes to the nearest place (S52). The
-pins are the whole of the design and live in `tools/world-groups.json`.
+(`tools/data/nick-world-outline.svg`) is every coast on the map, and he
+edits it himself in Inkscape. It has no borders inside the continents, so
+those come from Natural Earth, laid over his drawing on a SHEET: a plain
+world map bent by a grid of handles until the real coastlines sit on his
+drawn ones.
+
+**The sheet is worked out, not typed.** `node tools/fit-world-sheet.mjs`
+slides the handles about until the two agree as well as they can, and
+writes the answer into `tools/world-groups.json`. It reaches 87%. Before
+it there were sixty pins I typed by eye, and they put Kamchatka nine
+hundred units east, out in the Pacific, and drew Japan on top of Korea.
+Run the fit again whenever Nick redraws.
+
+Then every cell of his land goes to the place whose real border encloses
+it, and the rest to the NEAREST place, over the sea as well as the land.
+The spreading has to cross water or it could never reach an island: New
+Zealand touches nothing and no real country covers it, so a spread that
+walked only on land left it drawn as nothing at all. A place whose shape
+misses the land altogether, as small Iceland did, takes the nearest
+island nobody has claimed. A patch of under ninety cells joins the place
+around it, which sweeps up the crumbs the sheet leaves on a neighbour's
+coast: one of them looked like Switzerland sitting on its own in the
+middle of Europe.
+
+Each place's outline is then walked around its cells. Two neighbours are
+walked around the same cell edges, so they share their border point for
+point, which is what every rule of a map needs.
+
+A place may also say the corner of the world it LIVES IN, because Natural
+Earth's "France" holds French Guiana in South America and its "Spain"
+holds the Canary Islands off Africa. Anything outside that corner is left
+out.
 
 **S51. Rounded coasts.** A coast walked around square cells is a
 staircase, and simplifying it leaves straight runs meeting at sharp
