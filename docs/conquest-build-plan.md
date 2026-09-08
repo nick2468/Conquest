@@ -688,6 +688,25 @@ be. A bigger Australia is what makes strategy mean anything.
       corners, and it is how a continent becomes territories. Driven live:
       cutting North Africa in two left a 43-place map with no faults.
 
+- [x] 5.11 **A whole map, drawn and read in.** Built 2026-09-08. Nick,
+      after the generator was deleted: "Is the problem the inner borders?
+      I can put them back into an outline." It was. He draws the coasts
+      and the borders together, and `node tools/read-map-drawing.mjs`
+      reads the drawing into a map (spec S53).
+
+      This is the same machinery as the deleted generator with the whole
+      middle taken out. Reading an SVG, filling the land, walking each
+      piece's outline and simplifying shared borders once all stay. The
+      country data, the projection, the sheet, the pins and the fitting
+      are gone, and with them every fault they caused.
+
+      A border line has one rule: it cuts only if it goes right across,
+      sea to sea, or you can walk round the end of it. When a line falls
+      short the tool NAMES the places still joined, which is the only
+      guidance needed to finish. Names, continents and bonuses carry over
+      from the map being replaced, by whichever old label sits inside each
+      new piece.
+
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
       needs nothing installed, and is one link away. See spec 3.4.

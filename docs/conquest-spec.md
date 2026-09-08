@@ -848,6 +848,29 @@ ones, changed in the editor, and nothing in the game or its tools reads
 real-world data any more. Nick's own drawing stays at
 `tools/data/nick-world-outline.svg`, because the coasts came from it.
 
+**S53. A whole map can be drawn and read in.** Nick: "Is the problem the
+inner borders? I can put them back into an outline." It was, and that
+settles it. He draws the coasts AND the borders, on a layer called
+"borders" or simply in red, and `node tools/read-map-drawing.mjs` turns
+the drawing into a map.
+
+Every piece of land the border lines cut out becomes a place. A line only
+cuts if it goes RIGHT across, sea to sea, because otherwise you can walk
+around the end of it. The lines are a cell or two wide, so each cell
+under a line goes to whichever piece is nearest, which makes the two
+pieces meet exactly along it with no gap. Each piece's outline is then
+walked around its own cells, so two neighbours share their border point
+for point (S32).
+
+Each piece is named after whichever place of the map it REPLACES sits
+inside it, so redrawing keeps every name, continent and bonus. Pieces
+with nobody inside come out as "Place 1" and are renamed in the editor.
+And the tool names the pieces that are still joined and should not be,
+which is the only guidance a person needs to finish the drawing.
+
+There is nothing about the real world in it. That guesswork is what six
+earlier goes all foundered on.
+
 **S52. Cutting a place in two.** This is how a continent becomes
 territories, and it is the one thing a person cannot do by dragging
 corners about. Choose a place, press "Cut this place in two", press your
