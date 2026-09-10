@@ -35,7 +35,7 @@ import type { ComputerPlayer } from './types'
  */
 
 /** What the plan is, this turn. */
-interface Plan {
+export interface Plan {
   readonly regionId: RegionId
   /** Territories in it that somebody else holds. */
   readonly missing: readonly TerritoryId[]
@@ -65,7 +65,7 @@ const ON_PLAN = 10
  * the map, exactly as people favour Australia or South America in the real
  * game: not because they are rich, but because they have one door.
  */
-function chooseGoal(state: GameState, me: string): Plan | null {
+export function chooseGoal(state: GameState, me: string): Plan | null {
   const scored = regionHoldings(state, me).map((holding) => {
     const entrances = entrancesTo(state.map, holding.regionId)
     const defenders = holding.missing.reduce(

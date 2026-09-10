@@ -443,6 +443,38 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       guides the choice between good moves; it does not excuse a bad one.
       That is the same lesson as the region bonus in 4.7.
 
+- [x] 4.14 **Nick: "The computer players are too easy to beat."** He named
+      four faults, all real. They leave ONE army behind after every attack,
+      so what they just left looks inviting. They ignore a continent
+      somebody else has taken. They put every new army on one territory,
+      every turn. And once the front falls, everything behind it is one
+      army deep.
+
+      A fifth player, **General**, knows how deep each of its territories
+      is. The front holds as many as the biggest enemy beside it, a door
+      into a region it owns holds two more, the line behind the front holds
+      two, and only land well inside is left at one. After a capture the
+      old territory keeps what it still needs. New armies go first to the
+      weak spots of the front, after the stack for this turn's attack is
+      set aside. And a territory of a continent somebody else holds whole
+      is worth the whole bonus to it, so that is what it attacks first.
+      Each of the four faults is a test.
+
+      **The first version lost head to head, 10 to 30 against Greedy.** It
+      defended well and attacked too rarely. Lighter garrisons and keeping
+      momentum after a capture both made little difference. What fixed it
+      was attacking at one army's margin over the defenders rather than
+      the odds table's two: 71 to 49 head to head on the seeds it was tuned
+      on. On three seed ranges it never saw, it came out level instead,
+      which is S22 again. See spec S21 for the full table. With four
+      players it wins seven games in ten against every other player.
+
+      All of its numbers are in one settings object at the top of
+      `general.ts`. The tournament found one real bug on the way: in an
+      attack phase with no attack possible, it chose by what was on offer
+      rather than by the phase, and sent a fortify into the attack phase.
+      It now chooses by the phase, and a test holds that position.
+
 ---
 
 ## Phase 5 - maps of your own

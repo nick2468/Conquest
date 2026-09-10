@@ -85,6 +85,7 @@ export type { ComputerPlayer, Skill } from './players'
 export {
   ALL_SKILLS,
   CAUTIOUS,
+  GENERAL,
   GREEDY,
   PLANNER,
   RECKLESS,

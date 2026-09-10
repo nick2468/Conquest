@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA } from '../../maps/australia'
+import { WORLD } from '../../maps/world'
 import type { GameAction } from '../game'
 import { applyAction, legalActions } from '../game'
 import { seededRandom } from '../random'
@@ -562,5 +563,211 @@ describe('the Planner', () => {
       planner,
       `planner ${planner} : ${cautious} cautious on a 42-territory board`,
     ).toBeGreaterThan(cautious)
+  })
+})
+
+// --------------------------------------------- the faults Nick named, 4.14
+
+/**
+ * Nick, after beating every computer player: "they always just leave one
+ * army behind", "if another player has captured a continent they don't
+ * seem to do anything about it", "not just all on one for a blitzkrieg
+ * each time", and "behind it have at least more than one army". Each is a
+ * test here, on a small ring of territories built for the purpose.
+ */
+describe('the General', () => {
+  // Two regions of three, in a ring: t0_0 t0_1 t0_2 t1_0 t1_1 t1_2, and
+  // back to t0_0.
+  const ring = riskShapedMap(2, 3, 5)
+
+  function onRing(
+    owners: Record<string, [string, number]>,
+    turn: Partial<GameState['turn']>,
+  ): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, [ownerId, armies]] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies }
+    }
+
+    return {
+      ...base,
+      territories,
+      turn: { ...base.turn, playerId: 'p1', armiesToPlace: 0, ...turn },
+    }
+  }
+
+  it('leaves behind what the old territory still needs, not one army', () => {
+    // t0_1 has just taken t0_2 and still faces five enemies in t0_0.
+    const state = onRing(
+      {
+        t0_0: ['p2', 5],
+        t0_1: ['p1', 9],
+        t0_2: ['p1', 3],
+        t1_0: ['p3', 1],
+        t1_1: ['p3', 1],
+        t1_2: ['p3', 1],
+      },
+      {
+        phase: 'occupy',
+        pendingOccupation: { fromId: 't0_1', toId: 't0_2', minimumArmies: 3, maximumArmies: 8 },
+      },
+    )
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+    const count = action.type === 'occupy' ? action.count : -1
+    const leftBehind = 9 + 3 - count
+
+    expect(leftBehind, `left ${leftBehind} facing 5`).toBeGreaterThanOrEqual(5)
+  })
+
+  it('attacks a continent somebody else holds before an easier target', () => {
+    // Three holds all of region 1. t0_2 can hit t1_0, which breaks it, or
+    // t0_1, which is weaker and breaks nothing.
+    const state = onRing(
+      {
+        t0_0: ['p2', 3],
+        t0_1: ['p2', 1],
+        t0_2: ['p1', 12],
+        t1_0: ['p3', 4],
+        t1_1: ['p3', 2],
+        t1_2: ['p3', 2],
+      },
+      { phase: 'attack', hasConquered: true },
+    )
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+
+    expect(action.type === 'attack' ? action.toId : action.type).toBe('t1_0')
+  })
+
+  it('spreads its new armies over a weak front, not all on one', () => {
+    let state = onRing(
+      {
+        t0_0: ['p1', 1],
+        t0_1: ['p1', 1],
+        t0_2: ['p1', 1],
+        t1_0: ['p2', 4],
+        t1_1: ['p2', 4],
+        t1_2: ['p3', 4],
+      },
+      { phase: 'reinforce', armiesToPlace: 12 },
+    )
+    const random = seededRandom(3)
+
+    while (state.turn.phase === 'reinforce' && state.turn.armiesToPlace > 0) {
+      state = applyAction(state, playerFor('general').chooseAction(state, random), random)
+    }
+
+    const reinforced = ['t0_0', 't0_2'].filter(
+      (id) => (state.territories[id]?.armies ?? 0) > 1,
+    )
+
+    // t0_0 and t0_2 both face four enemies. Both got armies.
+    expect(reinforced, 'every weak spot on the front').toEqual(['t0_0', 't0_2'])
+  })
+
+  it('keeps more than one army on the line behind the front', () => {
+    // A long line of our own land: t0_0 t0_1 t0_2 t1_0 t1_1, with the enemy
+    // only in t1_2. t1_1 and t0_0 are the front, t0_1 and t1_0 are the line
+    // behind it, and t0_2 is deep inside with armies to spare. The front is
+    // already strong enough, t0_0 more so because it is a door into region
+    // 0, which we hold whole.
+    const state = onRing(
+      {
+        t0_0: ['p1', 8],
+        t0_1: ['p1', 1],
+        t0_2: ['p1', 9],
+        t1_0: ['p1', 1],
+        t1_1: ['p1', 6],
+        t1_2: ['p2', 5],
+      },
+      { phase: 'fortify' },
+    )
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+
+    expect(action.type).toBe('fortify')
+    expect(action.type === 'fortify' ? ['t0_1', 't1_0'] : []).toContain(
+      action.type === 'fortify' ? action.toId : '',
+    )
+  })
+})
+
+describe('the General, when there is nothing to attack with', () => {
+  it('stops attacking rather than trying to fortify', () => {
+    const ring = riskShapedMap(2, 3, 5)
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    // Every territory of ours holds one army, so no attack is possible and
+    // the only move on offer is to end the attack phase.
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const territory of ring.territories) {
+      territories[territory.id] = {
+        ownerId: territory.id.startsWith('t0') ? 'p1' : 'p2',
+        armies: 1,
+      }
+    }
+
+    const state: GameState = {
+      ...base,
+      territories,
+      turn: { ...base.turn, playerId: 'p1', phase: 'attack', armiesToPlace: 0 },
+    }
+
+    expect(playerFor('general').chooseAction(state, seededRandom(1))).toEqual({
+      type: 'endAttackPhase',
+    })
+  })
+})
+
+describe('the General is the strongest with a table full of players', () => {
+  /**
+   * Plan task 4.14. Measured 2026-09-11 on the world map, 120 games per
+   * pairing, over seed ranges 5000, 20000 and 90000, none of which the
+   * settings were chosen on:
+   *
+   * | General against | 2 players | 4 players |
+   * |---|---|---|
+   * | Greedy | 53 : 67 | 84 : 36 |
+   * | Cautious | 63 : 57 | 85 : 35 |
+   * | Planner | 61 : 59 | 83 : 37 |
+   *
+   * So with four at the table it wins seven games in ten against any other
+   * computer player, and head to head it is about level. This checks the
+   * four-player result on a slice of those games, against the Planner, the
+   * strongest of the rest.
+   */
+  it('wins most four-player games on the world map', { timeout: 300000 }, () => {
+    let general = 0
+    let planner = 0
+
+    for (const from of [5000, 20000]) {
+      for (let game = 0; game < 12; game += 1) {
+        const order: Skill[] =
+          game % 2 === 0 ? ['general', 'planner'] : ['planner', 'general']
+        const winner = playOn(WORLD, order, from + game, 4)
+
+        if (winner === 'general') general += 1
+        else if (winner === 'planner') planner += 1
+      }
+    }
+
+    expect(general, `general ${general} : ${planner} planner`).toBeGreaterThan(
+      planner * 1.3,
+    )
   })
 })

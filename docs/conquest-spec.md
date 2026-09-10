@@ -1075,15 +1075,17 @@ only return something `legalActions` offered.** So it cannot cheat, because it
 never sees the rules. It sees only the list of what is allowed, the same list
 the screen greys out from. A test walks every position and checks this.
 
-Three of them, built as steps so the difference is visible:
+Five of them, built as steps so the difference is visible:
 
 | Name | What it does |
 |---|---|
 | Reckless | Picks at random. The baseline everything else is measured against. |
 | Cautious | Attacks only when ahead. Reinforces its frontier, fortifies forward. |
 | Greedy | The same, but chooses attacks and placements by region value. |
+| Planner | Picks a region to own, takes it, then holds the ways in. |
+| General | Holds a front line with a second line behind it, never leaves one army where it has just attacked from, spreads new armies over a weak front, and goes first for a continent somebody else holds. |
 
-`PlayerKind` is `'human'` or one of the three, as ONE field. Two fields would
+`PlayerKind` is `'human'` or one of the skills, as ONE field. Two fields would
 allow "a computer with no skill" and "a person with a skill", neither of which
 means anything.
 
@@ -1097,6 +1099,20 @@ games and reports the score. Measured 2026-09-07:
 | Greedy vs Cautious | 94 - 100 |
 
 Greedy is NOT stronger than Cautious, and the tests say so.
+
+Measured again 2026-09-11 for the General, on the world map, 120 games per
+pairing over three seed ranges it was never tuned on:
+
+| General against | 2 players | 4 players |
+|---|---|---|
+| Greedy | 53 - 67 | 84 - 36 |
+| Cautious | 63 - 57 | 85 - 35 |
+| Planner | 61 - 59 | 83 - 37 |
+
+With four at the table it wins seven games in ten. Head to head it is
+level with Cautious and the Planner, and a little behind Greedy. The seed
+range it was tuned on had flattered it, 71 - 49 head to head, which is the
+lesson of S22 a third time.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

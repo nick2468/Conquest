@@ -1,4 +1,5 @@
 import { CAUTIOUS } from './cautious'
+import { GENERAL } from './general'
 import { GREEDY } from './greedy'
 import { PLANNER } from './planner'
 import { RECKLESS } from './reckless'
@@ -10,6 +11,7 @@ export { RECKLESS } from './reckless'
 export { CAUTIOUS } from './cautious'
 export { GREEDY } from './greedy'
 export { PLANNER } from './planner'
+export { GENERAL } from './general'
 
 export {
   armiesOn,
@@ -30,6 +32,7 @@ const BY_SKILL: Readonly<Record<Skill, ComputerPlayer>> = {
   cautious: CAUTIOUS,
   greedy: GREEDY,
   planner: PLANNER,
+  general: GENERAL,
 }
 
 /** The player for a skill. */
