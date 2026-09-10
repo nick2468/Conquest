@@ -743,13 +743,13 @@ describe('the General is the strongest with a table full of players', () => {
    *
    * | General against | 2 players | 4 players |
    * |---|---|---|
-   * | Greedy | 49 : 71 | 96 : 23 |
-   * | Cautious | 61 : 59 | 101 : 18 |
-   * | Planner | 56 : 64 | 87 : 33 |
+   * | Greedy | 67 : 53 | 96 : 23 |
+   * | Cautious | 85 : 35 | 101 : 18 |
+   * | Planner | 70 : 50 | 87 : 33 |
    *
-   * That is with its card first and no policing. So with four at the table
-   * it wins about eight games in ten against any other computer player.
-   * Head to head it is level with Cautious and a little behind the rest. This checks the
+   * That is with its card first, no policing, and its duel settings once
+   * one opponent is left (plan 4.15). With four at the table it wins about
+   * eight games in ten; head to head it beats every other player. This checks the
    * four-player result on a slice of those games, against the Planner, the
    * strongest of the rest.
    */
@@ -868,5 +868,63 @@ describe('the General takes its card first, and is not the policeman', () => {
     )
 
     expect(breakUrgency(state, 'p1', 'p2', 'r1')).toBe(1)
+  })
+})
+
+describe('the General changes its game when one opponent is left', () => {
+  /**
+   * Plan task 4.15. Nick: "It should also switch strategies then when the
+   * other players get eliminated and it becomes 1 on 1."
+   *
+   * The same capture, twice. t0_1 has just taken t0_2 and now has no enemy
+   * beside it: it is the line behind the front. With two enemies left it
+   * keeps a second-line garrison. With one, armies there are armies that
+   * never attack, so more of them move up.
+   */
+  function afterTheCapture(oneLeft: boolean): GameState {
+    const ring = riskShapedMap(2, 3, 5)
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const lastEnemy = oneLeft ? 'p2' : 'p3'
+
+    return {
+      ...base,
+      players: base.players.map((player) =>
+        player.id === 'p3' && oneLeft ? { ...player, isEliminated: true } : player,
+      ),
+      territories: {
+        t0_0: { ownerId: 'p1', armies: 4 },
+        t0_1: { ownerId: 'p1', armies: 5 },
+        t0_2: { ownerId: 'p1', armies: 3 },
+        t1_0: { ownerId: 'p2', armies: 2 },
+        t1_1: { ownerId: 'p2', armies: 2 },
+        t1_2: { ownerId: lastEnemy, armies: 2 },
+      },
+      turn: {
+        ...base.turn,
+        playerId: 'p1',
+        phase: 'occupy',
+        armiesToPlace: 0,
+        pendingOccupation: { fromId: 't0_1', toId: 't0_2', minimumArmies: 3, maximumArmies: 7 },
+      },
+    }
+  }
+
+  it('moves more armies up after a capture once it is one on one', () => {
+    const general = playerFor('general')
+    const moved = (state: GameState): number => {
+      const action = general.chooseAction(state, seededRandom(1))
+
+      return action.type === 'occupy' ? action.count : -1
+    }
+
+    expect(moved(afterTheCapture(true))).toBeGreaterThan(moved(afterTheCapture(false)))
   })
 })

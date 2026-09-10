@@ -1105,13 +1105,15 @@ pairing over three seed ranges it was never tuned on:
 
 | General against | 2 players | 4 players |
 |---|---|---|
-| Greedy | 49 - 71 | 96 - 23 |
-| Cautious | 61 - 59 | 101 - 18 |
-| Planner | 56 - 64 | 87 - 33 |
+| Greedy | 67 - 53 | 96 - 23 |
+| Cautious | 85 - 35 | 101 - 18 |
+| Planner | 70 - 50 | 87 - 33 |
 
-That is the General with its card first and no policing (plan 4.14). With
-four at the table it wins about eight games in ten. Head to head it is
-level with Cautious and a little behind the rest. The seed range it was
+That is the General with its card first and no policing (plan 4.14), and
+with its duel settings once one opponent is left (plan 4.15). With four at
+the table it wins about eight games in ten; head to head it beats every
+other player. Before the duel settings it lost to Greedy head to head,
+49 - 71. The seed range it was
 first tuned on had flattered it, 71 - 49 head to head, which is the lesson
 of S22 a third time.
 

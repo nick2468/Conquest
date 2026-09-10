@@ -95,17 +95,48 @@ export const GENERAL_SETTINGS = {
 }
 
 /**
+ * The settings that change when only ONE opponent is left. Plan task 4.15.
+ *
+ * Nick: "tune it for one-on-one games. It should also switch strategies
+ * then when the other players get eliminated and it becomes 1 on 1." With
+ * several enemies, a line held everywhere pays, because anybody may come
+ * through it. With one, the enemy can only come through where its armies
+ * are, and armies spent holding the rest of the line are armies that never
+ * attack. Anything not listed here stays as in GENERAL_SETTINGS.
+ *
+ * Measured head to head on unseen games, 120 per opponent: Greedy 67 - 53,
+ * Cautious 85 - 35, Planner 70 - 50. Before, it lost to Greedy 49 - 71.
+ * Dropping the extras too (no door guard, nothing spare on the stack)
+ * made it WORSE, 44%, and so did attacking at no margin at all.
+ */
+export const GENERAL_DUEL: Partial<typeof GENERAL_SETTINGS> = {
+  // The front holds half the enemy beside it, not all of it.
+  frontShare: 0.5,
+  // Nothing behind the front: the one enemy is not coming that way.
+  secondLine: 1,
+  occupyKeepsSecondLine: false,
+}
+
+/** The rules in play for this move. Chosen afresh at the start of each. */
+let rules: typeof GENERAL_SETTINGS = GENERAL_SETTINGS
+
+/** True when every other player but one is out. */
+function oneOpponentLeft(state: GameState): boolean {
+  return state.players.filter((each) => !each.isEliminated).length === 2
+}
+
+/**
  * The armies free to attack with that make an ordinary attack worth it,
  * against a defender of this size. See `safeMargin`, and the odds table in
  * spec section 11 for what each margin buys.
  */
 function toWinWell(defenders: number): number {
-  return defenders + GENERAL_SETTINGS.safeMargin + (defenders >= 2 ? 1 : 0)
+  return defenders + rules.safeMargin + (defenders >= 2 ? 1 : 0)
 }
 
 /** The same for an even chance. Used when a card or a continent is at stake. */
 function toWinEvenly(defenders: number): number {
-  return defenders + GENERAL_SETTINGS.evenMargin + (defenders <= 2 ? 1 : 0)
+  return defenders + rules.evenMargin + (defenders <= 2 ? 1 : 0)
 }
 
 // ---------------------------------------------------------- reading the line
@@ -208,14 +239,14 @@ function wanted(
   if (depth === 1) {
     return (
       Math.max(
-        GENERAL_SETTINGS.secondLine,
-        Math.ceil(dangerTo(state, me, territoryId) * GENERAL_SETTINGS.frontShare),
+        rules.secondLine,
+        Math.ceil(dangerTo(state, me, territoryId) * rules.frontShare),
       ) +
-      (line.doors.has(territoryId) ? GENERAL_SETTINGS.doorGuard : 0)
+      (line.doors.has(territoryId) ? rules.doorGuard : 0)
     )
   }
 
-  return depth === 2 ? GENERAL_SETTINGS.secondLine : 1
+  return depth === 2 ? rules.secondLine : 1
 }
 
 // ------------------------------------------------------- what land is worth
@@ -327,9 +358,9 @@ function readTheWorth(state: GameState, me: PlayerId): Worth {
 /** How much taking this enemy territory is worth, before the odds. */
 function worthTaking(worth: Worth, territoryId: TerritoryId): number {
   return (
-    (worth.prizes.get(territoryId) ?? 0) * GENERAL_SETTINGS.breakIsWorth +
-    (worth.finishes.get(territoryId) ?? 0) * GENERAL_SETTINGS.finishIsWorth +
-    (worth.plan?.missing.includes(territoryId) === true ? GENERAL_SETTINGS.onPlan : 0)
+    (worth.prizes.get(territoryId) ?? 0) * rules.breakIsWorth +
+    (worth.finishes.get(territoryId) ?? 0) * rules.finishIsWorth +
+    (worth.plan?.missing.includes(territoryId) === true ? rules.onPlan : 0)
   )
 }
 
@@ -349,6 +380,9 @@ export const GENERAL: ComputerPlayer = {
   chooseAction(state: GameState, random: RandomSource): GameAction {
     const actions = legalActions(state)
     const me = state.turn.playerId
+
+    // One opponent left changes the game, so it changes the rules.
+    rules = oneOpponentLeft(state) ? { ...GENERAL_SETTINGS, ...GENERAL_DUEL } : GENERAL_SETTINGS
 
     const trades = actions.filter((each) => each.type === 'tradeCards')
 
@@ -423,7 +457,7 @@ function placement(
           0,
           toWinWell(armiesOn(state, attack.toId)) +
             keepBehind(state, me, attack.fromId, attack.toId) +
-            GENERAL_SETTINGS.toKeepGoing -
+            rules.toKeepGoing -
             armiesOn(state, attack.fromId),
         )
 
@@ -482,9 +516,9 @@ function bestStack(
 
   for (const fromId of allowed) {
     for (const toId of enemiesBeside(state, me, fromId)) {
-      const easiest = GENERAL_SETTINGS.cardPlacement && !state.turn.hasConquered
+      const easiest = rules.cardPlacement && !state.turn.hasConquered
       const score = easiest
-        ? worthTaking(worth, toId) * GENERAL_SETTINGS.cardWorthShare * 3 - armiesOn(state, toId) * 3
+        ? worthTaking(worth, toId) * rules.cardWorthShare * 3 - armiesOn(state, toId) * 3
         : worthTaking(worth, toId) * 3 - armiesOn(state, toId)
       const better =
         best === null ||
@@ -533,7 +567,7 @@ function attackOrStop(
 
     const theirs = armiesOn(state, action.toId)
     const keep =
-      needACard && GENERAL_SETTINGS.cardAllIn ? 1 : keepBehind(state, me, action.fromId, action.toId)
+      needACard && rules.cardAllIn ? 1 : keepBehind(state, me, action.fromId, action.toId)
     const free = armiesOn(state, action.fromId) - keep + 1
     const safe = free >= toWinWell(theirs)
     const even = free >= toWinEvenly(theirs)
@@ -550,11 +584,11 @@ function attackOrStop(
       {
         item: action as GameAction,
         score:
-          needACard && GENERAL_SETTINGS.cardFirst
+          needACard && rules.cardFirst
             ? // No card yet this turn: the likeliest capture first, and
               // what the target is worth only as a tie-break.
-              Math.min(4, odds) * GENERAL_SETTINGS.cardOdds +
-              worthIt * GENERAL_SETTINGS.cardWorthShare +
+              Math.min(4, odds) * rules.cardOdds +
+              worthIt * rules.cardWorthShare +
               (safe ? 2 : 0)
             : // The card is won: now what it is worth leads. The odds
               // count only up to three to one, or a one-army nobody next
@@ -584,7 +618,7 @@ function moveIn(state: GameState, me: PlayerId, line: Line): GameAction {
   const from = armiesOn(state, move.fromId)
   const stillFacing = enemiesBeside(state, me, move.fromId).length > 0
   const keep =
-    stillFacing || GENERAL_SETTINGS.occupyKeepsSecondLine
+    stillFacing || rules.occupyKeepsSecondLine
       ? wanted(state, me, line, move.fromId)
       : 1
   // `count` is the total in the new territory, and the minimum is already

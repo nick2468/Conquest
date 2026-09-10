@@ -501,6 +501,29 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       with the armies beside the most valuable target, there was often no
       capture on offer at all. See spec S21 for the full table.
 
+- [x] 4.15 **Nick: "tune it for one-on-one games. It should also switch
+      strategies then when the other players get eliminated and it becomes
+      1 on 1."** Head to head General lost to Greedy 49 to 71: a line held
+      everywhere pays against several enemies, but against one it only
+      soaks up armies that never attack.
+
+      So at the start of every move it counts the players left. With ONE
+      opponent it plays by `GENERAL_DUEL`: the front holds half the enemy
+      beside it rather than all of it, and nothing is kept behind the
+      front. That covers a two-player game from the start and every bigger
+      game once it is down to two.
+
+      | Head to head, unseen seeds | Before | Duel settings |
+      |---|---|---|
+      | vs Greedy | 49 : 71 | **67 : 53** |
+      | vs Cautious | 61 : 59 | **85 : 35** |
+      | vs Planner | 56 : 64 | **70 : 50** |
+
+      Four-player games did not change (91 : 29 against 94 : 26 on the
+      same seeds). Two things tried and dropped: taking away the door guard
+      and the spare armies on the stack as well made it worse, 44%; and
+      attacking at no margin at all was no better on unseen games.
+
 ---
 
 ## Phase 5 - maps of your own
