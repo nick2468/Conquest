@@ -170,6 +170,7 @@ export function createGame(game: NewGame): GameState {
   }))
 
   const firstPlayer = withReserves[0] as Player
+  const firstArmies = byHand ? 0 : reinforcementsFor(map, board, firstPlayer.id)
 
   return {
     options,
@@ -180,9 +181,8 @@ export function createGame(game: NewGame): GameState {
     turn: {
       playerId: firstPlayer.id,
       phase: byHand ? 'setup' : 'reinforce',
-      armiesToPlace: byHand
-        ? 0
-        : reinforcementsFor(map, board, firstPlayer.id),
+      armiesToPlace: firstArmies,
+      armiesGiven: firstArmies,
       hasConquered: false,
       hasFortified: false,
       pendingOccupation: null,

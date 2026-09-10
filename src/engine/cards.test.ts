@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA } from '../maps/australia'
-import { RISING_SET_VALUES, WILD_CARDS } from './balance'
+import { RISING_SET_CAP,
+  RISING_SET_VALUES, WILD_CARDS } from './balance'
 import type { CardTrio } from './cards'
 import {
   createDeck,
@@ -156,13 +157,16 @@ describe('what a set is worth, rising', () => {
   it('keeps rising by five after the list runs out', () => {
     const last = RISING_SET_VALUES[RISING_SET_VALUES.length - 1] as number
 
-    expect(risingValueOf(RISING_SET_VALUES.length)).toBe(last + 5)
-    expect(risingValueOf(RISING_SET_VALUES.length + 1)).toBe(last + 10)
+    const noCeiling = Number.POSITIVE_INFINITY
+
+    expect(risingValueOf(RISING_SET_VALUES.length, noCeiling)).toBe(last + 5)
+    expect(risingValueOf(RISING_SET_VALUES.length + 1, noCeiling)).toBe(last + 10)
   })
 
-  // A ceiling is available but switched off. Measured 2026-09-07: capping
-  // at 12 makes the numbers sane, a biggest stack of 8961 rather than
-  // 1337626, but it does NOT change whether games finish. See plan 4.10.
+  // Measured 2026-09-07: capping at 12 made the numbers sane, a biggest
+  // stack of 8961 rather than 1337626, but did NOT change whether games
+  // finish. So the ceiling was left off, until Nick watched a one-on-one
+  // game hand both sides hundreds of armies a turn. See plan 4.10 and 4.16.
   it('can be given a ceiling', () => {
     expect(risingValueOf(0, 12)).toBe(4)
     expect(risingValueOf(4, 12)).toBe(12)
@@ -170,8 +174,9 @@ describe('what a set is worth, rising', () => {
     expect(risingValueOf(50, 12)).toBe(12)
   })
 
-  it('has no ceiling by default', () => {
-    expect(risingValueOf(50)).toBeGreaterThan(200)
+  it('stops at the ceiling by default', () => {
+    expect(risingValueOf(50)).toBe(RISING_SET_CAP)
+    expect(risingValueOf(500)).toBe(RISING_SET_CAP)
   })
 
   it('ignores which symbols the cards carry', () => {

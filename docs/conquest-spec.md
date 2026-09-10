@@ -538,7 +538,7 @@ Value of a set, from `options.cardSetValue`. See D9.
 | Setting | Value |
 |---|---|
 | `'fixed'` | Infantry 4, cavalry 6, artillery 8, three different 10 |
-| `'rising'` | 4, then 6, 8, 10, 12, 15, and 5 more for every set after that |
+| `'rising'` | 4, then 6, 8, 10, 12, 15, then 20 for every set after that. 20 is the ceiling, `RISING_SET_CAP` in `balance.ts` (plan 4.16) |
 
 Rising is the default. The count rises across the whole game, not per player.
 That is what makes late turns big and ends the game.

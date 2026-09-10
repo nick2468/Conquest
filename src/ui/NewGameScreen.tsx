@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { GameMap, GameOptions, NewPlayer, PlayerKind } from '../engine'
 import {
   ALL_SKILLS,
+  RISING_SET_CAP,
   DEFAULT_OPTIONS,
   GAME_NAME,
   MAX_PLAYERS,
@@ -391,7 +392,7 @@ export function NewGameScreen({
                 )
               }
             >
-              <option value="rising">More each time (4, 6, 8, 10...)</option>
+              <option value="rising">{`More each time (4, 6, 8... up to ${RISING_SET_CAP})`}</option>
               <option value="fixed">The same every time</option>
             </select>
           </label>

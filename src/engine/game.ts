@@ -242,6 +242,7 @@ function endTurn(state: GameState, random: RandomSource): GameState {
   const nextPlayer = order[nextIndex] as Player
   // The round moves on whenever play wraps past the end of the player list.
   const round = nextIndex <= startedAt ? next.round + 1 : next.round
+  const given = reinforcementsFor(next.map, next.territories, nextPlayer.id)
 
   return {
     ...next,
@@ -249,11 +250,8 @@ function endTurn(state: GameState, random: RandomSource): GameState {
     turn: {
       playerId: nextPlayer.id,
       phase: 'reinforce',
-      armiesToPlace: reinforcementsFor(
-        next.map,
-        next.territories,
-        nextPlayer.id,
-      ),
+      armiesToPlace: given,
+      armiesGiven: given,
       hasConquered: false,
       hasFortified: false,
       pendingOccupation: null,
@@ -309,6 +307,7 @@ function doTradeCards(state: GameState, cardIds: readonly string[]): GameState {
     turn: {
       ...state.turn,
       armiesToPlace: state.turn.armiesToPlace + value,
+      armiesGiven: (state.turn.armiesGiven ?? state.turn.armiesToPlace) + value,
     },
   }
 
@@ -378,6 +377,7 @@ function doSetupPlacement(
 
   // Nobody has any left, so the game proper begins.
   const first = players[0] as Player
+  const given = reinforcementsFor(noted1.map, noted1.territories, first.id)
 
   return noted(
     {
@@ -386,11 +386,8 @@ function doSetupPlacement(
         ...noted1.turn,
         playerId: first.id,
         phase: 'reinforce',
-        armiesToPlace: reinforcementsFor(
-          noted1.map,
-          noted1.territories,
-          first.id,
-        ),
+        armiesToPlace: given,
+        armiesGiven: given,
       },
     },
     'Every army is on the board. Play begins.',

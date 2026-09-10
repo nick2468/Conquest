@@ -176,6 +176,14 @@ export interface TurnState {
   readonly phase: TurnPhase
   /** Armies still to place. The player cannot attack until this is zero. */
   readonly armiesToPlace: number
+  /**
+   * Every army this turn has handed out: the reinforcements, plus any set
+   * traded in. `armiesGiven - armiesToPlace` is how many are already down,
+   * which lets a computer player tell a big turn from a small one without
+   * remembering anything between moves. Missing from a game saved before
+   * it existed, which is why readers fall back to `armiesToPlace`.
+   */
+  readonly armiesGiven?: number
   /** True if the player took a territory this turn, so earns a card. */
   readonly hasConquered: boolean
   /** True once the one fortify move has been used. */

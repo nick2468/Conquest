@@ -35,6 +35,7 @@ export type { RandomSource, SavedRandom } from './random'
 export { fixedRandom, scriptedRandom, seededRandom, shuffle } from './random'
 
 export {
+  RISING_SET_CAP,
   CARDS_FORCING_A_TRADE,
   FIXED_SET_VALUE,
   MAX_PLAYERS,

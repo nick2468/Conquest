@@ -9,6 +9,7 @@ import {
   pickAmongBest,
   pressureOn,
   regionHoldings,
+  spreadFirst,
 } from './board'
 import type { ComputerPlayer } from './types'
 
@@ -136,6 +137,16 @@ export const PLANNER: ComputerPlayer = {
     const places = actions.filter((each) => each.type === 'placeArmies')
 
     if (places.length > 0) {
+      const spread = spreadFirst(
+        state,
+        me,
+        places.flatMap((each) => (each.type === 'placeArmies' ? [each.territoryId] : [])),
+      )
+
+      if (spread !== null) {
+        return spread
+      }
+
       const chosen =
         pickAmongBest(
           random,

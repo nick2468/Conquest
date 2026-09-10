@@ -1,3 +1,4 @@
+import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
 import type {
   GameMap,
@@ -223,4 +224,64 @@ export function pickAmongBest<Item>(
   const shortlist = choices.filter((each) => each.score >= best - margin)
 
   return shortlist[random.nextInt(shortlist.length)]?.item
+}
+
+/**
+ * A turn that hands out more armies than this is a BIG turn.
+ *
+ * Nick, watching a late one-on-one game: "When a CP gets hundreds of new
+ * armies they shouldn't just dump in one place to begin a blitzkrieg...
+ * they should be boosting their already conquered territories a little
+ * as well." Plan task 4.16.
+ */
+export const A_BIG_TURN = 20
+
+/** The share of a big turn that goes to the front first, spread thin. */
+export const SPREAD_SHARE = 0.3
+
+/**
+ * On a big turn, the first placements spread a share of the armies over the
+ * front, thinnest territory first. Returns null on an ordinary turn, or
+ * once that share is down, and the player's own choice takes over.
+ *
+ * Only the front: armies buried inland can never fight, which was the very
+ * first fault Nick named. And it needs no memory, because the armies
+ * already down are what the turn gave minus what is left to place.
+ */
+export function spreadFirst(
+  state: GameState,
+  playerId: PlayerId,
+  allowed: readonly TerritoryId[],
+): GameAction | null {
+  if (state.turn.phase !== 'reinforce') {
+    return null
+  }
+
+  const given = state.turn.armiesGiven ?? state.turn.armiesToPlace
+
+  if (given <= A_BIG_TURN) {
+    return null
+  }
+
+  const share = Math.floor(given * SPREAD_SHARE)
+  const alreadyDown = given - state.turn.armiesToPlace
+  const front = allowed.filter((id) => isFrontier(state, playerId, id))
+
+  if (alreadyDown >= share || front.length < 2) {
+    return null
+  }
+
+  const thinnest = [...front].sort(
+    (one, two) => armiesOn(state, one) - armiesOn(state, two) || one.localeCompare(two),
+  )[0] as TerritoryId
+
+  return {
+    type: 'placeArmies',
+    territoryId: thinnest,
+    count: Math.min(
+      Math.max(1, Math.floor(share / front.length)),
+      share - alreadyDown,
+      state.turn.armiesToPlace,
+    ),
+  }
 }

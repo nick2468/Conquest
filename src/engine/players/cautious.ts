@@ -2,7 +2,7 @@ import { armyLimitFor, legalActions } from '../game'
 import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
 import type { GameState } from '../types'
-import { armiesOn, frontierOf, pickAmongBest, pressureOn } from './board'
+import { armiesOn, frontierOf, pickAmongBest, pressureOn, spreadFirst } from './board'
 import type { ComputerPlayer } from './types'
 
 /**
@@ -65,6 +65,16 @@ export const CAUTIOUS: ComputerPlayer = {
     const places = actions.filter((each) => each.type === 'placeArmies')
 
     if (places.length > 0) {
+      const spread = spreadFirst(
+        state,
+        me,
+        places.flatMap((each) => (each.type === 'placeArmies' ? [each.territoryId] : [])),
+      )
+
+      if (spread !== null) {
+        return spread
+      }
+
       // Shore up the border under the most pressure. If nothing is on a
       // border, anything will do.
       const onFrontier = places.filter(

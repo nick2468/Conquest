@@ -928,3 +928,53 @@ describe('the General changes its game when one opponent is left', () => {
     expect(moved(afterTheCapture(true))).toBeGreaterThan(moved(afterTheCapture(false)))
   })
 })
+
+describe('a big turn is spread over the front first', () => {
+  /**
+   * Plan task 4.16. Nick: "When a CP gets hundreds of new armies they
+   * shouldn't just dump in one place." One holds t0_0 t0_1 t0_2 with one
+   * army each. t0_0 and t0_2 face the enemy; t0_1 is inland. A turn of 60
+   * armies must leave both front territories stronger, whichever of them
+   * the player's own plan chose for its stack.
+   */
+  for (const skill of ['cautious', 'greedy', 'planner', 'general'] as const) {
+    it(`${skill} boosts every front territory, not just its stack`, () => {
+      const ring = riskShapedMap(2, 3, 5)
+      const base = createGame({
+        map: ring,
+        players: [
+          { name: 'One', kind: skill },
+          { name: 'Two', kind: 'cautious' },
+        ],
+        random: seededRandom(1),
+      })
+      let state: GameState = {
+        ...base,
+        territories: {
+          t0_0: { ownerId: 'p1', armies: 1 },
+          t0_1: { ownerId: 'p1', armies: 1 },
+          t0_2: { ownerId: 'p1', armies: 1 },
+          t1_0: { ownerId: 'p2', armies: 20 },
+          t1_1: { ownerId: 'p2', armies: 20 },
+          t1_2: { ownerId: 'p2', armies: 20 },
+        },
+        turn: {
+          ...base.turn,
+          playerId: 'p1',
+          phase: 'reinforce',
+          armiesToPlace: 60,
+          armiesGiven: 60,
+        },
+      }
+      const random = seededRandom(2)
+
+      while (state.turn.phase === 'reinforce' && state.turn.armiesToPlace > 0) {
+        state = applyAction(state, playerFor(skill).chooseAction(state, random), random)
+      }
+
+      for (const id of ['t0_0', 't0_2']) {
+        expect(state.territories[id]?.armies, `${skill} left ${id} thin`).toBeGreaterThan(5)
+      }
+    })
+  }
+})

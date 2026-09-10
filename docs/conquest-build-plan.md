@@ -402,7 +402,9 @@ player that is trying.
       two to one, and 4.9 fixed that.
 
       `RISING_SET_CAP` exists in `balance.ts` and is switched off. Turning it
-      on is a taste decision about readable numbers, not a fix.
+      on is a taste decision about readable numbers, not a fix. **It was
+      switched on at 20 in 4.16**, once Nick had watched a real game hand
+      both sides hundreds of armies a turn.
 
 Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
@@ -523,6 +525,41 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       same seeds). Two things tried and dropped: taking away the door guard
       and the spare armies on the stack as well made it worse, 44%; and
       attacking at no margin at all was no better on unseen games.
+
+- [x] 4.16 **Nick, watching General play Greedy one on one: "each turn
+      they get so many reinforcements that they can almost conquer the
+      whole world per turn."** Two causes, two fixes.
+
+      **Set values had no ceiling.** "The armies from redeeming each set
+      shouldn't increase per redemption without a limit in place." Rising
+      sets now stop at 20: 4, 6, 8, 10, 12, 15, 20, then 20 every time.
+      It is one number, `RISING_SET_CAP` in `balance.ts`, and the new game
+      screen reads it: "More each time (4, 6, 8... up to 20)".
+
+      **Every computer player put a whole turn on one territory.** "When
+      a CP gets hundreds of new armies they shouldn't just dump in one
+      place... they should be boosting their already conquered territories
+      a little as well." Now, on a turn of more than 20 armies, the first
+      30% are spread over the front, thinnest territory first, and only
+      then does the player's own plan place the rest. One shared rule,
+      `spreadFirst` in `board.ts`, used by Cautious, Greedy, the Planner
+      and General. Reckless stays random on purpose. Only the front gets
+      them: armies inland can never fight.
+
+      To tell a big turn from a small one without any memory, the turn
+      now records `armiesGiven`: the reinforcements plus any set traded.
+      What is already down is `armiesGiven - armiesToPlace`.
+
+      | General vs Greedy, same 40 games | Before | After |
+      |---|---|---|
+      | Biggest single turn, 4 players | 337 armies | **54 armies** |
+      | Game length, 4 players | 31.8 rounds | **23.6 rounds** |
+      | General's wins, 4 players | 30 : 10 | 34 : 6 |
+      | One on one | 21 : 19, 10.5 rounds | 21 : 19, 10.2 rounds |
+
+      Games got SHORTER with the cap, not longer: with hundreds of armies a
+      turn, both sides could retake everything they lost. Each player
+      spreading on a big turn is a test.
 
 ---
 
