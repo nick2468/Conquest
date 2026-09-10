@@ -39,14 +39,25 @@ interface NewGameScreenProps {
    * play it on, so nothing is offered that cannot work. See plan task 6.2.
    */
   readonly onPlayTogether?: ((setup: GameSetup) => void) | undefined
+  /** Open the rules and the computer players. See plan task 4.19. */
+  readonly onHelp?: (() => void) | undefined
 }
 
+/**
+ * Who sits down to a new game. Nick: "Player1 should default to a person
+ * the others to General." So the first seat is a person, and every seat
+ * after it is the strongest computer player. See plan task 4.19.
+ */
 function defaultPlayers(count: number): NewPlayer[] {
-  return Array.from({ length: count }, (_unused, index) => ({
-    name: `Player ${index + 1}`,
-    kind: 'human' as const,
-    colour: PLAYER_COLOURS[index] as string,
-  }))
+  return Array.from({ length: count }, (_unused, index) => {
+    const kind: PlayerKind = index === 0 ? 'human' : 'general'
+
+    return {
+      name: index === 0 ? 'Player 1' : playerFor('general').name,
+      kind,
+      colour: PLAYER_COLOURS[index] as string,
+    }
+  })
 }
 
 export const DEFAULT_SETUP: GameSetup = {
@@ -78,6 +89,7 @@ export function NewGameScreen({
   onStart,
   onCancel,
   onPlayTogether,
+  onHelp,
 }: NewGameScreenProps) {
   const [players, setPlayers] = useState<NewPlayer[]>([...startWith.players])
   const [options, setOptions] = useState<GameOptions>(startWith.options)
@@ -204,9 +216,45 @@ export function NewGameScreen({
       <div className="setup-card">
         <h1>{GAME_NAME}</h1>
         <p className="setup-lead">
-          A turn-based territory game, set in Australia.
+          A turn-based territory game.{' '}
+          {onHelp === undefined ? null : (
+            <button type="button" className="link-button" onClick={onHelp}>
+              How to play
+            </button>
+          )}
         </p>
 
+        {/*
+          Nick: "Move the Start button to the right of the Map selector,
+          right justified", and "the map selector drop down should shift
+          left and be adjacent to the Map label."
+        */}
+        <div className="setup-map-row">
+          <label className="setup-map">
+            Map
+            <select
+              value={mapId}
+              onChange={(event) => setMapId(event.target.value)}
+            >
+              {choices.map((choice) => (
+                <option key={choice.map.id} value={choice.map.id}>
+                  {labelFor(choice)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button
+            type="button"
+            className="primary"
+            disabled={clash}
+            onClick={() => onStart(asChosen())}
+          >
+            Start
+          </button>
+        </div>
+
+        <div className="setup-columns">
         <section>
           <h2>Players</h2>
 
@@ -298,20 +346,6 @@ export function NewGameScreen({
 
         <section>
           <h2>Rules</h2>
-
-          <label className="setup-field">
-            Map
-            <select
-              value={mapId}
-              onChange={(event) => setMapId(event.target.value)}
-            >
-              {choices.map((choice) => (
-                <option key={choice.map.id} value={choice.map.id}>
-                  {labelFor(choice)}
-                </option>
-              ))}
-            </select>
-          </label>
 
           <div className="map-file">
             <label className="setup-field">
@@ -429,15 +463,17 @@ export function NewGameScreen({
             </select>
           </label>
         </section>
+        </div>
 
         {/*
           Which build this is. Nick: "We need a visible version or a build
           time so that I know if I'm looking at the most up to date version
           or if I need to refresh my browser." See vite.config.ts.
         */}
-        <p className="setup-credit">{versionLine()}</p>
+        <div className="setup-footer">
+          <p className="setup-credit">{versionLine()}</p>
 
-        <div className="setup-buttons">
+          <div className="setup-buttons">
           {onCancel === undefined ? null : (
             <button type="button" onClick={onCancel}>
               Back to the game
@@ -452,15 +488,7 @@ export function NewGameScreen({
               Play together on separate iPads
             </button>
           )}
-
-          <button
-            type="button"
-            className="primary"
-            disabled={clash}
-            onClick={() => onStart(asChosen())}
-          >
-            Start
-          </button>
+          </div>
         </div>
       </div>
     </main>

@@ -46,14 +46,59 @@ export interface Plan {
   readonly entrances: readonly TerritoryId[]
 }
 
-/** How much one bonus army per turn is worth against one army now. */
-const BONUS_IS_WORTH = 8
+/**
+ * How a region is scored as a goal, in one place so each weight can be
+ * measured and changed. The General uses the same scoring. Plan task 4.18.
+ */
+export const PLANNER_SETTINGS = {
+  /** How much one bonus army per turn is worth against one army now. */
+  bonusIsWorth: 8,
+  /** What each territory still to take costs the plan. */
+  stepCosts: 5,
+  /** What each way in costs, because every one must be held from then on. */
+  entranceCosts: 4,
+  /** What each enemy army standing on the territories still to take costs. */
+  defenderCosts: 1,
+  /**
+   * What each step between our nearest army and the region costs. Nick:
+   * "add distance". A region across the map scored the same as one next
+   * door.
+   */
+  distanceCosts: 8,
+  /**
+   * What each enemy army standing on a way IN costs, because that is who
+   * will come through it once we hold the region. Nick: "add border
+   * threat". Four quiet doors scored the same as four facing a big stack.
+   *
+   * Measured with distance, on three seed ranges: level with leaving both
+   * out (Planner 66% against 64%, General 77% against 78%). The range they
+   * were tuned on said 73%, which was luck. They are kept because they
+   * cost nothing and stop a plan chasing a continent across the map or one
+   * facing a big stack, which matters more against people.
+   */
+  threatCosts: 1,
+}
 
-/** What each territory still to take costs the plan. */
-const STEP_COSTS = 5
+/** How many steps it is from any territory we hold to each territory. */
+function stepsFromUs(state: GameState, me: string): Map<TerritoryId, number> {
+  const steps = new Map<TerritoryId, number>()
+  let reached = Object.keys(state.territories).filter(
+    (id) => state.territories[id]?.ownerId === me,
+  )
 
-/** What each way in costs, because every one must be held from then on. */
-const ENTRANCE_COSTS = 4
+  for (let step = 0; reached.length > 0; step += 1) {
+    const next: TerritoryId[] = []
+
+    for (const id of reached) {
+      if (steps.has(id)) continue
+      steps.set(id, step)
+      next.push(...bordersOf(state, id))
+    }
+    reached = next.filter((id) => !steps.has(id))
+  }
+
+  return steps
+}
 
 /** How strongly to prefer a move that serves the plan. */
 const ON_PLAN = 10
@@ -67,12 +112,22 @@ const ON_PLAN = 10
  * game: not because they are rich, but because they have one door.
  */
 export function chooseGoal(state: GameState, me: string): Plan | null {
+  const steps = stepsFromUs(state, me)
   const scored = regionHoldings(state, me).map((holding) => {
     const entrances = entrancesTo(state.map, holding.regionId)
     const defenders = holding.missing.reduce(
       (total, id) => total + armiesOn(state, id),
       0,
     )
+    const distance = Math.min(
+      99,
+      ...state.map.territories
+        .filter((each) => each.regionId === holding.regionId)
+        .map((each) => steps.get(each.id) ?? 99),
+    )
+    const threat = entrances
+      .filter((id) => state.territories[id]?.ownerId !== me)
+      .reduce((total, id) => total + armiesOn(state, id), 0)
 
     const plan: Plan = {
       regionId: holding.regionId,
@@ -84,10 +139,12 @@ export function chooseGoal(state: GameState, me: string): Plan | null {
     return {
       plan,
       score:
-        holding.bonus * BONUS_IS_WORTH -
-        holding.missing.length * STEP_COSTS -
-        entrances.length * ENTRANCE_COSTS -
-        defenders,
+        holding.bonus * PLANNER_SETTINGS.bonusIsWorth -
+        holding.missing.length * PLANNER_SETTINGS.stepCosts -
+        entrances.length * PLANNER_SETTINGS.entranceCosts -
+        defenders * PLANNER_SETTINGS.defenderCosts -
+        distance * PLANNER_SETTINGS.distanceCosts -
+        threat * PLANNER_SETTINGS.threatCosts,
     }
   })
 

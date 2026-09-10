@@ -584,6 +584,43 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       A third of every turn was tried too and was mixed. Each thinking
       player splitting a turn of 10 armies is a test.
 
+- [x] 4.18 **Nick: "do the computer players know that owning a continent
+      is valuable? If so do they also rank how easy each is to conquer and
+      hold?"** The Planner and General did: bonus, territories still to
+      take, ways in, and the enemy armies on those territories. Two things
+      were missing, and he asked for both: "add distance and border
+      threat, then tune the weights."
+
+      Now each step between our nearest army and the continent costs 8,
+      and each enemy army standing on a way in costs 1. The weights sit in
+      `PLANNER_SETTINGS` in `planner.ts`; the General uses the same scoring.
+
+      | Planner wins | Tuning seeds | Unseen 5000+ | Unseen 20000+ |
+      |---|---|---|---|
+      | Before | 63% | 63% | 65% |
+      | Distance 8, threat 1 | **73%** | 69% | 57% |
+
+      **Honest result: no measurable gain.** The tuning seeds said ten
+      points; across all three ranges it is level, 66% against 64%, and the
+      General is level too. S22's lesson once more. The old weights were
+      also nudged each way (bonus, steps, ways in) and every nudge did
+      worse, so they stay as they were. Distance and threat are kept
+      because they cost nothing and stop a plan chasing a continent across
+      the map, or one facing a big stack, which a person would exploit.
+
+- [x] 4.19 **Nick, on the new game screen.** Player 1 defaults to a person
+      and every other seat to General. Map sits beside its label with
+      Start at the right of the same row, above both columns. "The landing
+      page seems a bit tall": it was one narrow column; on a screen wide
+      enough, an iPad held sideways, Players and Rules now sit side by
+      side, and the version shares the bottom row with the buttons.
+
+      **How to play**, a link beside the title, opens a help page: the
+      aim, a turn in order, how a fight works, cards, the chosen map's
+      continents and bonuses, how to play on the iPad, and every computer
+      player easiest first. Every number on it comes from `balance.ts` or
+      the map, so it cannot drift from the rules. `HelpScreen.tsx`.
+
 ---
 
 ## Phase 5 - maps of your own

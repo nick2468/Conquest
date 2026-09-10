@@ -7,6 +7,7 @@ import { CardsPanel } from './CardsPanel'
 import { GameLog } from './GameLog'
 import { MapView } from './MapView'
 import type { GameSetup } from './NewGameScreen'
+import { HelpScreen } from './HelpScreen'
 import { DEFAULT_SETUP, NewGameScreen } from './NewGameScreen'
 import { BUILT_IN } from './map-library'
 import { TogetherScreen } from './TogetherScreen'
@@ -73,7 +74,7 @@ const EMPTY_HIGHLIGHTS = {
 
 export function App() {
   const [setup, setSetup] = useState<GameSetup>(DEFAULT_SETUP)
-  const [screen, setScreen] = useState<'newGame' | 'playing' | 'together'>(
+  const [screen, setScreen] = useState<'newGame' | 'playing' | 'together' | 'help'>(
     'newGame',
   )
   const onOneIPad = useGame(setup)
@@ -382,12 +383,23 @@ export function App() {
     )
   }
 
+  if (screen === 'help') {
+    return (
+      <HelpScreen
+        map={setup.map}
+        options={setup.options}
+        onBack={() => setScreen('newGame')}
+      />
+    )
+  }
+
   if (screen === 'newGame') {
     return (
       <>
         <NewGameScreen
           startWith={setup}
           onStart={start}
+          onHelp={() => setScreen('help')}
           onCancel={
             state.round > 1 || state.turn.phase !== 'setup'
               ? () => setScreen('playing')
