@@ -1105,14 +1105,15 @@ pairing over three seed ranges it was never tuned on:
 
 | General against | 2 players | 4 players |
 |---|---|---|
-| Greedy | 53 - 67 | 84 - 36 |
-| Cautious | 63 - 57 | 85 - 35 |
-| Planner | 61 - 59 | 83 - 37 |
+| Greedy | 49 - 67 | 96 - 23 |
+| Cautious | 61 - 59 | 101 - 18 |
+| Planner | 56 - 64 | 87 - 33 |
 
-With four at the table it wins seven games in ten. Head to head it is
-level with Cautious and the Planner, and a little behind Greedy. The seed
-range it was tuned on had flattered it, 71 - 49 head to head, which is the
-lesson of S22 a third time.
+That is the General with its card first and no policing (plan 4.14). With
+four at the table it wins about eight games in ten. Head to head it is
+level with Cautious and a little behind the rest. The seed range it was
+first tuned on had flattered it, 71 - 49 head to head, which is the lesson
+of S22 a third time.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

@@ -8,6 +8,7 @@ import { seededRandom } from '../random'
 import { createGame } from '../setup'
 import type { GameMap, GameState } from '../types'
 import { entrancesTo, frontierOf, interiorOf, regionHoldings } from './board'
+import { GENERAL_SETTINGS, breakUrgency } from './general'
 import { ALL_SKILLS, playerFor } from './index'
 import type { Skill } from './types'
 
@@ -742,12 +743,13 @@ describe('the General is the strongest with a table full of players', () => {
    *
    * | General against | 2 players | 4 players |
    * |---|---|---|
-   * | Greedy | 53 : 67 | 84 : 36 |
-   * | Cautious | 63 : 57 | 85 : 35 |
-   * | Planner | 61 : 59 | 83 : 37 |
+   * | Greedy | 49 : 71 | 96 : 23 |
+   * | Cautious | 61 : 59 | 101 : 18 |
+   * | Planner | 56 : 64 | 87 : 33 |
    *
-   * So with four at the table it wins seven games in ten against any other
-   * computer player, and head to head it is about level. This checks the
+   * That is with its card first and no policing. So with four at the table
+   * it wins about eight games in ten against any other computer player.
+   * Head to head it is level with Cautious and a little behind the rest. This checks the
    * four-player result on a slice of those games, against the Planner, the
    * strongest of the rest.
    */
@@ -769,5 +771,102 @@ describe('the General is the strongest with a table full of players', () => {
     expect(general, `general ${general} : ${planner} planner`).toBeGreaterThan(
       planner * 1.3,
     )
+  })
+})
+
+describe('the General takes its card first, and is not the policeman', () => {
+  // The same ring of two regions of three: t0_0 t0_1 t0_2 t1_0 t1_1 t1_2.
+  // Three players move in the order One, Two, Three.
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(
+    owners: Record<string, [string, number]>,
+    turn: Partial<GameState['turn']>,
+  ): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, [ownerId, armies]] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies }
+    }
+
+    return {
+      ...base,
+      territories,
+      turn: { ...base.turn, playerId: 'p1', armiesToPlace: 0, ...turn },
+    }
+  }
+
+  /**
+   * Nick: "General should still put a very high priority on gaining a card
+   * every move." t0_2 can take t0_1, one army and worth nothing, or t1_0,
+   * three armies and part of Three's whole continent.
+   */
+  const choice = {
+    t0_0: ['p2', 1],
+    t0_1: ['p2', 1],
+    t0_2: ['p1', 6],
+    t1_0: ['p3', 3],
+    t1_1: ['p3', 2],
+    t1_2: ['p3', 2],
+  } as Record<string, [string, number]>
+
+  it('takes the easy card before the valuable fight', () => {
+    const state = board(choice, { phase: 'attack', hasConquered: false })
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+
+    expect(action.type === 'attack' ? action.toId : action.type).toBe('t0_1')
+  })
+
+  it('goes for the continent once the card is won', () => {
+    const state = board(choice, { phase: 'attack', hasConquered: true })
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+
+    expect(action.type === 'attack' ? action.toId : action.type).toBe('t1_0')
+  })
+
+  /**
+   * Nick: "perhaps it can reason that another player will take care of
+   * that depending on play order." Three holds region 1. Two moves between
+   * us and Three, so Two gets the first chance to break it, if Two has
+   * armies beside it to do it with.
+   */
+  it('leaves a continent to a player who moves before its owner and can reach it', () => {
+    const state = board(
+      { ...choice, t0_0: ['p2', 5] },
+      { phase: 'attack' },
+    )
+
+    expect(breakUrgency(state, 'p1', 'p3', 'r1')).toBe(GENERAL_SETTINGS.leaveItToOthers)
+  })
+
+  it('takes it on when that player has nothing to attack with', () => {
+    const state = board(choice, { phase: 'attack' })
+
+    expect(breakUrgency(state, 'p1', 'p3', 'r1')).toBe(1)
+  })
+
+  it('takes it on when the owner moves straight after us', () => {
+    const state = board(
+      {
+        t0_0: ['p3', 5],
+        t0_1: ['p3', 1],
+        t0_2: ['p1', 6],
+        t1_0: ['p2', 3],
+        t1_1: ['p2', 2],
+        t1_2: ['p2', 2],
+      },
+      { phase: 'attack' },
+    )
+
+    expect(breakUrgency(state, 'p1', 'p2', 'r1')).toBe(1)
   })
 })

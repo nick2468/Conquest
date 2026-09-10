@@ -475,6 +475,32 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       rather than by the phase, and sent a fortify into the attack phase.
       It now chooses by the phase, and a test holds that position.
 
+      **Then: its card first, and no policing.** Nick: "General should
+      still put a very high priority on gaining a card every move... that
+      doesn't mean it needs to be the global policeman... perhaps it can
+      reason that another player will take care of that depending on play
+      order." Both were fair. It ended 13% of its turns without a card, and
+      it chased every enemy continent it could reach.
+
+      Now, until it has taken something this turn, it puts its attack
+      stack beside the easiest capture, scores attacks on how likely they
+      are to succeed, and goes all in: the attacking territory keeps
+      nothing back for the card, though the capture still leaves a
+      garrison behind. Once the card is won, what a target is worth leads
+      again. And a continent is only fully its job if nobody who moves
+      before the owner collects again can reach it with three armies or
+      more; otherwise it is worth 30%.
+
+      | Measured, unseen seeds | Wins | Turns with no card |
+      |---|---|---|
+      | Before | about 60% | 13% |
+      | Card-first scoring and play order only | 58% | 11% |
+      | Plus the easy stack and all in | **63%** | **1%** |
+
+      Scoring alone barely moved it. Where the stack STANDS was the thing:
+      with the armies beside the most valuable target, there was often no
+      capture on offer at all. See spec S21 for the full table.
+
 ---
 
 ## Phase 5 - maps of your own
