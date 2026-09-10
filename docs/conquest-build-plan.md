@@ -621,6 +621,31 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       player easiest first. Every number on it comes from `balance.ts` or
       the map, so it cannot drift from the rules. `HelpScreen.tsx`.
 
+- [x] 4.20 **Sea routes are drawn on the board.** Nick saw a computer
+      player move armies from Brazil to China and took it for a bug. It
+      was not: the route ran Brazil, North Africa, East Africa, Middle
+      East, Afghanistan, China, across two crossings nobody could see.
+      "I didn't realise there is a sea route there. We need to think of a
+      way to show sea routes."
+
+      Every border with WATER between the two coasts is now a faint dashed
+      line, between the nearest points of the two coasts, as on the printed
+      board. 24 on the world map, every one a crossing on the printed board
+      too, and 5 on the detailed Australia map. Alaska to Kamchatka goes
+      round the back of the world, so it is drawn as a short line off each
+      edge of the map, not a line straight across it. `sea-routes.ts`,
+      with a test that counts them. The help page explains the dashes.
+
+      Three things the tests caught on the way. A city sits inside its
+      state, so its outline shares no edge with anything, and the first
+      version drew 33 dashes on the Australia map; a city is now judged by
+      the state it is drawn on. Hand-drawn neighbours often meet at a single
+      corner, so a crossing needs a gap of more than 2 units, not merely no
+      shared edge. And a dash must stay over water: when the nearest two
+      corners give a line that clips a third place, the next nearest pairs
+      are tried, and a border with no water between at all, such as
+      Gascoyne to the Nullarbor, gets no dash.
+
 ---
 
 ## Phase 5 - maps of your own

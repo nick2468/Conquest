@@ -4,6 +4,7 @@ import type { GameState, TerritoryDefinition, TerritoryId } from '../engine'
 import { cornersOf as cornersOfShape, edgesBetween, isWithin } from '../maps/shapes'
 import { EffectLayer } from './EffectLayer'
 import type { Effect } from './effects'
+import { seaRoutesOf } from './sea-routes'
 import type { Highlights } from './taps'
 import { cornersOf, magnification, middleOf, viewBoxFor } from './zoom'
 
@@ -273,6 +274,9 @@ export function MapView({
    * Worked out once per map. It costs a moment and the map does not change
    * while a game is played.
    */
+  /** The sea crossings, worked out once per map. See sea-routes.ts. */
+  const seaRoutes = useMemo(() => seaRoutesOf(map), [map])
+
   const insideBorders = useMemo(() => {
     const paths: string[] = []
 
@@ -359,6 +363,17 @@ export function MapView({
         the sea costs nothing.
       */}
       <path className="coast" d={allTheLand} filter="url(#coast)" />
+
+      {/*
+        The sea crossings, as faint dashes across the water. Under the
+        places, so a dash that reaches a coast never draws over the land.
+      */}
+      <path
+        className="sea-route"
+        d={seaRoutes}
+        strokeWidth={steady(1.3)}
+        strokeDasharray={`${steady(5)} ${steady(4)}`}
+      />
 
       {/*
         Three weights of line, heaviest first. The coast above, then a

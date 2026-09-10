@@ -174,6 +174,11 @@ export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
               territory next to it.
             </li>
             <li>
+              A dashed line across the sea is a crossing. The two places it
+              joins are neighbours, just as if they shared a border, for
+              attacking and for moving armies.
+            </li>
+            <li>
               Tap a territory to look at it closely. Tap the sea, or the
               whole map button, to see the whole map again.
             </li>
