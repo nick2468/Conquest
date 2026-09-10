@@ -1105,7 +1105,7 @@ pairing over three seed ranges it was never tuned on:
 
 | General against | 2 players | 4 players |
 |---|---|---|
-| Greedy | 49 - 67 | 96 - 23 |
+| Greedy | 49 - 71 | 96 - 23 |
 | Cautious | 61 - 59 | 101 - 18 |
 | Planner | 56 - 64 | 87 - 33 |
 
