@@ -962,9 +962,13 @@ else's drawing of the board, under a licence asking for credit and asking
 that the result be shared on the same terms. Nick did not want that, and a
 good map of the world is public property anyway.
 
-The coastlines come from Natural Earth, whose own words are "No permission
-is needed to use Natural Earth. Crediting the authors is unnecessary." The
-game says where they came from because it is true, not because it must.
+Every map now in the game is our own drawing. The world map is Nick's own
+picture, coasts and borders both, read in by `tools/read-map-drawing.mjs`
+(plan 5.11), and the two Australia maps were drawn by hand from real
+latitude and longitude. So there is nothing to credit, and the game credits
+nothing. Nick, when a line naming Natural Earth was still on the new game
+screen: "what are we declaring usage of, I gave you my own map." That line
+was a leftover from a generator that has since been deleted, and it went.
 
 **Every border is a real border.** Nick, on the version before this one:
 "the inner borders have too many straight lines, I'd like the maps to be

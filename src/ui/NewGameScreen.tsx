@@ -431,17 +431,11 @@ export function NewGameScreen({
         </section>
 
         {/*
-          Not an obligation. Natural Earth asks for nothing at all, not even
-          credit, and the shapes we cut with it are our own. Saying where
-          the borders came from is just the truth, and it costs a line.
+          Which build this is. Nick: "We need a visible version or a build
+          time so that I know if I'm looking at the most up to date version
+          or if I need to refresh my browser." See vite.config.ts.
         */}
-        <p className="setup-credit">
-          Borders from{' '}
-          <a href="https://www.naturalearthdata.com/" target="_blank" rel="noreferrer">
-            Natural Earth
-          </a>
-          , which is public domain. The coastlines and the maps themselves are ours.
-        </p>
+        <p className="setup-credit">{versionLine()}</p>
 
         <div className="setup-buttons">
           {onCancel === undefined ? null : (
@@ -484,4 +478,16 @@ function nameFor(kind: PlayerKind, index: number, current: string): string {
   }
 
   return kind === 'human' ? `Player ${index + 1}` : playerFor(kind).name
+}
+
+/** "Version 3f1244c, built 11 Sep, 2:05 pm", in the reader's own time. */
+function versionLine(): string {
+  const built = new Date(__BUILD__.time).toLocaleString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+
+  return `Version ${__BUILD__.commit}, built ${built}`
 }

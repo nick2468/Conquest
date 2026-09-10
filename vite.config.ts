@@ -1,8 +1,38 @@
+import { execSync } from 'node:child_process'
+
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import { defineConfig } from 'vitest/config'
 
+/**
+ * Which commit this build came from. Cloudflare Pages says so in
+ * CF_PAGES_COMMIT_SHA while it builds; anywhere else, ask git. "dev" if
+ * neither can say.
+ */
+function commitOfThisBuild(): string {
+  const fromPages = process.env['CF_PAGES_COMMIT_SHA']
+
+  if (fromPages !== undefined && fromPages !== '') {
+    return fromPages.slice(0, 7)
+  }
+
+  try {
+    return execSync('git rev-parse --short HEAD').toString().trim()
+  } catch {
+    return 'dev'
+  }
+}
+
 export default defineConfig({
+  // Stamped into the page when it is built, and shown on the new game
+  // screen, so anybody can tell which version they are looking at.
+  define: {
+    __BUILD__: JSON.stringify({
+      commit: commitOfThisBuild(),
+      time: new Date().toISOString(),
+    }),
+  },
+
   plugins: [
     react(),
 

@@ -14,6 +14,14 @@ interface ImportMetaEnv {
   readonly VITE_CONQUEST_SERVER?: string
 }
 
+/** Which build this is, stamped in by vite.config.ts. */
+declare const __BUILD__: {
+  /** The short commit ID, or "dev". */
+  readonly commit: string
+  /** When the build ran, as an ISO date. */
+  readonly time: string
+}
+
 interface ImportMeta {
   readonly env: ImportMetaEnv & {
     readonly DEV: boolean
