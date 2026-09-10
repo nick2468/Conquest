@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { inflateSync } from 'node:zlib'
 
 /**
  * Turn a drawing into a map. Plan task 5.11.
@@ -127,7 +128,7 @@ function simplifiedRing(ring, tolerance) {
  * The two ends stay exactly where they were, which is what lets a shared
  * border stay shared: both sides round the identical run of points.
  */
-function rounded(points, times = ROUND_TIMES) {
+function rounded(points, times = ROUND_TIMES, tidyTo = SIMPLIFY_TO / 6) {
   let line = points
 
   for (let round = 0; round < times; round += 1) {
@@ -150,11 +151,11 @@ function rounded(points, times = ROUND_TIMES) {
 
   // The rounding adds points along nearly straight runs that add nothing
   // to the shape. A light second pass drops those.
-  return simplified(line, SIMPLIFY_TO / 6)
+  return simplified(line, tidyTo)
 }
 
-function roundedRing(ring, times = ROUND_TIMES) {
-  const line = rounded([...ring, ring[0]], times)
+function roundedRing(ring, times = ROUND_TIMES, tidyTo = SIMPLIFY_TO / 6) {
+  const line = rounded([...ring, ring[0]], times, tidyTo)
 
   line.pop()
   return line
@@ -211,7 +212,7 @@ function simplifyTogether(outlines, tolerance) {
 
     // Nothing shared with anybody: an island, simplified whole.
     if (junctions.length < 2) {
-      out.set(name, roundedRing(simplifiedRing(ring, tolerance)))
+      out.set(name, roundedRing(simplifiedRing(ring, tolerance), ROUND_TIMES, tolerance / 6))
       continue
     }
 
@@ -232,7 +233,7 @@ function simplifyTogether(outlines, tolerance) {
       const key = forwards < backwards ? forwards : backwards
 
       if (!done.has(key)) {
-        done.set(key, rounded(simplified(run, tolerance)))
+        done.set(key, rounded(simplified(run, tolerance), ROUND_TIMES, tolerance / 6))
       }
 
       const kept = done.get(key)
@@ -1054,6 +1055,407 @@ function bordersBetween(places, owner, width, height) {
 
 // ------------------------------------------------------------------- build
 
+// ------------------------------------------------------------ a picture
+
+/**
+ * A map drawn as a PICTURE: black lines on white, coasts and borders
+ * together, saved as a PNG. Plan task 5.11.
+ *
+ * Nick: "Try this map." Every white area the lines close off is either a
+ * place, part of a place, or water, and a picture cannot say which: an
+ * enclosed sea such as the Caspian is as white as Siberia. So a NAMES
+ * file goes with the picture. It lists, for each place, a point inside
+ * each of its areas, and a point inside each enclosed sea. The tool
+ * reports any area left over, so nothing is silently lost.
+ *
+ * Everything else about each place (its full name, short name, continent
+ * and who it may attack) comes from the map being replaced, by id.
+ */
+
+/** A picture's cells are two pixels square: plenty, and four times faster. */
+const HALVED = 2
+
+/** Map units per cell, so the board comes out about 900 across. */
+const MAP_UNITS_PER_CELL = Number(process.env['UNITS'] ?? 0.52)
+
+function readPng(file) {
+  const bytes = readFileSync(file)
+  let at = 8
+  let width = 0
+  let height = 0
+  let kind = 0
+  const data = []
+
+  while (at < bytes.length) {
+    const length = bytes.readUInt32BE(at)
+    const name = bytes.toString('ascii', at + 4, at + 8)
+    const body = bytes.subarray(at + 8, at + 8 + length)
+
+    if (name === 'IHDR') {
+      width = body.readUInt32BE(0)
+      height = body.readUInt32BE(4)
+      kind = body[9]
+    }
+    if (name === 'IDAT') data.push(body)
+    at += 12 + length
+  }
+
+  const perPixel = { 0: 1, 2: 3, 4: 2, 6: 4 }[kind]
+
+  if (perPixel === undefined) {
+    throw new Error(`${file}: a PNG of colour type ${kind} is not read. Save it as RGB or RGBA.`)
+  }
+
+  const raw = inflateSync(Buffer.concat(data))
+  const stride = width * perPixel
+  const pixels = Buffer.alloc(height * stride)
+
+  // Undo the PNG row filters.
+  for (let y = 0; y < height; y += 1) {
+    const filter = raw[y * (stride + 1)]
+    const row = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1))
+
+    for (let x = 0; x < stride; x += 1) {
+      const left = x >= perPixel ? pixels[y * stride + x - perPixel] : 0
+      const up = y > 0 ? pixels[(y - 1) * stride + x] : 0
+      const both = x >= perPixel && y > 0 ? pixels[(y - 1) * stride + x - perPixel] : 0
+      let value = row[x]
+
+      if (filter === 1) value += left
+      else if (filter === 2) value += up
+      else if (filter === 3) value += (left + up) >> 1
+      else if (filter === 4) {
+        const guess = left + up - both
+        const toLeft = Math.abs(guess - left)
+        const toUp = Math.abs(guess - up)
+        const toBoth = Math.abs(guess - both)
+
+        value += toLeft <= toUp && toLeft <= toBoth ? left : toUp <= toBoth ? up : both
+      }
+      pixels[y * stride + x] = value & 255
+    }
+  }
+
+  // Ink: a dark pixel that can be seen.
+  const ink = new Uint8Array(width * height)
+
+  for (let pixel = 0; pixel < width * height; pixel += 1) {
+    const start = pixel * perPixel
+    const dark =
+      perPixel >= 3
+        ? (pixels[start] + pixels[start + 1] + pixels[start + 2]) / 3
+        : pixels[start]
+    const seen = perPixel === 4 ? pixels[start + 3] : perPixel === 2 ? pixels[start + 1] : 255
+
+    ink[pixel] = seen > 128 && dark < 128 ? 1 : 0
+  }
+
+  return { width, height, ink }
+}
+
+/**
+ * The map being replaced, read for everything but the shapes: names,
+ * short names, continents, who borders whom, and which places are
+ * islands. Read with patterns, because this is a plain script and the
+ * map is TypeScript written in a shape that does not vary.
+ */
+function theOldPlaces(file) {
+  const text = readFileSync(file, 'utf8')
+  const places = new Map()
+  const blocks = text.matchAll(
+    /id: '([^']+)',\s*name: '([^']+)',\s*shortName: '([^']+)',\s*regionId: '([^']+)',\s*borders: \[([^\]]*)\]([\s\S]*?)\n  \},/g,
+  )
+
+  for (const [, id, name, shortName, regionId, borders, rest] of blocks) {
+    places.set(id, {
+      id,
+      name,
+      shortName,
+      regionId,
+      borders: [...borders.matchAll(/'([^']+)'/g)].map((found) => found[1]),
+      isIsland: /isIsland: true/.test(rest),
+    })
+  }
+
+  const regions = [
+    ...text.matchAll(
+      /id: '([^']+)',\s*name: '([^']+)',\s*bonus: (\d+),\s*outline: '([^']+)'/g,
+    ),
+  ].map(([, id, name, bonus, outline]) => ({ id, name, bonus: Number(bonus), outline }))
+
+  return { places, regions }
+}
+
+function fromPicture(file, mapName, into, namesFile) {
+  const names = JSON.parse(
+    readFileSync(namesFile ?? file.replace(/\.png$/i, '.names.json'), 'utf8'),
+  )
+  const old = theOldPlaces(WRITE_TO)
+  const picture = readPng(file)
+  const width = Math.floor(picture.width / HALVED)
+  const height = Math.floor(picture.height / HALVED)
+
+  // A cell is ink if any pixel in it is, then the ink is thickened by one
+  // cell, which closes the hairline gaps a drawing always has.
+  const ink = new Uint8Array(width * height)
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      for (let dy = 0; dy < HALVED; dy += 1) {
+        for (let dx = 0; dx < HALVED; dx += 1) {
+          if (picture.ink[(y * HALVED + dy) * picture.width + x * HALVED + dx] === 1) {
+            ink[y * width + x] = 1
+          }
+        }
+      }
+    }
+  }
+
+  const line = grown(ink, width, height, 1, 1)
+
+  // Every white area the lines close off.
+  const area = new Int32Array(width * height).fill(-1)
+  const sizes = []
+
+  for (let cell = 0; cell < area.length; cell += 1) {
+    if (line[cell] === 1 || area[cell] >= 0) continue
+
+    const which = sizes.length
+    const queue = [cell]
+    let count = 0
+
+    area[cell] = which
+    while (queue.length > 0) {
+      const here = queue.pop()
+      const x = here % width
+      const y = (here - x) / width
+
+      count += 1
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx
+        const ny = y + dy
+
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+        const next = ny * width + nx
+
+        if (line[next] === 0 && area[next] < 0) {
+          area[next] = which
+          queue.push(next)
+        }
+      }
+    }
+    sizes.push(count)
+  }
+
+  const areaAt = ([x, y]) => {
+    const found = area[Math.floor(y / HALVED) * width + Math.floor(x / HALVED)]
+
+    if (found === undefined || found < 0) {
+      throw new Error(`The point ${x},${y} in ${namesFile} is on a line, not inside an area.`)
+    }
+
+    return found
+  }
+
+  // Which place each area belongs to. The outer sea is the area in the
+  // top left corner.
+  const ids = Object.keys(names.places)
+  const placeOf = new Map()
+  const water = new Set([area[0], ...(names.water ?? []).map(areaAt)])
+
+  ids.forEach((id, index) => {
+    if (!old.places.has(id)) {
+      throw new Error(`"${id}" is in the names file but not in the map it replaces.`)
+    }
+    for (const point of names.places[id]) {
+      const found = areaAt(point)
+
+      if (placeOf.has(found)) {
+        throw new Error(
+          `One area is named twice: ${ids[placeOf.get(found)]} and ${id}. ` +
+            'A border line is missing between them.',
+        )
+      }
+      placeOf.set(found, index)
+    }
+  })
+
+  const leftOver = sizes
+    .map((size, which) => ({ size, which }))
+    .filter(({ size, which }) => size >= 60 && !water.has(which) && !placeOf.has(which))
+
+  if (leftOver.length > 0) {
+    console.log(`${leftOver.length} areas are neither a place nor water, and are left out:`)
+    for (const { which, size } of leftOver) {
+      const cell = area.indexOf(which)
+
+      console.log(`  ${size} cells, near ${(cell % width) * HALVED},${Math.floor(cell / width) * HALVED}`)
+    }
+  }
+
+  // Each place's cells, then the cells under the lines, shared out to the
+  // nearest place so neighbours meet exactly with no gap.
+  const owner = new Int16Array(width * height).fill(-1)
+
+  for (let cell = 0; cell < owner.length; cell += 1) {
+    const found = placeOf.get(area[cell])
+
+    if (found !== undefined) owner[cell] = found
+  }
+
+  let edge = []
+
+  for (let cell = 0; cell < owner.length; cell += 1) {
+    if (owner[cell] >= 0) edge.push(cell)
+  }
+  for (let step = 0; step < 4 && edge.length > 0; step += 1) {
+    const spreading = []
+
+    for (const cell of edge) {
+      const x = cell % width
+      const y = (cell - x) / width
+
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx
+        const ny = y + dy
+
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+
+        const next = ny * width + nx
+
+        // Only over the lines. Never out into the sea.
+        if (line[next] === 1 && owner[next] < 0) {
+          owner[next] = owner[cell]
+          spreading.push(next)
+        }
+      }
+    }
+    edge = spreading
+  }
+
+  // Half of a coastline's thickness is on the sea side, and it would make
+  // every coast a cell or two fat. So a line cell that touches the sea
+  // goes back to being sea.
+  for (let pass = 0; pass < 2; pass += 1) {
+    const before = Int16Array.from(owner)
+
+    for (let cell = 0; cell < owner.length; cell += 1) {
+      if (before[cell] < 0 || line[cell] === 0) continue
+
+      const x = cell % width
+      const y = (cell - x) / width
+
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx
+        const ny = y + dy
+
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+        if (before[ny * width + nx] < 0 && line[ny * width + nx] === 0) {
+          owner[cell] = -1
+          break
+        }
+      }
+    }
+  }
+
+  // Each place's outline, walked around its own cells.
+  const everyRing = new Map()
+  const howMany = []
+
+  ids.forEach((id, index) => {
+    const rings = walkedAround(owner, index, width, height)
+      .filter((ring) => Math.abs(roomTaken(ring)) >= 20)
+      .sort((one, two) => Math.abs(roomTaken(two)) - Math.abs(roomTaken(one)))
+
+    if (rings.length === 0) {
+      throw new Error(`"${id}" came out with no land at all.`)
+    }
+
+    // A lake inside a place walks round the other way. It is a hole, not
+    // an island, and it is left out.
+    const way = Math.sign(roomTaken(rings[0]))
+    const kept = rings.filter((ring) => Math.sign(roomTaken(ring)) === way)
+
+    kept.forEach((ring, at) => everyRing.set(`${index}/${at}`, ring))
+    howMany.push(kept.length)
+  })
+
+  // A picture's lines wobble a pixel either way, so it is thinned harder
+  // than a drawing. At 3 the world has fewer corners than the map it
+  // replaced, and the rules check it in under two seconds.
+  const thinner = simplifyTogether(everyRing, Number(process.env['SIMPLIFY'] ?? 3))
+  const onTheMap = (ring) =>
+    ring
+      .map(([x, y]) => [
+        Number((x * MAP_UNITS_PER_CELL).toFixed(1)),
+        Number((y * MAP_UNITS_PER_CELL).toFixed(1)),
+      ])
+      .filter(
+        (point, at, all) =>
+          at === 0 || point[0] !== all[at - 1][0] || point[1] !== all[at - 1][1],
+      )
+
+  // Who touches whom, in the picture itself.
+  const touching = ids.map(() => new Set())
+
+  for (let y = 0; y + 1 < height; y += 1) {
+    for (let x = 0; x + 1 < width; x += 1) {
+      const here = owner[y * width + x]
+
+      if (here < 0) continue
+      for (const next of [owner[y * width + x + 1], owner[(y + 1) * width + x]]) {
+        if (next >= 0 && next !== here) {
+          touching[here].add(ids[next])
+          touching[next].add(ids[here])
+        }
+      }
+    }
+  }
+
+  const places = ids.map((id, index) => {
+    const rings = []
+
+    for (let at = 0; at < howMany[index]; at += 1) {
+      rings.push(onTheMap(thinner.get(`${index}/${at}`)))
+    }
+
+    const was = old.places.get(id)
+
+    // The borders are the old map's list, which holds every crossing by
+    // sea, plus any land border the picture adds.
+    const borders = new Set(was.borders.filter((other) => ids.includes(other)))
+
+    for (const other of touching[index]) borders.add(other)
+
+    return {
+      ...was,
+      borders: [...borders].sort(),
+      corners: rings[0],
+      islands: rings.slice(1),
+      labelAt: roomiestIn(rings[0]),
+      newBorders: [...touching[index]].filter((other) => !was.borders.includes(other)),
+    }
+  })
+
+  const added = places.flatMap((place) =>
+    place.newBorders.filter((other) => place.id < other).map((other) => `${place.id}-${other}`),
+  )
+
+  console.log(
+    `${places.length} places from ${file}. ` +
+      (added.length > 0
+        ? `The picture adds ${added.length} land borders: ${added.join(' ')}`
+        : 'Every land border in the picture was already a border.'),
+  )
+
+  writeFileSync(
+    into ?? WRITE_TO,
+    asTypeScript(places, mapName ?? 'World', { regions: old.regions, id: 'world' }, frameFor(places)),
+  )
+  console.log(`wrote ${into ?? WRITE_TO}`)
+}
+
 function main() {
   const [file, mapName, into, names] = process.argv.slice(2)
 
@@ -1062,6 +1464,11 @@ function main() {
       'Say which drawing to read:\n' +
         '  node tools/read-map-drawing.mjs <drawing.svg> <name> [into.ts] [names-from.ts]',
     )
+  }
+
+  if (/\.png$/i.test(file)) {
+    fromPicture(file, mapName, into, names)
+    return
   }
 
   const { coasts, borders } = coastsAndBorders(file)
@@ -1248,6 +1655,8 @@ ${place.borders.map((each) => `      '${each}',`).join('\n')}
 ${asCorners(place.corners)}
     ],
     labelAt: at(${place.labelAt[0]}, ${place.labelAt[1]}),${
+      place.isIsland === true ? '\n    isIsland: true,' : ''
+    }${
       place.islands.length > 0
         ? `\n    islands: [\n${place.islands
             .map((island) => `      [\n${asCorners(island).replace(/^/gm, '  ')}\n      ],`)

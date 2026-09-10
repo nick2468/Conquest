@@ -871,6 +871,21 @@ which is the only guidance a person needs to finish the drawing.
 There is nothing about the real world in it. That guesswork is what six
 earlier goes all foundered on.
 
+**A picture works too.** Nick then drew the whole board by hand, coasts
+and borders in black on white, and saved it as a PNG
+(`assets/Conquest map.png`). Every white area the lines close off is a
+place, part of a place, or water. A picture cannot say which, because an
+enclosed sea such as the Caspian is as white as Siberia. So a NAMES file
+goes with it (`tools/data/conquest-map-names.json`): for each place, a
+point inside each of its areas, and a point inside each enclosed sea.
+The tool refuses an area named twice, because that means a border line
+is missing, and reports any area left over, so nothing is lost quietly.
+
+Everything but the shapes (full name, short name, continent, who may
+attack whom, which places are islands) comes from the map being
+replaced, by id. Its borders are kept because they hold every crossing
+by sea, and any land border the picture adds is added to them.
+
 **S52. Cutting a place in two.** This is how a continent becomes
 territories, and it is the one thing a person cannot do by dragging
 corners about. Choose a place, press "Cut this place in two", press your

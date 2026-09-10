@@ -707,6 +707,18 @@ be. A bigger Australia is what makes strategy mean anything.
       from the map being replaced, by whichever old label sits inside each
       new piece.
 
+      **Then Nick drew the board himself**, coasts and borders in one PNG:
+      "Try this map." The tool reads pictures now. 52 white areas: 42
+      places, six islands that belong to one of them (Ireland, Tierra del
+      Fuego, Hokkaido, Sumatra, Java, Sulawesi), and the enclosed seas.
+      A names file says which is which, by a point inside each. Every
+      land border in the picture was already a border of the board.
+
+      The first read had 6,447 corners and the map rules took over five
+      seconds, which failed the test on time rather than on any rule.
+      Thinning at 3 cells gives 3,616, fewer than the map it replaced,
+      checked in under two seconds. All 456 tests green.
+
 - [x] 5.9 **A map editor.** Built 2026-09-07, in `src/editor/`, as a second
       page at `/editor.html`. It ships WITH the game, so it works offline,
       needs nothing installed, and is one link away. See spec 3.4.

@@ -71,6 +71,33 @@ it, so redrawing keeps every name, continent and bonus. Pieces with
 nobody inside come out as "Place 1", "Place 2" and so on. Rename those in
 the editor at http://localhost:5180/editor.html.
 
+## A picture instead
+
+Draw the whole board in black on white, coasts and borders together,
+in any paint program, and save it as a PNG. Nick's is
+`assets/Conquest map.png`.
+
+A picture needs a **names file** beside it, because an enclosed sea is
+as white as land. It gives, for each place, a point (in pixels) inside
+each of its areas, and a point inside each enclosed sea:
+
+```json
+{
+ "places": { "greatBritain": [[1463, 596], [1357, 598]] },
+ "water": [[1813, 452]]
+}
+```
+
+Then:
+
+```bash
+node tools/read-map-drawing.mjs "assets/Conquest map.png" World src/maps/world.ts tools/data/conquest-map-names.json
+```
+
+If two names land in one area, it stops and says a border line is
+missing between them. If an area has no name and is not water, it says
+where it is.
+
 ## Afterwards
 
 The map is a plain file, `src/maps/world.ts`. From then on the editor
