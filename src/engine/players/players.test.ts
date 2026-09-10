@@ -978,3 +978,51 @@ describe('a big turn is spread over the front first', () => {
     })
   }
 })
+
+describe('an ordinary turn is split too', () => {
+  /**
+   * Plan task 4.17. Nick: "make them all split ordinary turns too." The
+   * same three territories as above, now with an ordinary turn of 10
+   * armies. Both front territories must end the turn stronger.
+   */
+  for (const skill of ['cautious', 'greedy', 'planner', 'general'] as const) {
+    it(`${skill} puts armies on more than one front territory`, () => {
+      const ring = riskShapedMap(2, 3, 5)
+      const base = createGame({
+        map: ring,
+        players: [
+          { name: 'One', kind: skill },
+          { name: 'Two', kind: 'cautious' },
+        ],
+        random: seededRandom(1),
+      })
+      let state: GameState = {
+        ...base,
+        territories: {
+          t0_0: { ownerId: 'p1', armies: 1 },
+          t0_1: { ownerId: 'p1', armies: 1 },
+          t0_2: { ownerId: 'p1', armies: 1 },
+          t1_0: { ownerId: 'p2', armies: 3 },
+          t1_1: { ownerId: 'p2', armies: 3 },
+          t1_2: { ownerId: 'p2', armies: 3 },
+        },
+        turn: {
+          ...base.turn,
+          playerId: 'p1',
+          phase: 'reinforce',
+          armiesToPlace: 10,
+          armiesGiven: 10,
+        },
+      }
+      const random = seededRandom(2)
+
+      while (state.turn.phase === 'reinforce' && state.turn.armiesToPlace > 0) {
+        state = applyAction(state, playerFor(skill).chooseAction(state, random), random)
+      }
+
+      for (const id of ['t0_0', 't0_2']) {
+        expect(state.territories[id]?.armies, `${skill} left ${id} at one`).toBeGreaterThan(1)
+      }
+    })
+  }
+})

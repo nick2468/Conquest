@@ -561,6 +561,29 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       turn, both sides could retake everything they lost. Each player
       spreading on a big turn is a test.
 
+- [x] 4.17 **Nick: "make them all split ordinary turns too."** Until now
+      Cautious, Greedy and the Planner put an ordinary turn (20 armies or
+      fewer) on one territory. Even General could, when its planned attack
+      needed more than the whole turn.
+
+      Now the first 20% of EVERY turn goes over the front, thinnest
+      territory first, and 30% of a big turn as before. Then each player's
+      own plan places the rest. The shares sit together in `SPREADING` in
+      `board.ts`. General spreads every turn too: measured, it did a
+      little better that way than on big turns only.
+
+      | Unseen seeds, 30 games each | Old | 20% every turn |
+      |---|---|---|
+      | Greedy : Cautious, 2p / 4p | 15:15 / 24:6 | 23:7 / 23:7 |
+      | Planner : Cautious, 2p / 4p | 14:16 / 26:4 | 20:10 / 24:6 |
+      | Greedy : Planner, 2p / 4p | 16:14 / 11:19 | 17:13 / 15:15 |
+      | General : Greedy, 2p / 4p | 14:16 / 26:4 | 17:13 / 27:3 |
+      | General : Planner, 2p / 4p | 15:15 / 27:3 | 19:11 / 24:6 |
+
+      Nobody got weaker for it, and General stays ahead in every pairing.
+      A third of every turn was tried too and was mixed. Each thinking
+      player splitting a turn of 10 armies is a test.
+
 ---
 
 ## Phase 5 - maps of your own

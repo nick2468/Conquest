@@ -2,7 +2,15 @@ import { legalActions } from '../game'
 import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
 import type { GameState, PlayerId, TerritoryId } from '../types'
-import { armiesOn, bordersOf, ownedBy, pickAmongBest, regionHoldings, spreadFirst } from './board'
+import {
+  SPREADING,
+  armiesOn,
+  bordersOf,
+  ownedBy,
+  pickAmongBest,
+  regionHoldings,
+  spreadFirst,
+} from './board'
 import { chooseGoal } from './planner'
 import type { Plan } from './planner'
 import type { ComputerPlayer } from './types'
@@ -449,7 +457,7 @@ function placement(
     count: oneAtATime ? 1 : Math.max(1, Math.min(remaining, count)),
   })
 
-  const spread = spreadFirst(state, me, [...allowed])
+  const spread = spreadFirst(state, me, [...allowed], !SPREADING.generalEveryTurn)
 
   if (spread !== null) {
     return spread

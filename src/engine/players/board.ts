@@ -227,22 +227,30 @@ export function pickAmongBest<Item>(
 }
 
 /**
- * A turn that hands out more armies than this is a BIG turn.
+ * How a computer player spreads its new armies over its front before its
+ * own plan places the rest. Plan tasks 4.16 and 4.17.
  *
  * Nick, watching a late one-on-one game: "When a CP gets hundreds of new
  * armies they shouldn't just dump in one place to begin a blitzkrieg...
  * they should be boosting their already conquered territories a little
- * as well." Plan task 4.16.
+ * as well." Then, of ordinary turns: "make them all split ordinary turns
+ * too."
  */
-export const A_BIG_TURN = 20
-
-/** The share of a big turn that goes to the front first, spread thin. */
-export const SPREAD_SHARE = 0.3
+export const SPREADING = {
+  /** A turn that hands out more armies than this is a BIG turn. */
+  bigTurn: 20,
+  /** The share of a big turn that goes to the front first, spread thin. */
+  bigShare: 0.3,
+  /** The share of an ordinary turn that goes to the front first. */
+  ordinaryShare: 0.2,
+  /** Does the General spread ordinary turns too, or only big ones? */
+  generalEveryTurn: true,
+}
 
 /**
- * On a big turn, the first placements spread a share of the armies over the
- * front, thinnest territory first. Returns null on an ordinary turn, or
- * once that share is down, and the player's own choice takes over.
+ * The first placements of a turn spread a share of its armies over the
+ * front, thinnest territory first. Returns null once that share is down,
+ * and the player's own choice takes over.
  *
  * Only the front: armies buried inland can never fight, which was the very
  * first fault Nick named. And it needs no memory, because the armies
@@ -252,18 +260,20 @@ export function spreadFirst(
   state: GameState,
   playerId: PlayerId,
   allowed: readonly TerritoryId[],
+  bigTurnsOnly = false,
 ): GameAction | null {
   if (state.turn.phase !== 'reinforce') {
     return null
   }
 
   const given = state.turn.armiesGiven ?? state.turn.armiesToPlace
+  const big = given > SPREADING.bigTurn
 
-  if (given <= A_BIG_TURN) {
+  if (!big && bigTurnsOnly) {
     return null
   }
 
-  const share = Math.floor(given * SPREAD_SHARE)
+  const share = Math.floor(given * (big ? SPREADING.bigShare : SPREADING.ordinaryShare))
   const alreadyDown = given - state.turn.armiesToPlace
   const front = allowed.filter((id) => isFrontier(state, playerId, id))
 
