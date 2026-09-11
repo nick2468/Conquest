@@ -937,7 +937,7 @@ describe('a big turn is spread over the front first', () => {
    * armies must leave both front territories stronger, whichever of them
    * the player's own plan chose for its stack.
    */
-  for (const skill of ['cautious', 'greedy', 'planner', 'general'] as const) {
+  for (const skill of ['cautious', 'turtle', 'greedy', 'planner', 'general'] as const) {
     it(`${skill} boosts every front territory, not just its stack`, () => {
       const ring = riskShapedMap(2, 3, 5)
       const base = createGame({
@@ -985,7 +985,7 @@ describe('an ordinary turn is split too', () => {
    * same three territories as above, now with an ordinary turn of 10
    * armies. Both front territories must end the turn stronger.
    */
-  for (const skill of ['cautious', 'greedy', 'planner', 'general'] as const) {
+  for (const skill of ['cautious', 'turtle', 'greedy', 'planner', 'general'] as const) {
     it(`${skill} puts armies on more than one front territory`, () => {
       const ring = riskShapedMap(2, 3, 5)
       const base = createGame({
@@ -1025,4 +1025,63 @@ describe('an ordinary turn is split too', () => {
       }
     })
   }
+})
+
+describe('the Turtle stays in its shell', () => {
+  /**
+   * Plan task 4.23. The same ring of two regions of three. One is the
+   * Turtle, on t0_2 with 6 armies. Three is far stronger, so the Turtle
+   * stays in its shell. t0_1 holds one of Two's armies and is not Two's
+   * last territory unless the test says so.
+   */
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(twoIsDownToOne: boolean, hasConquered: boolean): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'turtle' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const owners: Record<string, [string, number]> = {
+      t0_0: [twoIsDownToOne ? 'p3' : 'p2', 9],
+      t0_1: ['p2', 1],
+      t0_2: ['p1', 6],
+      t1_0: ['p3', 9],
+      t1_1: ['p3', 9],
+      t1_2: ['p3', 9],
+    }
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, [ownerId, armies]] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies }
+    }
+
+    return {
+      ...base,
+      territories,
+      turn: { ...base.turn, playerId: 'p1', phase: 'attack', armiesToPlace: 0, hasConquered },
+    }
+  }
+
+  function choice(state: GameState): string {
+    const action = playerFor('turtle').chooseAction(state, seededRandom(1))
+
+    return action.type === 'attack' ? action.toId : action.type
+  }
+
+  it('attacks for its card', () => {
+    expect(choice(board(false, false))).toBe('t0_1')
+  })
+
+  it('stops once the card is won', () => {
+    expect(choice(board(false, true))).toBe('endAttackPhase')
+  })
+
+  it('still knocks a player out after the card is won', () => {
+    expect(choice(board(true, true))).toBe('t0_1')
+  })
 })

@@ -1105,12 +1105,13 @@ only return something `legalActions` offered.** So it cannot cheat, because it
 never sees the rules. It sees only the list of what is allowed, the same list
 the screen greys out from. A test walks every position and checks this.
 
-Five of them, built as steps so the difference is visible:
+Six of them, built as steps so the difference is visible:
 
 | Name | What it does |
 |---|---|
 | Reckless | Picks at random. The baseline everything else is measured against. |
 | Cautious | Attacks only when ahead. Reinforces its frontier, fortifies forward. |
+| Turtle | Piles its armies on the border under most pressure and attacks once a turn for its card, plus any knockout or last territory of a continent in reach. Comes out and plays as the General once it holds half as many armies again as the strongest other player, or once only one opponent is left in a game that started with more than two. From the Wikipedia page on Risk. |
 | Greedy | The same, but chooses attacks and placements by region value. |
 | Planner | Picks a region to own, takes it, then holds the ways in. |
 | General | Holds a front line with a second line behind it, never leaves one army where it has just attacked from, spreads new armies over a weak front, and goes first for a continent somebody else holds. |
@@ -1146,6 +1147,22 @@ other player. Before the duel settings it lost to Greedy head to head,
 49 - 71. The seed range it was
 first tuned on had flattered it, 71 - 49 head to head, which is the lesson
 of S22 a third time.
+
+Measured 2026-09-11 for the Turtle, on the world map, 20 games per pairing
+over seed ranges 5000 and 20000:
+
+| Turtle against | 2 players | 4 players |
+|---|---|---|
+| Reckless | 18 - 2 | 19 - 1 |
+| Cautious | 0 - 20 | 3 - 16 |
+| Greedy | 1 - 19 | 9 - 11 |
+| Planner | 0 - 20 | 3 - 16 |
+| General | 0 - 20 | 1 - 19 |
+
+So it is the second easiest, and it is listed after Reckless. Taking one
+territory a turn keeps its reinforcements small and wins it no continents.
+The General beats it every time, so the General needs no special answer to
+it. See plan task 4.23.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

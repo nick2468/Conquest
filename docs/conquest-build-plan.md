@@ -687,6 +687,22 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       heavier. Tests: every end on its own place, Greenland to Ontario, East
       Africa to the Middle East long enough to see, and Kamchatka from its
       eastern coast.
+- [x] 4.23 **The Turtle.** Nick, after reading the Wikipedia page on Risk:
+      "one is even named as Turtle, we should offer it." It piles its
+      armies on the border under most pressure, attacks once a turn for its
+      card, and also takes any knockout or last territory of a continent in
+      reach. It moves as few armies as it can into a capture. It plays as
+      the General once it holds half as many armies again as the strongest
+      other player, or once one opponent is left in a game that started
+      with more than two. In a game that starts with two it would otherwise
+      have been the General from the first move, and a test caught that.
+      `turtle.ts`, with tests: it attacks for its card, stops once it has
+      it, and still takes a knockout.
+
+      Measured on the world map, unseen seeds (spec S21): it beats Reckless
+      18 - 2 and 19 - 1, and loses to every other player. So it is listed
+      second easiest. The General beats it 20 - 0 and 19 - 1, so the
+      General needs no special answer to it.
 
 ---
 

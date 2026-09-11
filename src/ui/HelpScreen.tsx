@@ -41,6 +41,8 @@ const HOW_THEY_PLAY: Readonly<Record<Skill, string>> = {
     'Moves at random. It attacks anything and defends nothing. The one to learn on.',
   cautious:
     'Only attacks when it has more armies than the defender, and keeps its armies on its borders. Hard to break into, slow to win.',
+  turtle:
+    'Piles its armies on its borders and takes just one territory a turn for its card. Hard to knock out. Once it is clearly the strongest, or only one opponent is left, it comes out and plays like the General.',
   greedy:
     'Makes sure it takes at least one territory every turn to earn a card, and finishes off a continent when it can. Presses hard.',
   planner:
