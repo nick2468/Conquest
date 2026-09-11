@@ -188,8 +188,13 @@ export interface TurnState {
   readonly hasConquered: boolean
   /** True once the player has knocked somebody out this turn. */
   readonly knockedOutThisTurn?: boolean
-  /** True once the one fortify move has been used. */
+  /** True once the player has made a fortify move this turn. */
   readonly hasFortified: boolean
+  /**
+   * The territories fortify moves have sent armies INTO this turn. With
+   * `fortifyMoves: 'many'` they may not send any on. Missing means none.
+   */
+  readonly movedInto?: readonly TerritoryId[]
   readonly pendingOccupation: Occupation | null
   /** The last exchange of dice, for the screen to show. */
   readonly lastAttack: AttackOutcome | null
@@ -215,7 +220,24 @@ export interface LogEntry {
 
 export interface GameOptions {
   readonly cardSetValue: 'fixed' | 'rising'
+  /**
+   * The most a set is worth when the value rises. Plan task 4.25. One of
+   * RISING_SET_CAP_CHOICES. Missing from a game saved before it existed,
+   * which means RISING_SET_CAP.
+   */
+  readonly risingSetCap?: number
   readonly fortifyDistance: 'adjacent' | 'connected'
+  /**
+   * How many fortify moves a turn may end with. Plan task 4.24.
+   *
+   * 'one'   one move, and it ends the turn, as in the printed rules
+   * 'many'  any number of moves, until the player ends the turn. Armies
+   *         that arrived by a fortify move this turn stay where they are,
+   *         so nothing can be passed along a chain or moved back and forth.
+   *
+   * Missing from a game saved before it existed, which means 'one'.
+   */
+  readonly fortifyMoves?: 'one' | 'many'
   /**
    * How the first armies reach the board.
    *

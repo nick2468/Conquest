@@ -508,7 +508,12 @@ empty" into a rule with no exceptions.
 
 ### 6.5 Fortify
 
-One move per turn, at the end.
+One move per turn, at the end, unless `options.fortifyMoves` says `'many'`
+(plan 4.24). Then a player may move armies as often as they like, and ends
+the turn when they are done. Armies that arrived by a fortify move this turn
+stay where they are (`turn.movedInto`), so nothing can be passed along a
+chain or moved back and forth, and a computer player always runs out of
+moves. Nick: "Add the multi-fortify option but default to classic."
 
 - Both territories must belong to the player.
 - At least one army must stay behind.
@@ -556,7 +561,7 @@ Value of a set, from `options.cardSetValue`. See D9.
 | Setting | Value |
 |---|---|
 | `'fixed'` | Infantry 4, cavalry 6, artillery 8, three different 10 |
-| `'rising'` | 4, then 6, 8, 10, 12, 15, then 20 for every set after that. 20 is the ceiling, `RISING_SET_CAP` in `balance.ts` (plan 4.16) |
+| `'rising'` | 4, then 6, 8, 10, 12, 15, then 20 for every set after that. The ceiling is `options.risingSetCap`, one of `RISING_SET_CAP_CHOICES` (15 to 50), default `RISING_SET_CAP`, 20 (plans 4.16 and 4.25) |
 
 Rising is the default. The count rises across the whole game, not per player.
 That is what makes late turns big and ends the game.
@@ -575,7 +580,9 @@ A player who owns every territory on the map has won. The phase becomes
 ```ts
 interface GameOptions {
   readonly cardSetValue: 'fixed' | 'rising'          // default 'rising'
+  readonly risingSetCap?: number                     // default 20
   readonly fortifyDistance: 'adjacent' | 'connected' // default 'connected'
+  readonly fortifyMoves?: 'one' | 'many'             // default 'one'
   readonly armyPlacement: 'automatic' | 'byHand'     // default 'automatic'
   readonly diceDisplay: 'oneByOne' | 'allAtOnce'     // default 'allAtOnce'
   readonly cardTrading?: 'classic' | 'afterKnockout' | 'anyTime' // default 'classic'
@@ -762,11 +769,25 @@ animations off, and a browser that refuses to animate all still play the same
 game at the same speed. This follows from S14: the screen is built from the
 state, and an effect is not state.
 
-**S25. Sound is off until a player turns it on.** Two reasons, both outside
-our control. A browser refuses to make a sound before the person has touched
-the page, so a sound at the wrong moment is silently dropped. iPadOS also
-mutes web audio in silent mode, so a player can have sound switched on in
-the game and hear nothing, and think the game is broken.
+**S24a. Big dice under the board, and the small ones stay** (plan 4.27).
+Nick: "Show some prominent dice, above or below the board, and if possible
+make them look like real rolling dice... Keep the dice roll commentary box
+as it is." After each attack, dice with pips appear under the board. They
+tumble for about two thirds of a second, showing random faces, then land on
+the real roll, one at a time if `diceDisplay` says so. Then the winning dice
+are ringed and the losing ones fade. The small dice and the words in the
+turn panel are unchanged. Like every effect, the big dice never hold the
+game up (S24), and a player who asks for less motion sees them land at once.
+
+**S25. Sound is on from the first game, and the last choice is remembered.**
+Nick: "First game default is to have sounds on." It began off, for two
+reasons outside our control. A browser refuses to make a sound before the
+person has touched the page, so a sound at the wrong moment is silently
+dropped. iPadOS also mutes web audio in silent mode, so a player can have
+sound switched on in the game and hear nothing. The first is answered by
+starting the sound on the first tap anywhere (S25a). The second is answered
+by the switch (S25b). The switch says what it will do: "Turn sounds off" or
+"Turn sounds on". Plan task 4.26.
 
 **S25a. Switching sound on must START a sound inside the tap, not only ask
 for permission.** Safari on iPadOS does not count `resume()` on its own. It
@@ -1111,7 +1132,7 @@ Six of them, built as steps so the difference is visible:
 |---|---|
 | Reckless | Picks at random. The baseline everything else is measured against. |
 | Cautious | Attacks only when ahead. Reinforces its frontier, fortifies forward. |
-| Turtle | Piles its armies on the border under most pressure and attacks once a turn for its card, plus any knockout or last territory of a continent in reach. Comes out and plays as the General once it holds half as many armies again as the strongest other player, or once only one opponent is left in a game that started with more than two. From the Wikipedia page on Risk. |
+| Turtle | First takes the continent the Planner would choose, near and easy to hold, and makes it its shell. Then piles its armies on the shell's ways in and attacks once a turn for its card, plus any knockout or last territory of a continent in reach. Comes out and plays as the General once it holds half as many armies again as the strongest other player, or once only one opponent is left in a game that started with more than two. From the Wikipedia page on Risk. |
 | Greedy | The same, but chooses attacks and placements by region value. |
 | Planner | Picks a region to own, takes it, then holds the ways in. |
 | General | Holds a front line with a second line behind it, never leaves one army where it has just attacked from, spreads new armies over a weak front, and goes first for a continent somebody else holds. |
@@ -1148,21 +1169,23 @@ other player. Before the duel settings it lost to Greedy head to head,
 first tuned on had flattered it, 71 - 49 head to head, which is the lesson
 of S22 a third time.
 
-Measured 2026-09-11 for the Turtle, on the world map, 20 games per pairing
-over seed ranges 5000 and 20000:
+Measured 2026-09-11 for the Turtle, on the world map. The first Turtle hid
+wherever it was dealt, and lost to everything but Reckless, 1 - 19 to the
+General in four-player games (plan 4.23). The Turtle that takes an easy
+continent first, and attacks for its card with any advantage (plan 4.24),
+over seed ranges 5000, 20000, 90000 and 40000:
 
-| Turtle against | 2 players | 4 players |
+| Turtle against | 2 players, 20 games | 4 players, 40 games |
 |---|---|---|
-| Reckless | 18 - 2 | 19 - 1 |
-| Cautious | 0 - 20 | 3 - 16 |
-| Greedy | 1 - 19 | 9 - 11 |
-| Planner | 0 - 20 | 3 - 16 |
-| General | 0 - 20 | 1 - 19 |
+| Cautious | 4 - 16 | 35 - 5 |
+| Greedy | 2 - 18 | 35 - 5 |
+| Planner | 2 - 18 | 29 - 11 |
+| General | 4 - 16 | 19 - 20 |
 
-So it is the second easiest, and it is listed after Reckless. Taking one
-territory a turn keeps its reinforcements small and wins it no continents.
-The General beats it every time, so the General needs no special answer to
-it. See plan task 4.23.
+So it is a four-player strategy, as the Wikipedia page says of turtling:
+with several players, the others wear each other down while it sits in its
+shell. Head to head it loses, because there is nobody else to do that.
+With four at the table it is level with the General.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

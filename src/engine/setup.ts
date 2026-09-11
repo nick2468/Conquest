@@ -9,6 +9,7 @@ import {
   MAX_PLAYERS,
   MIN_PLAYERS,
   PLAYER_COLOURS,
+  RISING_SET_CAP,
   STARTING_ARMIES,
 } from './balance'
 import { createDeck } from './cards'
@@ -35,7 +36,9 @@ export interface NewPlayer {
 
 export const DEFAULT_OPTIONS: GameOptions = {
   cardSetValue: 'rising',
+  risingSetCap: RISING_SET_CAP,
   fortifyDistance: 'connected',
+  fortifyMoves: 'one',
   armyPlacement: 'automatic',
   diceDisplay: 'allAtOnce',
   cardTrading: 'classic',

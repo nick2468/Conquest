@@ -191,9 +191,13 @@ export function whatToDoNow(
       return 'Choose how many armies move into the territory you took.'
 
     case 'fortify':
-      return selectedId === null
-        ? `${player}, you may move armies once, or skip it.`
-        : 'Now tap where the armies should go.'
+      if (selectedId !== null) {
+        return 'Now tap where the armies should go.'
+      }
+
+      return state.options.fortifyMoves === 'many'
+        ? `${player}, move armies as often as you like, then end your turn.`
+        : `${player}, you may move armies once, or skip it.`
 
     case 'gameOver':
       return `${

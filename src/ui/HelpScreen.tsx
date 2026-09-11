@@ -42,7 +42,7 @@ const HOW_THEY_PLAY: Readonly<Record<Skill, string>> = {
   cautious:
     'Only attacks when it has more armies than the defender, and keeps its armies on its borders. Hard to break into, slow to win.',
   turtle:
-    'Piles its armies on its borders and takes just one territory a turn for its card. Hard to knock out. Once it is clearly the strongest, or only one opponent is left, it comes out and plays like the General.',
+    'First takes a continent that is easy to hold. Then piles its armies on the ways in and takes just one territory a turn for its card. Hard to knock out. Once it is clearly the strongest, or only one opponent is left, it comes out and plays like the General.',
   greedy:
     'Makes sure it takes at least one territory every turn to earn a card, and finishes off a continent when it can. Presses hard.',
   planner:
@@ -52,7 +52,8 @@ const HOW_THEY_PLAY: Readonly<Record<Skill, string>> = {
 }
 
 export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
-  const risingList = [...RISING_SET_VALUES.filter((value) => value < RISING_SET_CAP), RISING_SET_CAP]
+  const cap = options.risingSetCap ?? RISING_SET_CAP
+  const risingList = [...RISING_SET_VALUES.filter((value) => value < cap), cap]
 
   return (
     <main className="setup-page">
@@ -93,8 +94,10 @@ export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
               always stay behind.
             </li>
             <li>
-              <strong>Fortify.</strong> At the end of your turn you may make
-              one move, from one of your territories to another.{' '}
+              <strong>Fortify.</strong>{' '}
+              {options.fortifyMoves === 'many'
+                ? 'At the end of your turn you may move armies as many times as you like, from one of your territories to another. Armies that arrived this turn stay where they are.'
+                : 'At the end of your turn you may make one move, from one of your territories to another.'}{' '}
               {options.fortifyDistance === 'connected'
                 ? 'This game allows any distance, as long as every territory on the way is yours.'
                 : 'This game allows one step only, to a territory next door.'}
@@ -142,7 +145,7 @@ export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
           </p>
           <p>
             {options.cardSetValue === 'rising'
-              ? `In this game each set is worth more than the last: ${risingList.join(', ')}, and then ${RISING_SET_CAP} for every set after that.`
+              ? `In this game each set is worth more than the last: ${risingList.join(', ')}, and then ${cap} for every set after that.`
               : `In this game a set is always worth the same: infantry ${FIXED_SET_VALUE.infantry}, cavalry ${FIXED_SET_VALUE.cavalry}, artillery ${FIXED_SET_VALUE.artillery}, one of each ${FIXED_SET_VALUE.mixed}.`}
           </p>
         </section>

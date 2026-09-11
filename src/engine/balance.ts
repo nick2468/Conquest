@@ -69,6 +69,13 @@ export const RISING_SET_INCREMENT = 5
  */
 export const RISING_SET_CAP = 20
 
+/**
+ * The ceilings the new game screen offers. RISING_SET_CAP is the default.
+ * Plan task 4.25. Nick: "Add an option to set the rising set redemption
+ * ceiling, default 20."
+ */
+export const RISING_SET_CAP_CHOICES: readonly number[] = [15, 20, 25, 30, 40, 50]
+
 /** Holding this many cards forces a player to trade a set. */
 export const CARDS_FORCING_A_TRADE = 5
 

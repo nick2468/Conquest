@@ -291,6 +291,120 @@ body {
   background: #e3e0d6;
 }
 
+/* ------------------------------------------ the big dice, plan task 4.27 */
+
+/* The board and the big dice under it share the left-hand column. */
+.board-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.board-dice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.board-dice-side {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.board-dice-label,
+.board-dice-against {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.big-die {
+  display: grid;
+  grid-template: repeat(3, 1fr) / repeat(3, 1fr);
+  width: 3.6rem;
+  height: 3.6rem;
+  padding: 0.5rem;
+  border-radius: 0.75rem;
+  box-shadow:
+    inset 0 -4px 0 rgb(0 0 0 / 0.18),
+    0 4px 8px rgb(0 0 0 / 0.25);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+.big-die-attacker {
+  background: #c8453b;
+}
+
+.big-die-defender {
+  background: #f6f3ea;
+  border: 1px solid var(--edge);
+}
+
+.pip {
+  width: 72%;
+  height: 72%;
+  margin: auto;
+  border-radius: 50%;
+}
+
+.big-die-attacker .pip {
+  background: #ffffff;
+}
+
+.big-die-defender .pip {
+  background: #1d1c19;
+}
+
+.pip-empty {
+  visibility: hidden;
+}
+
+/* Tumbling: hops and turns over while its face keeps changing. */
+.big-die-rolling {
+  animation: die-tumble 280ms linear infinite;
+}
+
+@keyframes die-tumble {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-8px) rotate(90deg);
+  }
+  50% {
+    transform: translateY(0) rotate(180deg);
+  }
+  75% {
+    transform: translateY(-5px) rotate(270deg);
+  }
+  100% {
+    transform: translateY(0) rotate(360deg);
+  }
+}
+
+/* Once all have landed: the winners ringed, the losers faded. */
+.big-die-won {
+  outline: 3px solid #e8b931;
+  outline-offset: 3px;
+}
+
+.big-die-lost {
+  opacity: 0.4;
+  transform: scale(0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .big-die-rolling {
+    animation: none;
+  }
+}
+
 /* ---------------------------------------------------------- the chooser */
 
 .chooser h2,

@@ -5,7 +5,7 @@ import { WORLD } from '../../maps/world'
 import type { GameAction } from '../game'
 import { applyAction, legalActions } from '../game'
 import { seededRandom } from '../random'
-import { createGame } from '../setup'
+import { DEFAULT_OPTIONS, createGame } from '../setup'
 import type { GameMap, GameState } from '../types'
 import { entrancesTo, frontierOf, interiorOf, regionHoldings } from './board'
 import { GENERAL_SETTINGS, breakUrgency } from './general'
@@ -1027,16 +1027,15 @@ describe('an ordinary turn is split too', () => {
   }
 })
 
-describe('the Turtle stays in its shell', () => {
+describe('the Turtle', () => {
   /**
-   * Plan task 4.23. The same ring of two regions of three. One is the
-   * Turtle, on t0_2 with 6 armies. Three is far stronger, so the Turtle
-   * stays in its shell. t0_1 holds one of Two's armies and is not Two's
-   * last territory unless the test says so.
+   * Plan tasks 4.23 and 4.24. The same ring of two regions of three. One is
+   * the Turtle. The others together are far stronger, so it stays in its
+   * shell.
    */
   const ring = riskShapedMap(2, 3, 5)
 
-  function board(twoIsDownToOne: boolean, hasConquered: boolean): GameState {
+  function board(owners: Record<string, [string, number]>, hasConquered: boolean): GameState {
     const base = createGame({
       map: ring,
       players: [
@@ -1046,14 +1045,6 @@ describe('the Turtle stays in its shell', () => {
       ],
       random: seededRandom(1),
     })
-    const owners: Record<string, [string, number]> = {
-      t0_0: [twoIsDownToOne ? 'p3' : 'p2', 9],
-      t0_1: ['p2', 1],
-      t0_2: ['p1', 6],
-      t1_0: ['p3', 9],
-      t1_1: ['p3', 9],
-      t1_2: ['p3', 9],
-    }
     const territories: Record<string, { ownerId: string; armies: number }> = {}
 
     for (const [id, [ownerId, armies]] of Object.entries(owners)) {
@@ -1073,15 +1064,67 @@ describe('the Turtle stays in its shell', () => {
     return action.type === 'attack' ? action.toId : action.type
   }
 
+  // Region 0 is the Turtle's shell, already built. t1_0 is weak but is not
+  // Two's last territory unless the test says so.
+  const inTheShell = (twoIsDownToOne: boolean): Record<string, [string, number]> => ({
+    t0_0: ['p1', 6],
+    t0_1: ['p1', 1],
+    t0_2: ['p1', 6],
+    t1_0: ['p2', 1],
+    t1_1: [twoIsDownToOne ? 'p3' : 'p2', 9],
+    t1_2: ['p3', 9],
+  })
+
   it('attacks for its card', () => {
-    expect(choice(board(false, false))).toBe('t0_1')
+    expect(choice(board(inTheShell(false), false))).toBe('t1_0')
   })
 
   it('stops once the card is won', () => {
-    expect(choice(board(false, true))).toBe('endAttackPhase')
+    expect(choice(board(inTheShell(false), true))).toBe('endAttackPhase')
   })
 
   it('still knocks a player out after the card is won', () => {
-    expect(choice(board(true, true))).toBe('t0_1')
+    expect(choice(board(inTheShell(true), true))).toBe('t1_0')
   })
+
+  it('keeps pushing into the continent it is making its shell, after the card', () => {
+    const building: Record<string, [string, number]> = {
+      t0_0: ['p3', 9],
+      t0_1: ['p2', 1],
+      t0_2: ['p1', 6],
+      t1_0: ['p3', 9],
+      t1_1: ['p2', 9],
+      t1_2: ['p3', 9],
+    }
+
+    expect(choice(board(building, true))).toBe('t0_1')
+  })
+})
+
+describe('every player can play with many fortify moves', () => {
+  // Plan task 4.24. With many moves, a player is asked again after each
+  // move, so one that never ends its turn would hang the game.
+  for (const skill of ALL_SKILLS) {
+    it(`${skill} plays a game through to an end`, () => {
+      const random = seededRandom(3)
+      const choices = seededRandom(3 * 31 + 7)
+      let state = createGame({
+        map: AUSTRALIA,
+        players: [
+          { name: 'One', kind: skill },
+          { name: 'Two', kind: 'greedy' },
+        ],
+        random,
+        options: { ...DEFAULT_OPTIONS, fortifyMoves: 'many' },
+      })
+
+      for (let step = 0; step < 30000 && state.winnerId === null; step += 1) {
+        const kind = state.players.find((each) => each.id === state.turn.playerId)?.kind
+
+        state = applyAction(state, playerFor(kind as Skill).chooseAction(state, choices), random)
+      }
+
+      expect(state.winnerId, `${skill} never finished`).not.toBeNull()
+    })
+  }
 })

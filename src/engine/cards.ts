@@ -160,7 +160,7 @@ export function setValue(
 
   return options.cardSetValue === 'fixed'
     ? fixedValueOf(cards)
-    : risingValueOf(setsTradedBefore)
+    : risingValueOf(setsTradedBefore, options.risingSetCap ?? RISING_SET_CAP)
 }
 
 /**

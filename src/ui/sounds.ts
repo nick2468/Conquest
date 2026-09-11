@@ -166,6 +166,50 @@ function watchForTaps(context: AudioContext): void {
   }
 }
 
+/**
+ * One frame of silence, started now. From inside a tap, this is what
+ * Safari on iPadOS counts as permission to make sound. See spec S25a.
+ */
+function permit(context: AudioContext): void {
+  const permission = context.createBufferSource()
+
+  permission.buffer = context.createBuffer(1, 1, context.sampleRate)
+  permission.connect(context.destination)
+  permission.start(0)
+}
+
+/**
+ * Start the sound on the first tap anywhere. Plan task 4.26.
+ *
+ * Sound is on from the first game, but a browser lets it through only from
+ * inside a tap. Without this, a player who never touched the sound switch
+ * would hear nothing, because nothing ever asked from inside a tap.
+ */
+export function unlockOnFirstTap(): void {
+  try {
+    document.addEventListener(
+      'pointerdown',
+      () => {
+        const context = engine()
+
+        if (context === null) {
+          return
+        }
+
+        try {
+          permit(context)
+          void context.resume()
+        } catch {
+          // The switch can still start it later.
+        }
+      },
+      { capture: true, once: true },
+    )
+  } catch {
+    // No page to listen to, as in a test.
+  }
+}
+
 /** What happened when the player asked for sound. */
 export type SoundStart = 'running' | 'blocked' | 'none'
 
@@ -190,10 +234,7 @@ export async function startSound(): Promise<SoundStart> {
   }
 
   try {
-    const permission = context.createBufferSource()
-    permission.buffer = context.createBuffer(1, 1, context.sampleRate)
-    permission.connect(context.destination)
-    permission.start(0)
+    permit(context)
 
     await context.resume()
   } catch {
@@ -549,16 +590,17 @@ export function soundInto(context: BaseAudioContext, kind: SoundKind): void {
 /**
  * Whether the player wants sound, remembered between visits.
  *
- * Off unless they have said otherwise. See spec S25. A browser with storage
- * turned off simply forgets, which is why every call is wrapped.
+ * On unless they have turned it off. Nick: "First game default is to have
+ * sounds on." See spec S25. A browser with storage turned off simply
+ * forgets, which is why every call is wrapped.
  */
 const REMEMBERED_AS = 'conquest.sound'
 
 export function soundWasOn(): boolean {
   try {
-    return window.localStorage.getItem(REMEMBERED_AS) === 'on'
+    return window.localStorage.getItem(REMEMBERED_AS) !== 'off'
   } catch {
-    return false
+    return true
   }
 }
 

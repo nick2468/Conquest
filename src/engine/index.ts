@@ -37,6 +37,7 @@ export { fixedRandom, scriptedRandom, seededRandom, shuffle } from './random'
 export {
   CARDS_AFTER_A_KNOCKOUT,
   RISING_SET_CAP,
+  RISING_SET_CAP_CHOICES,
   CARDS_FORCING_A_TRADE,
   FIXED_SET_VALUE,
   MAX_PLAYERS,

@@ -16,7 +16,8 @@ import { UpdateBanner } from './UpdateBanner'
 import { WinnerScreen } from './WinnerScreen'
 import { writeMap } from '../maps/format'
 import { effectFor } from './effects'
-import { playSound, rememberSound, soundWasOn, startSound } from './sounds'
+import { BoardDice } from './BoardDice'
+import { playSound, rememberSound, soundWasOn, startSound, unlockOnFirstTap } from './sounds'
 import { setReadyToTrade } from './hand'
 import { highlightsFor, whatATapDoes } from './taps'
 import { useGame } from './useGame'
@@ -154,6 +155,9 @@ export function App() {
    * in the game and still be silent.
    */
   const [soundOn, setSoundOn] = useState(soundWasOn)
+
+  // Sound is on from the first game, so the first tap anywhere starts it.
+  useEffect(() => unlockOnFirstTap(), [])
 
   /**
    * What to say after the sound switch was tapped, or null for nothing.
@@ -315,6 +319,9 @@ export function App() {
 
     return () => clearTimeout(timer)
   }, [playing, state, act, chooser, thinkingFor, lastMove, soundOn])
+
+  /** True when this game allows more than one fortify move. Plan task 4.24. */
+  const manyMoves = state?.options.fortifyMoves === 'many'
 
   const run = (action: GameAction): void => {
     perform(action)
@@ -528,7 +535,7 @@ export function App() {
                 : 'Turn the sound on. An iPad side switch set to silent mutes it anyway.'
             }
           >
-            {soundOn ? 'Sound on' : 'Sound off'}
+            {soundOn ? 'Turn sounds off' : 'Turn sounds on'}
           </button>
 
           <button type="button" onClick={() => setScreen('newGame')}>
@@ -543,20 +550,26 @@ export function App() {
         )}
       </header>
 
-      <MapView
-        state={state}
-        highlights={computer ? (watching?.highlights ?? EMPTY_HIGHLIGHTS) : highlights}
-        selectedId={computer ? (watching?.from ?? null) : selectedId}
-        onTap={computer ? () => undefined : handleTap}
-        lookingAt={view}
-        effect={effect}
-        moveNumber={moveNumber}
-        // Only when looking closely. On the whole map there is nowhere to
-        // go back to, and clearing the chosen place here would undo the
-        // fortify fix: a move from one side of the country to the other
-        // needs the choice to survive a trip out to the whole map.
-        onTapSea={view === null ? undefined : showWholeBoard}
-      />
+      <div className="board-column">
+        <MapView
+          state={state}
+          highlights={computer ? (watching?.highlights ?? EMPTY_HIGHLIGHTS) : highlights}
+          selectedId={computer ? (watching?.from ?? null) : selectedId}
+          onTap={computer ? () => undefined : handleTap}
+          lookingAt={view}
+          effect={effect}
+          moveNumber={moveNumber}
+          // Only when looking closely. On the whole map there is nowhere to
+          // go back to, and clearing the chosen place here would undo the
+          // fortify fix: a move from one side of the country to the other
+          // needs the choice to survive a trip out to the whole map.
+          onTapSea={view === null ? undefined : showWholeBoard}
+        />
+
+        {state.turn.lastAttack === null ? null : (
+          <BoardDice outcome={state.turn.lastAttack} display={state.options.diceDisplay} />
+        )}
+      </div>
 
       <div className="side">
         {over ? (
@@ -591,7 +604,7 @@ export function App() {
         {pendingFortify === null ? null : (
           <ArmyChooser
             title="Move armies"
-            detail={`How many armies move from ${nameOf(pendingFortify.fromId)} to ${nameOf(pendingFortify.toId)}? This ends your turn.`}
+            detail={`How many armies move from ${nameOf(pendingFortify.fromId)} to ${nameOf(pendingFortify.toId)}?${manyMoves ? '' : ' This ends your turn.'}`}
             least={1}
             most={armyLimitFor(state, {
               type: 'fortify',
@@ -599,7 +612,7 @@ export function App() {
               toId: pendingFortify.toId,
               count: 1,
             })}
-            confirmLabel="Move and end turn"
+            confirmLabel={manyMoves ? 'Move' : 'Move and end turn'}
             onCancel={forget}
             onConfirm={(count) =>
               run({

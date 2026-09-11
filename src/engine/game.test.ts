@@ -494,6 +494,72 @@ describe('eliminating a player and winning', () => {
   })
 })
 
+// ---------------------------------------------------- many fortify moves
+
+describe('many fortify moves', () => {
+  // Plan task 4.24. Nick: "Add the multi-fortify option but default to
+  // classic." Ann holds WA with 5, NT with 1 and SA with 4.
+  const many = { ...DEFAULT_OPTIONS, fortifyMoves: 'many' as const }
+  const start = (): GameState =>
+    gameWith(boardWhere({ wa: 5, nt: 1, sa: 4 }), { phase: 'fortify' }, { options: many })
+
+  it('is one move by default', () => {
+    expect(DEFAULT_OPTIONS.fortifyMoves).toBe('one')
+  })
+
+  it('keeps the turn going after a move', () => {
+    const after = applyAction(
+      start(),
+      { type: 'fortify', fromId: 'wa', toId: 'nt', count: 2 },
+      NO_DICE,
+    )
+
+    expect(after.turn.playerId).toBe('p1')
+    expect(after.turn.phase).toBe('fortify')
+    expect(after.turn.hasFortified).toBe(true)
+  })
+
+  it('allows a second move from somewhere else', () => {
+    let state = applyAction(
+      start(),
+      { type: 'fortify', fromId: 'wa', toId: 'nt', count: 2 },
+      NO_DICE,
+    )
+    state = applyAction(state, { type: 'fortify', fromId: 'sa', toId: 'wa', count: 3 }, NO_DICE)
+
+    expect(armiesOn(state, 'nt')).toBe(3)
+    expect(armiesOn(state, 'wa')).toBe(6)
+    expect(armiesOn(state, 'sa')).toBe(1)
+  })
+
+  it('keeps armies that arrived this turn where they are', () => {
+    const state = applyAction(
+      start(),
+      { type: 'fortify', fromId: 'wa', toId: 'nt', count: 2 },
+      NO_DICE,
+    )
+
+    expect(
+      legalActions(state).some((each) => each.type === 'fortify' && each.fromId === 'nt'),
+    ).toBe(false)
+    expect(() =>
+      applyAction(state, { type: 'fortify', fromId: 'nt', toId: 'sa', count: 1 }, NO_DICE),
+    ).toThrow(/stay where they are/)
+  })
+
+  it('ends the turn when the player says so', () => {
+    const moved = applyAction(
+      start(),
+      { type: 'fortify', fromId: 'wa', toId: 'nt', count: 2 },
+      NO_DICE,
+    )
+    const after = applyAction(moved, { type: 'skipFortify' }, NO_DICE)
+
+    expect(after.turn.playerId).toBe('p2')
+    expect(after.turn.movedInto).toBeUndefined()
+  })
+})
+
 // ------------------------------------------------------------ ending a turn
 
 describe('ending a turn', () => {

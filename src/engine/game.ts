@@ -698,6 +698,11 @@ function doFortify(
   }
 
   const player = currentPlayer(state)
+
+  if ((state.turn.movedInto ?? []).includes(fromId)) {
+    refuse('Armies that arrived this turn stay where they are.')
+  }
+
   const problem = fortifyProblem(
     state.map,
     state.territories,
@@ -721,17 +726,20 @@ function doFortify(
       [fromId]: { ...from, armies: from.armies - count },
       [toId]: { ...to, armies: to.armies + count },
     }),
-    turn: { ...state.turn, hasFortified: true },
+    turn: {
+      ...state.turn,
+      hasFortified: true,
+      movedInto: [...(state.turn.movedInto ?? []), toId],
+    },
   }
-
-  return endTurn(
-    noted(
-      moved,
-      `${player.name} moves ${count} from ${nameOf(state, fromId)} to ` +
-        `${nameOf(state, toId)}.`,
-    ),
-    random,
+  const said = noted(
+    moved,
+    `${player.name} moves ${count} from ${nameOf(state, fromId)} to ` +
+      `${nameOf(state, toId)}.`,
   )
+
+  // With many moves allowed, the player ends the turn when they are done.
+  return state.options.fortifyMoves === 'many' ? said : endTurn(said, random)
 }
 
 function doSkipFortify(state: GameState, random: RandomSource): GameState {
@@ -865,9 +873,10 @@ export function legalActions(state: GameState): GameAction[] {
 
     case 'fortify': {
       const moves: GameAction[] = []
+      const arrived = new Set(state.turn.movedInto ?? [])
 
       for (const fromId of mine) {
-        if ((state.territories[fromId]?.armies ?? 0) < 2) {
+        if ((state.territories[fromId]?.armies ?? 0) < 2 || arrived.has(fromId)) {
           continue
         }
 

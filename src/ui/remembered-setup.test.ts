@@ -88,4 +88,25 @@ describe('the new game screen is remembered', () => {
     expect(recalled?.options.diceDisplay).toBe('oneByOne')
     expect(recalled?.options.cardTrading).toBe('classic')
   })
+
+  it('keeps the fortify moves and the ceiling, and refuses a ceiling it does not offer', () => {
+    const store = aStore()
+    const players = [
+      { name: 'A', kind: 'human' },
+      { name: 'B', kind: 'turtle' },
+    ]
+
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({ players, options: { fortifyMoves: 'many', risingSetCap: 40 }, mapId: 'world' }),
+    )
+    expect(recallSetup(store)?.options.fortifyMoves).toBe('many')
+    expect(recallSetup(store)?.options.risingSetCap).toBe(40)
+
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({ players, options: { risingSetCap: 1000 }, mapId: 'world' }),
+    )
+    expect(recallSetup(store)?.options.risingSetCap).toBe(DEFAULT_OPTIONS.risingSetCap)
+  })
 })

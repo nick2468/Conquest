@@ -703,6 +703,63 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       18 - 2 and 19 - 1, and loses to every other player. So it is listed
       second easiest. The General beats it 20 - 0 and 19 - 1, so the
       General needs no special answer to it.
+- [x] 4.24 **A stronger Turtle, how big an advantage to wait for, and many
+      fortify moves.**
+
+      Nick: "make it stronger, turtle in an easy continent first." The
+      Turtle now takes the continent the Planner would choose first, pushing
+      all its armies into it, and only then hides in it, guarding its ways
+      in. In four-player games it went from losing to everything but
+      Reckless to beating Cautious, Greedy and the Planner about four games
+      in five, and splitting level with the General.
+
+      Nick: "In real-life I don't recall anyone waiting for a 2:1
+      advantage... we should measure this." None of our players waits for
+      2:1. The General wants one or two armies more than the defender, and
+      the Turtle wanted two more. Measured on the Turtle, four players, two
+      seed ranges of 80 games each (spec S22):
+
+      | Attack for a card with | 5000 and 20000 | 90000 and 40000 | Total |
+      |---|---|---|---|
+      | Just more than the defender | 61 | 57 | 118 of 160 |
+      | Two to one | 54 | 59 | 113 of 160 |
+      | Two more than the defender | 52 | 50 | 102 of 160 |
+
+      Nick's instinct was right: waiting for a big margin cost games, and
+      "just more" did best on both ranges. Two to one was close behind.
+      So the Turtle now attacks for its card with any advantage.
+
+      In two-player games the choice made no difference at all: every
+      version scored the same. A probe showed why. Those games are short,
+      the Turtle spends them building its shell or ahead enough to play as
+      the General, and whoever moves first usually wins.
+
+      Nick: "Add the multi-fortify option but default to classic."
+      `fortifyMoves`: one move, as in the printed rules, or as many as you
+      like. Armies that arrived this turn stay where they are, so every
+      player runs out of moves. Tests: the engine rules, and every computer
+      player finishing a game with many moves.
+- [x] 4.25 **The ceiling on a rising set is an option.** Nick: "Add an
+      option to set the rising set redemption ceiling, default 20."
+      `risingSetCap`, one of `RISING_SET_CAP_CHOICES` (15, 20, 25, 30, 40,
+      50), shown on the new game screen only when sets rise. A saved game
+      from before it existed plays at 20. Remembered with the other choices,
+      and a ceiling that is not on the list is refused when read back.
+- [x] 4.26 **The sound button says what it will do, and sound starts on.**
+      Nick: "Change the sound button to say 'Turn sounds off / Turn sounds
+      on'. Persist the last setting. First game default is to have sounds
+      on." The setting was already remembered. Now a first visit starts
+      with sound on, and the first tap anywhere starts the sound engine,
+      because a browser lets sound through only from inside a tap. See spec
+      S25.
+- [x] 4.27 **Big dice under the board.** Nick: "Show some prominent dice,
+      above or below the board, and if possible make them look like real
+      rolling dice... Keep the dice roll commentary box as it is."
+      `BoardDice.tsx`: dice with pips that tumble for about two thirds of a
+      second, land on the real roll, then ring the winners and fade the
+      losers. The turn panel is unchanged. Checked in the browser with three
+      Generals playing: up to five dice tumbling at once, and no errors. See
+      spec S24a.
 
 ---
 

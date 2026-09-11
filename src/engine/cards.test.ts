@@ -35,6 +35,29 @@ function trio(a: CardSymbol, b: CardSymbol, c: CardSymbol): CardTrio {
 const FIXED: GameOptions = { ...DEFAULT_OPTIONS, cardSetValue: 'fixed' }
 const RISING: GameOptions = { ...DEFAULT_OPTIONS, cardSetValue: 'rising' }
 
+describe('the ceiling on a rising set', () => {
+  // Plan task 4.25. Nick: "Add an option to set the rising set redemption
+  // ceiling, default 20."
+  it('is 20 by default', () => {
+    expect(DEFAULT_OPTIONS.risingSetCap).toBe(20)
+    expect(setValue(trio('infantry', 'infantry', 'infantry'), RISING, 50)).toBe(20)
+  })
+
+  it('follows the ceiling the game chose', () => {
+    const higher: GameOptions = { ...RISING, risingSetCap: 40 }
+
+    expect(setValue(trio('infantry', 'infantry', 'infantry'), higher, 50)).toBe(40)
+    // Below the ceiling nothing changes.
+    expect(setValue(trio('infantry', 'infantry', 'infantry'), higher, 0)).toBe(4)
+  })
+
+  it('treats a game saved before the option as 20', () => {
+    const { risingSetCap: _dropped, ...old } = RISING
+
+    expect(setValue(trio('infantry', 'infantry', 'infantry'), old, 50)).toBe(20)
+  })
+})
+
 describe('building a deck', () => {
   it('makes one card per territory plus the wild cards', () => {
     const deck = createDeck(AUSTRALIA, seededRandom(1))

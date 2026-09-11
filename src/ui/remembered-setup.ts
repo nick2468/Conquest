@@ -1,6 +1,7 @@
 import type { GameOptions, NewPlayer, PlayerKind } from '../engine'
 import {
   ALL_SKILLS,
+  RISING_SET_CAP_CHOICES,
   DEFAULT_OPTIONS,
   MAX_PLAYERS,
   MIN_PLAYERS,
@@ -58,6 +59,7 @@ export function rememberSetup(
 const ALLOWED: Readonly<Record<string, readonly string[]>> = {
   cardSetValue: ['fixed', 'rising'],
   fortifyDistance: ['adjacent', 'connected'],
+  fortifyMoves: ['one', 'many'],
   armyPlacement: ['automatic', 'byHand'],
   diceDisplay: ['oneByOne', 'allAtOnce'],
   cardTrading: ['classic', 'afterKnockout', 'anyTime'],
@@ -126,6 +128,13 @@ export function recallSetup(
       if (typeof value === 'string' && allowed.includes(value)) {
         chosen[key] = value
       }
+    }
+
+    // The one option that is a number, not a word.
+    const cap = (options as Record<string, unknown>).risingSetCap
+
+    if (typeof cap === 'number' && RISING_SET_CAP_CHOICES.includes(cap)) {
+      chosen.risingSetCap = cap
     }
   }
 

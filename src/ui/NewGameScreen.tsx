@@ -4,6 +4,7 @@ import type { GameMap, GameOptions, NewPlayer, PlayerKind } from '../engine'
 import {
   ALL_SKILLS,
   RISING_SET_CAP,
+  RISING_SET_CAP_CHOICES,
   DEFAULT_OPTIONS,
   GAME_NAME,
   MAX_PLAYERS,
@@ -439,10 +440,26 @@ export function NewGameScreen({
                 )
               }
             >
-              <option value="rising">{`More each time (4, 6, 8... up to ${RISING_SET_CAP})`}</option>
+              <option value="rising">{`More each time (4, 6, 8... up to ${options.risingSetCap ?? RISING_SET_CAP})`}</option>
               <option value="fixed">The same every time</option>
             </select>
           </label>
+
+          {options.cardSetValue === 'rising' ? (
+            <label className="setup-field">
+              Rising sets stop at
+              <select
+                value={options.risingSetCap ?? RISING_SET_CAP}
+                onChange={(event) => change('risingSetCap', Number(event.target.value))}
+              >
+                {RISING_SET_CAP_CHOICES.map((choice) => (
+                  <option key={choice} value={choice}>
+                    {choice === RISING_SET_CAP ? `${choice} armies (classic)` : `${choice} armies`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
           <label className="setup-field">
             Cards may be traded
@@ -474,6 +491,22 @@ export function NewGameScreen({
             >
               <option value="connected">Any distance through your land</option>
               <option value="adjacent">One step only</option>
+            </select>
+          </label>
+
+          <label className="setup-field">
+            Moves at the end of a turn
+            <select
+              value={options.fortifyMoves ?? 'one'}
+              onChange={(event) =>
+                change(
+                  'fortifyMoves',
+                  event.target.value as GameOptions['fortifyMoves'],
+                )
+              }
+            >
+              <option value="one">One move (classic)</option>
+              <option value="many">As many as you like</option>
             </select>
           </label>
 

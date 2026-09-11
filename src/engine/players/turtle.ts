@@ -6,18 +6,23 @@ import {
   armiesOn,
   bonusForTaking,
   bordersOf,
+  entrancesTo,
   frontierOf,
   isFrontier,
   ownedBy,
   pickAmongBest,
   pressureOn,
+  regionHoldings,
   spreadFirst,
 } from './board'
 import { GENERAL } from './general'
+import { chooseGoal } from './planner'
+import type { Plan } from './planner'
 import type { ComputerPlayer } from './types'
 
 /**
- * Hides behind big stacks, then comes out late. Plan task 4.23.
+ * Takes an easy continent, hides in it behind big stacks, then comes out
+ * late. Plan tasks 4.23 and 4.24.
  *
  * Nick, after reading the Wikipedia page on Risk: "There are some
  * strategies there, one is even named as Turtle, we should offer it." The
@@ -25,23 +30,39 @@ import type { ComputerPlayer } from './types'
  * keeps taking a card, and survives to the late game, when it can knock
  * out weakened players one after another.
  *
- * So the Turtle:
+ * The first Turtle hid wherever it happened to be dealt, and lost to
+ * everything but Reckless. Nick: "make it stronger, turtle in an easy
+ * continent first." So now it has two halves.
  *
- * - piles its armies on the border under the most pressure,
- * - attacks once a turn for its card, and only with a clear margin,
- * - finishes a continent or knocks a player out when either is in reach,
- * - moves as few armies as it can into a capture, so the stack stays home,
- * - and comes out of its shell, playing as the General, once it is clearly
- *   the strongest or only one opponent is left.
+ * Building the shell: it picks the continent the Planner would, near and
+ * easy to hold, and attacks into it until it is all ours.
+ *
+ * Inside the shell:
+ *
+ * - it piles its armies on the ways in that are under the most pressure,
+ * - it attacks once a turn for its card, and only with a clear margin,
+ * - it finishes a continent or knocks a player out when either is in reach,
+ * - it moves as few armies as it can into a capture outside the shell,
+ * - and it comes out, playing as the General, once it is clearly the
+ *   strongest or only one opponent is left.
  */
 
 /** Every number the Turtle plays by. See spec S15. */
 export const TURTLE_SETTINGS = {
-  /** An attack for a card needs this many armies free beyond the defenders. */
-  cardMargin: 2,
-  /** The same for taking the last territory of a continent. */
+  /**
+   * An attack for a card needs `cardRatio` times the defenders, plus
+   * `cardMargin`, in armies free to attack with. Nick: "In real-life I
+   * don't recall anyone waiting for a 2:1 advantage." Measured in plan task
+   * 4.24, four players, 160 games each: just more armies than the defender
+   * won 118, two to one won 113, and two more than the defender won 102.
+   */
+  cardRatio: 1,
+  cardMargin: 0,
+  /** The margin for an attack into the continent it is making its shell. */
+  homeMargin: 1,
+  /** The margin for taking the last territory of any continent. */
   finishMargin: 2,
-  /** The same for knocking a player out: it wins every card they hold. */
+  /** The margin for knocking a player out: it wins every card they hold. */
   knockoutMargin: 1,
   /**
    * It comes out of its shell when its armies are this many times the
@@ -53,7 +74,8 @@ export const TURTLE_SETTINGS = {
 export const TURTLE: ComputerPlayer = {
   skill: 'turtle',
   name: 'Turtle',
-  describe: 'Hides behind big stacks, takes one card a turn, and comes out late in the game.',
+  describe:
+    'Takes an easy continent, hides in it behind big stacks, and comes out late in the game.',
 
   chooseAction(state: GameState, random: RandomSource): GameAction {
     const me = state.turn.playerId
@@ -69,18 +91,97 @@ export const TURTLE: ComputerPlayer = {
       return trades[random.nextInt(trades.length)] as GameAction
     }
 
+    const home = homeOf(state, me)
+
     // By the phase, never by what happens to be on offer. See general.ts.
     switch (state.turn.phase) {
       case 'occupy':
-        return moveIn(state, me)
+        return moveIn(state, me, home)
       case 'attack':
-        return attackOrStop(state, me, actions, random)
+        return attackOrStop(state, me, home, actions, random)
       case 'fortify':
-        return fortify(state, me, actions, random)
+        return fortify(state, me, home, actions, random)
       default:
-        return placement(state, me, actions)
+        return placement(state, me, home, actions)
     }
   },
+}
+
+// ------------------------------------------------------------- the shell
+
+/**
+ * The continent the Turtle lives in. One it holds already, the one with the
+ * fewest ways in. Otherwise the one the Planner would go for, which weighs
+ * how near, how easy to hold, and how well it pays.
+ */
+function homeOf(state: GameState, me: PlayerId): Plan | null {
+  const held = regionHoldings(state, me)
+    .filter((holding) => holding.missing.length === 0)
+    .map((holding) => ({ holding, ways: entrancesTo(state.map, holding.regionId) }))
+    .sort(
+      (one, two) =>
+        one.ways.length - two.ways.length ||
+        two.holding.bonus - one.holding.bonus ||
+        one.holding.regionId.localeCompare(two.holding.regionId),
+    )[0]
+
+  if (held !== undefined) {
+    return { regionId: held.holding.regionId, missing: [], held: true, entrances: held.ways }
+  }
+
+  return chooseGoal(state, me)
+}
+
+/** The territories of the shell that face the world outside it. */
+function doorsOf(state: GameState, home: Plan | null): Set<TerritoryId> {
+  const doors = new Set<TerritoryId>()
+
+  if (home === null || !home.held) {
+    return doors
+  }
+
+  for (const territory of state.map.territories) {
+    if (
+      territory.regionId === home.regionId &&
+      territory.borders.some((border) => regionOf(state, border) !== home.regionId)
+    ) {
+      doors.add(territory.id)
+    }
+  }
+
+  return doors
+}
+
+function regionOf(state: GameState, territoryId: TerritoryId): string | undefined {
+  return state.map.territories.find((each) => each.id === territoryId)?.regionId
+}
+
+/**
+ * The next territory of the shell to take, and where to attack it from:
+ * the weakest one beside us, from our biggest stack beside it.
+ */
+function nextForTheShell(
+  state: GameState,
+  me: PlayerId,
+  home: Plan | null,
+): { fromId: TerritoryId; toId: TerritoryId } | null {
+  if (home === null || home.held) {
+    return null
+  }
+
+  let best: { fromId: TerritoryId; toId: TerritoryId } | null = null
+
+  for (const toId of [...home.missing].sort()) {
+    const fromId = bordersOf(state, toId)
+      .filter((id) => state.territories[id]?.ownerId === me)
+      .sort((one, two) => armiesOn(state, two) - armiesOn(state, one) || one.localeCompare(two))[0]
+
+    if (fromId !== undefined && (best === null || armiesOn(state, toId) < armiesOn(state, best.toId))) {
+      best = { fromId, toId }
+    }
+  }
+
+  return best
 }
 
 /** The armies a player holds, all together. */
@@ -107,13 +208,20 @@ function outOfTheShell(state: GameState, me: PlayerId): boolean {
   return armiesOf(state, me) >= strongest * TURTLE_SETTINGS.breakOut
 }
 
+// -------------------------------------------------------------- placing
+
 /**
  * Where the new armies go. First a share spread over the front, as every
- * computer player does. Then all of the rest onto the border that is most
- * outnumbered. If nothing is outnumbered, onto the stack beside the weakest
- * enemy, ready for this turn's card.
+ * computer player does. While the shell is being built, the rest go on the
+ * stack for its next territory. Once it is built, onto the way in that is
+ * most outnumbered, or, if none is, onto the stack for this turn's card.
  */
-function placement(state: GameState, me: PlayerId, actions: readonly GameAction[]): GameAction {
+function placement(
+  state: GameState,
+  me: PlayerId,
+  home: Plan | null,
+  actions: readonly GameAction[],
+): GameAction {
   const allowed = actions.flatMap((each) =>
     each.type === 'placeArmies' ? [each.territoryId] : [],
   )
@@ -136,7 +244,17 @@ function placement(state: GameState, me: PlayerId, actions: readonly GameAction[
     return place(allowed[0] as TerritoryId)
   }
 
-  const [worst] = [...front].sort(
+  const building = nextForTheShell(state, me, home)
+
+  if (building !== null && allowed.includes(building.fromId)) {
+    return place(building.fromId)
+  }
+
+  const doors = doorsOf(state, home)
+  const guarded = front.filter((id) => doors.has(id))
+  const pool = guarded.length > 0 ? guarded : front
+
+  const [worst] = [...pool].sort(
     (one, two) =>
       pressureOn(state, me, two) - pressureOn(state, me, one) || one.localeCompare(two),
   )
@@ -145,7 +263,7 @@ function placement(state: GameState, me: PlayerId, actions: readonly GameAction[
     return place(worst)
   }
 
-  return place(cardStack(state, me, front))
+  return place(cardStack(state, me, pool))
 }
 
 /** The front territory beside the weakest enemy, the strongest if tied. */
@@ -165,16 +283,20 @@ function cardStack(state: GameState, me: PlayerId, front: readonly TerritoryId[]
   )[0] as TerritoryId
 }
 
+// ------------------------------------------------------------ attacking
+
 /**
- * At most three kinds of attack, and nothing else:
+ * Four kinds of attack, and nothing else:
  *
  * - a player's last territory, which knocks them out and wins their cards,
  * - the last territory of a continent, which wins its bonus every turn,
+ * - a territory of the shell while it is still being built,
  * - and, until one is won this turn, the surest capture, for the card.
  */
 function attackOrStop(
   state: GameState,
   me: PlayerId,
+  home: Plan | null,
   actions: readonly GameAction[],
   random: RandomSource,
 ): GameAction {
@@ -185,6 +307,7 @@ function attackOrStop(
 
     const free = armiesOn(state, action.fromId) - 1
     const theirs = armiesOn(state, action.toId)
+    const odds = Math.min(10, free / theirs)
     const ownerId = state.territories[action.toId]?.ownerId
     const owner = state.players.find((each) => each.id === ownerId)
 
@@ -202,8 +325,19 @@ function attackOrStop(
       return [{ item: action as GameAction, score: 50 + bonus }]
     }
 
-    if (!state.turn.hasConquered && free >= theirs + TURTLE_SETTINGS.cardMargin) {
-      return [{ item: action as GameAction, score: 10 + Math.min(10, free / theirs) }]
+    if (
+      home !== null &&
+      home.missing.includes(action.toId) &&
+      free >= theirs + TURTLE_SETTINGS.homeMargin
+    ) {
+      return [{ item: action as GameAction, score: 30 + odds }]
+    }
+
+    if (
+      !state.turn.hasConquered &&
+      free >= theirs * TURTLE_SETTINGS.cardRatio + TURTLE_SETTINGS.cardMargin
+    ) {
+      return [{ item: action as GameAction, score: 10 + odds }]
     }
 
     return []
@@ -213,32 +347,39 @@ function attackOrStop(
 }
 
 /**
- * As few armies as the rules allow go into a capture, so the stack stays
- * where it guards the border. All of them go if the old territory has no
- * enemy left beside it, because armies there could do nothing.
+ * How many armies move into a capture.
+ *
+ * Into the shell while it is being built: all of them, to push on through
+ * it. Anywhere else: as few as the rules allow, so the stack stays where it
+ * guards the border. All of them too if the old territory has no enemy
+ * left beside it, because armies there could do nothing.
  */
-function moveIn(state: GameState, me: PlayerId): GameAction {
+function moveIn(state: GameState, me: PlayerId, home: Plan | null): GameAction {
   const move = state.turn.pendingOccupation
 
   if (move === null) {
     return { type: 'occupy', count: 0 }
   }
 
-  const occupy: GameAction = { type: 'occupy', count: move.minimumArmies }
+  const least: GameAction = { type: 'occupy', count: move.minimumArmies }
+  const most: GameAction = { type: 'occupy', count: armyLimitFor(state, least) }
+  const intoTheShell = home !== null && !home.held && regionOf(state, move.toId) === home.regionId
 
-  return isFrontier(state, me, move.fromId)
-    ? occupy
-    : { type: 'occupy', count: armyLimitFor(state, occupy) }
+  return intoTheShell || !isFrontier(state, me, move.fromId) ? most : least
 }
+
+// ----------------------------------------------------------- fortifying
 
 /** Armies inside its land move out to the border most outnumbered. */
 function fortify(
   state: GameState,
   me: PlayerId,
+  home: Plan | null,
   actions: readonly GameAction[],
   random: RandomSource,
 ): GameAction {
   const front = new Set(frontierOf(state, me))
+  const doors = doorsOf(state, home)
   const choices = actions.flatMap((action) => {
     if (
       action.type !== 'fortify' ||
@@ -252,7 +393,10 @@ function fortify(
     return [
       {
         item: { ...action, count: armyLimitFor(state, action) } as GameAction,
-        score: pressureOn(state, me, action.toId) + armiesOn(state, action.fromId),
+        score:
+          pressureOn(state, me, action.toId) +
+          armiesOn(state, action.fromId) +
+          (doors.has(action.toId) ? 5 : 0),
       },
     ]
   })

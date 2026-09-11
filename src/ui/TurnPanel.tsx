@@ -83,7 +83,7 @@ export function TurnPanel({
 
         {state.turn.phase === 'fortify' ? (
           <button type="button" className="primary" onClick={onSkipFortify}>
-            End turn without moving
+            {state.turn.hasFortified ? 'End turn' : 'End turn without moving'}
           </button>
         ) : null}
       </div>
