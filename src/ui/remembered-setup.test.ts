@@ -1,0 +1,91 @@
+import { describe, expect, it } from 'vitest'
+
+import { DEFAULT_OPTIONS } from '../engine'
+import type { SetupStore } from './remembered-setup'
+import { recallSetup, rememberSetup } from './remembered-setup'
+
+/** A stand-in for the browser's storage. */
+function aStore(): SetupStore & { readonly kept: Map<string, string> } {
+  const kept = new Map<string, string>()
+
+  return {
+    kept,
+    getItem: (key) => kept.get(key) ?? null,
+    setItem: (key, value) => {
+      kept.set(key, value)
+    },
+  }
+}
+
+describe('the new game screen is remembered', () => {
+  // Plan task 4.21. Nick: "Can option selections be persisted?"
+  it('gives back exactly what was kept', () => {
+    const store = aStore()
+    const setup = {
+      players: [
+        { name: 'James', kind: 'human' as const, colour: '#2f6fb0' },
+        { name: 'General', kind: 'general' as const, colour: '#c8453b' },
+      ],
+      options: { ...DEFAULT_OPTIONS, cardTrading: 'anyTime' as const, fortifyDistance: 'adjacent' as const },
+      mapId: 'australia-big',
+    }
+
+    rememberSetup(setup, store)
+
+    expect(recallSetup(store)).toEqual(setup)
+  })
+
+  it('gives back nothing when nothing was kept', () => {
+    expect(recallSetup(aStore())).toBeNull()
+  })
+
+  it('ignores something that is not a setup at all', () => {
+    const store = aStore()
+
+    store.setItem('conquest.setup', '{not json')
+    expect(recallSetup(store)).toBeNull()
+
+    store.setItem('conquest.setup', JSON.stringify({ players: 'three' }))
+    expect(recallSetup(store)).toBeNull()
+  })
+
+  it('refuses a player kind the game does not know', () => {
+    const store = aStore()
+
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({
+        players: [
+          { name: 'A', kind: 'human' },
+          { name: 'B', kind: 'wizard' },
+        ],
+        options: {},
+        mapId: 'world',
+      }),
+    )
+
+    expect(recallSetup(store)).toBeNull()
+  })
+
+  it('replaces an option it does not recognise with the default', () => {
+    const store = aStore()
+
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({
+        players: [
+          { name: 'A', kind: 'human' },
+          { name: 'B', kind: 'greedy' },
+        ],
+        options: { cardSetValue: 'sometimes', diceDisplay: 'oneByOne' },
+        mapId: 'world',
+      }),
+    )
+
+    const recalled = recallSetup(store)
+
+    expect(recalled?.options.cardSetValue).toBe(DEFAULT_OPTIONS.cardSetValue)
+    expect(recalled?.options.diceDisplay).toBe('oneByOne')
+    expect(recalled?.options.cardTrading).toBe('classic')
+  })
+})

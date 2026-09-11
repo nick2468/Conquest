@@ -1,5 +1,5 @@
 import type { Card, CardId, CardTrio, GameState } from '../engine'
-import { isSet, mustTradeASet, setValue, setsInHand } from '../engine'
+import { tradingAllowedNow, isSet, mustTradeASet, setValue, setsInHand } from '../engine'
 
 /**
  * The rules about a player's hand of cards, as the screen needs them.
@@ -36,6 +36,15 @@ export function asTrio(cards: readonly Card[]): CardTrio | null {
     : null
 }
 
+/** Why a set cannot be traded just now, for each card rule. */
+const WHEN_TO_TRADE = {
+  classic:
+    'Cards can only be traded at the start of your turn, or at once after a knockout leaves you six or more.',
+  afterKnockout:
+    'Cards can be traded at the start of your turn, and after you knock a player out.',
+  anyTime: 'Cards can be traded at the start of your turn, and during your attack.',
+} as const
+
 /**
  * What to say about the cards the player has picked out.
  *
@@ -48,14 +57,13 @@ export function adviseOnHand(
   chosenIds: readonly CardId[],
 ): HandAdvice {
   const forced = mustTradeASet(cards)
-  const reinforcing = state.turn.phase === 'reinforce'
 
-  if (!reinforcing) {
+  if (!tradingAllowedNow(state)) {
     return {
       canTrade: false,
       value: 0,
       forced,
-      message: 'Cards can only be traded at the start of your turn.',
+      message: WHEN_TO_TRADE[state.options.cardTrading ?? 'classic'],
     }
   }
 
@@ -148,7 +156,7 @@ export interface SetWaiting {
  * a set that cannot be traded now is not worth shouting about.
  */
 export function setReadyToTrade(state: GameState): SetWaiting | null {
-  if (state.turn.phase !== 'reinforce') {
+  if (!tradingAllowedNow(state)) {
     return null
   }
 

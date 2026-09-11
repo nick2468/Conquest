@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type { GameMap, GameOptions, NewPlayer, PlayerKind } from '../engine'
 import {
@@ -13,6 +13,7 @@ import {
 } from '../engine'
 import { writeMap } from '../maps/format'
 import type { MapProblem } from '../maps/validate'
+import { recallSetup, rememberSetup } from './remembered-setup'
 import {
   forgetMap,
   labelFor,
@@ -60,12 +61,18 @@ function defaultPlayers(count: number): NewPlayer[] {
   })
 }
 
+/**
+ * What was picked last time, if anything. Nick: "Can option selections be
+ * persisted?" They are, on the iPad itself. See remembered-setup.ts.
+ */
+const REMEMBERED = recallSetup()
+
 export const DEFAULT_SETUP: GameSetup = {
-  // The detailed map by default. The small one is there to learn on, but a
+  // The world map by default. The small one is there to learn on, but a
   // plan means nothing on ten territories. See plan task 4.13.
-  map: mapCalled('world', null),
-  players: defaultPlayers(3),
-  options: DEFAULT_OPTIONS,
+  map: mapCalled(REMEMBERED?.mapId ?? 'world', mapRemembered()),
+  players: REMEMBERED?.players ?? defaultPlayers(3),
+  options: REMEMBERED?.options ?? DEFAULT_OPTIONS,
   /**
    * A different starting point every time the app is opened.
    *
@@ -103,6 +110,12 @@ export function NewGameScreen({
 
   const choices = mapChoices(ownMap)
   const chosenMap = mapCalled(mapId, ownMap)
+
+  // Every change is remembered at once, so leaving this screen without
+  // starting still keeps it.
+  useEffect(() => {
+    rememberSetup({ players, options, mapId })
+  }, [players, options, mapId])
 
   const takeFile = async (file: File | undefined): Promise<void> => {
     if (file === undefined) {
@@ -428,6 +441,23 @@ export function NewGameScreen({
             >
               <option value="rising">{`More each time (4, 6, 8... up to ${RISING_SET_CAP})`}</option>
               <option value="fixed">The same every time</option>
+            </select>
+          </label>
+
+          <label className="setup-field">
+            Cards may be traded
+            <select
+              value={options.cardTrading ?? 'classic'}
+              onChange={(event) =>
+                change(
+                  'cardTrading',
+                  event.target.value as GameOptions['cardTrading'],
+                )
+              }
+            >
+              <option value="classic">At the start of a turn (classic)</option>
+              <option value="afterKnockout">Also after knocking a player out</option>
+              <option value="anyTime">Any time during your attack</option>
             </select>
           </label>
 

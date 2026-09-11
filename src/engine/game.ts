@@ -5,6 +5,7 @@
  * The screen and the computer players both read the same list, so they can
  * never disagree about the rules. See spec S11.
  */
+import { CARDS_AFTER_A_KNOCKOUT, CARDS_FORCING_A_TRADE } from './balance'
 import {
   attackerDiceCount,
   defenderDiceCount,
@@ -158,31 +159,49 @@ function ownsEverything(state: GameState, playerId: PlayerId): boolean {
 }
 
 /**
- * Mark anyone who owns no territories as out, and set a winner if one
- * player owns the lot.
+ * Mark anyone who owns no territories as out, hand their cards to whoever
+ * knocked them out, and set a winner if one player owns the lot.
+ *
+ * The cards are the printed rule, and Nick asked for it: "annihilating an
+ * opponent wins his cards." So knocking out a player with a hand full of
+ * cards is worth far more than knocking out one with a single card.
  */
 function checkWinnersAndLosers(state: GameState): GameState {
+  const takerId = state.turn.playerId
+  const knockedOut = state.players.filter(
+    (player) =>
+      !player.isEliminated &&
+      !Object.values(state.territories).some((each) => each.ownerId === player.id),
+  )
+  const won = knockedOut.filter((player) => player.id !== takerId).flatMap((player) => player.cards)
+
   const players = state.players.map((player) => {
-    if (player.isEliminated) {
-      return player
+    if (knockedOut.includes(player)) {
+      return { ...player, isEliminated: true, cards: player.id === takerId ? player.cards : [] }
     }
 
-    const holdsSomething = Object.values(state.territories).some(
-      (each) => each.ownerId === player.id,
-    )
-
-    return holdsSomething ? player : { ...player, isEliminated: true }
+    return player.id === takerId ? { ...player, cards: [...player.cards, ...won] } : player
   })
 
-  let next: GameState = { ...state, players }
+  let next: GameState = {
+    ...state,
+    players,
+    turn:
+      knockedOut.length > 0
+        ? { ...state.turn, knockedOutThisTurn: true }
+        : state.turn,
+  }
+  const taker = players.find((player) => player.id === takerId)
 
-  for (const player of players) {
-    if (player.isEliminated) {
-      const already = state.players.find((each) => each.id === player.id)
+  for (const player of knockedOut) {
+    next = noted(next, `${player.name} is out of the game.`)
 
-      if (already?.isEliminated === false) {
-        next = noted(next, `${player.name} is out of the game.`)
-      }
+    if (player.id !== takerId && player.cards.length > 0 && taker !== undefined) {
+      next = noted(
+        next,
+        `${taker.name} takes ${player.name}'s ${player.cards.length} ` +
+          `card${player.cards.length === 1 ? '' : 's'}.`,
+      )
     }
   }
 
@@ -200,6 +219,53 @@ function checkWinnersAndLosers(state: GameState): GameState {
     },
     `${winner.name} has won.`,
   )
+}
+
+/**
+ * After a capture is settled: a knockout that left the player holding
+ * CARDS_AFTER_A_KNOCKOUT or more cards must be cashed in now.
+ *
+ * The game steps back into placing, where holding five or more already
+ * forces a trade, so the player trades down to four, places those armies,
+ * and is back to attacking the moment the last one is down. The same step
+ * the start of every turn uses, so there is nothing new to learn.
+ */
+function cashInIfForced(state: GameState): GameState {
+  if (state.winnerId !== null || state.turn.phase !== 'attack') {
+    return state
+  }
+
+  const player = currentPlayer(state)
+
+  if (player.cards.length < CARDS_AFTER_A_KNOCKOUT) {
+    return state
+  }
+
+  return noted(
+    { ...state, turn: { ...state.turn, phase: 'reinforce' } },
+    `${player.name} holds ${player.cards.length} cards, and must trade ` +
+      `down to ${CARDS_FORCING_A_TRADE - 1} before attacking again.`,
+  )
+}
+
+/**
+ * Whether the player whose turn it is may trade a set right now.
+ *
+ * Always while placing. During an attack, only as the card rule for this
+ * game allows. See GameOptions.cardTrading and plan task 4.21.
+ */
+export function tradingAllowedNow(state: GameState): boolean {
+  if (state.turn.phase === 'reinforce') {
+    return true
+  }
+
+  if (state.turn.phase !== 'attack') {
+    return false
+  }
+
+  const rule = state.options.cardTrading ?? 'classic'
+
+  return rule === 'anyTime' || (rule === 'afterKnockout' && state.turn.knockedOutThisTurn === true)
 }
 
 // --------------------------------------------------------- ending the turn
@@ -263,8 +329,8 @@ function endTurn(state: GameState, random: RandomSource): GameState {
 // ---------------------------------------------------------- the seven acts
 
 function doTradeCards(state: GameState, cardIds: readonly string[]): GameState {
-  if (state.turn.phase !== 'reinforce') {
-    refuse('Cards may only be traded while reinforcing.')
+  if (!tradingAllowedNow(state)) {
+    refuse('Cards may not be traded now. See the card rule for this game.')
   }
 
   if (cardIds.length !== 3) {
@@ -306,6 +372,9 @@ function doTradeCards(state: GameState, cardIds: readonly string[]): GameState {
     },
     turn: {
       ...state.turn,
+      // A trade during an attack steps back into placing. Once the last
+      // army is down, the attack carries on where it left off.
+      phase: 'reinforce',
       armiesToPlace: state.turn.armiesToPlace + value,
       armiesGiven: (state.turn.armiesGiven ?? state.turn.armiesToPlace) + value,
     },
@@ -555,7 +624,7 @@ function doAttack(
     next = checkWinnersAndLosers(next)
   }
 
-  return next
+  return cashInIfForced(next)
 }
 
 function doOccupy(state: GameState, count: number): GameState {
@@ -597,10 +666,12 @@ function doOccupy(state: GameState, count: number): GameState {
     },
   }
 
-  return noted(
-    occupied,
-    `${currentPlayer(state).name} moves ${count} into ` +
-      `${nameOf(state, move.toId)}.`,
+  return cashInIfForced(
+    noted(
+      occupied,
+      `${currentPlayer(state).name} moves ${count} into ` +
+        `${nameOf(state, move.toId)}.`,
+    ),
   )
 }
 
@@ -776,7 +847,14 @@ export function legalActions(state: GameState): GameAction[] {
         }
       }
 
-      return [...attacks, { type: 'endAttackPhase' }]
+      const trades: GameAction[] = tradingAllowedNow(state)
+        ? setsInHand(player.cards).map((trio) => ({
+            type: 'tradeCards',
+            cardIds: trio.map((card) => card.id),
+          }))
+        : []
+
+      return [...trades, ...attacks, { type: 'endAttackPhase' }]
     }
 
     case 'occupy': {

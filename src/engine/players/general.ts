@@ -100,6 +100,16 @@ export const GENERAL_SETTINGS = {
    * armies on the card, not the line.
    */
   cardAllIn: true,
+  /**
+   * Nick: "do any of the computer also know that annihilating an opponent
+   * wins his cards? And if so that destroying an opponent with many cards
+   * is going to pay off better than one with just 1 card." Taking a
+   * player's LAST territory knocks them out and hands over every card
+   * they hold. This is what the knockout itself is worth...
+   */
+  knockoutIsWorth: 6,
+  /** ...and this more for each card it wins. Plan task 4.21. */
+  cardIsWorth: 4,
 }
 
 /**
@@ -347,6 +357,8 @@ interface Worth {
   readonly prizes: ReadonlyMap<TerritoryId, number>
   readonly plan: Plan | null
   readonly finishes: ReadonlyMap<TerritoryId, number>
+  /** A player's last territory, and what knocking them out is worth. */
+  readonly knockouts: ReadonlyMap<TerritoryId, number>
 }
 
 function readTheWorth(state: GameState, me: PlayerId): Worth {
@@ -360,7 +372,26 @@ function readTheWorth(state: GameState, me: PlayerId): Worth {
     }
   }
 
-  return { prizes: theirContinents(state, me), plan: chooseGoal(state, me), finishes }
+  // A player down to one territory: taking it knocks them out and wins
+  // every card they hold, so a big hand makes it worth far more.
+  const knockouts = new Map<TerritoryId, number>()
+
+  for (const player of state.players) {
+    if (player.id === me || player.isEliminated) {
+      continue
+    }
+
+    const theirs = ownedBy(state, player.id)
+
+    if (theirs.length === 1) {
+      knockouts.set(
+        theirs[0] as TerritoryId,
+        rules.knockoutIsWorth + player.cards.length * rules.cardIsWorth,
+      )
+    }
+  }
+
+  return { prizes: theirContinents(state, me), plan: chooseGoal(state, me), finishes, knockouts }
 }
 
 /** How much taking this enemy territory is worth, before the odds. */
@@ -368,13 +399,18 @@ function worthTaking(worth: Worth, territoryId: TerritoryId): number {
   return (
     (worth.prizes.get(territoryId) ?? 0) * rules.breakIsWorth +
     (worth.finishes.get(territoryId) ?? 0) * rules.finishIsWorth +
-    (worth.plan?.missing.includes(territoryId) === true ? rules.onPlan : 0)
+    (worth.plan?.missing.includes(territoryId) === true ? rules.onPlan : 0) +
+    (worth.knockouts.get(territoryId) ?? 0)
   )
 }
 
 /** Is this territory worth an even fight, rather than a safe one? */
 function worthARisk(worth: Worth, territoryId: TerritoryId): boolean {
-  return worth.prizes.has(territoryId) || worth.finishes.has(territoryId)
+  return (
+    worth.prizes.has(territoryId) ||
+    worth.finishes.has(territoryId) ||
+    worth.knockouts.has(territoryId)
+  )
 }
 
 // ------------------------------------------------------------ the player

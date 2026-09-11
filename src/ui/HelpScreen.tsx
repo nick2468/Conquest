@@ -1,6 +1,7 @@
 import type { GameMap, GameOptions, Skill } from '../engine'
 import {
   ALL_SKILLS,
+  CARDS_AFTER_A_KNOCKOUT,
   CARDS_FORCING_A_TRADE,
   FIXED_SET_VALUE,
   MINIMUM_REINFORCEMENTS,
@@ -125,6 +126,17 @@ export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
             Three of the same, or one of each, is a set. Trade a set in when
             you reinforce, for extra armies. With {CARDS_FORCING_A_TRADE}{' '}
             cards in your hand you must trade.
+          </p>
+          <p>
+            Knock a player out and you take all their cards. If that leaves
+            you with {CARDS_AFTER_A_KNOCKOUT} or more, you trade at once down to{' '}
+            {CARDS_FORCING_A_TRADE - 1}, place those armies, and carry on
+            attacking.{' '}
+            {(options.cardTrading ?? 'classic') === 'classic'
+              ? 'Otherwise, in this game, cards are only traded at the start of your turn.'
+              : options.cardTrading === 'afterKnockout'
+                ? 'In this game you may also trade any set after you knock a player out, for the rest of that attack.'
+                : 'In this game you may trade a set at any moment of your attack.'}
           </p>
           <p>
             {options.cardSetValue === 'rising'

@@ -35,6 +35,7 @@ export type { RandomSource, SavedRandom } from './random'
 export { fixedRandom, scriptedRandom, seededRandom, shuffle } from './random'
 
 export {
+  CARDS_AFTER_A_KNOCKOUT,
   RISING_SET_CAP,
   CARDS_FORCING_A_TRADE,
   FIXED_SET_VALUE,
@@ -80,6 +81,7 @@ export {
   applyAction,
   armyLimitFor,
   legalActions,
+  tradingAllowedNow,
 } from './game'
 
 export type { ComputerPlayer, Skill } from './players'

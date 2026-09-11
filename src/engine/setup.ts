@@ -38,6 +38,7 @@ export const DEFAULT_OPTIONS: GameOptions = {
   fortifyDistance: 'connected',
   armyPlacement: 'automatic',
   diceDisplay: 'allAtOnce',
+  cardTrading: 'classic',
 }
 
 export interface NewGame {

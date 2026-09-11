@@ -533,6 +533,24 @@ symbols.
 A player may trade one set during the reinforce phase. A player holding five or
 more cards must trade before doing anything else.
 
+**Knocking a player out wins their cards** (plan 4.21). The player who takes
+someone's last territory takes every card they hold. If that leaves six or
+more (`CARDS_AFTER_A_KNOCKOUT`), the game steps straight back into placing,
+where five or more already forces a trade: the player trades down to four,
+places those armies, and carries on attacking the moment the last is down.
+
+When else a set may be traded is an option, `cardTrading`:
+
+| Setting | Also trade |
+|---|---|
+| `'classic'` (default) | Never, besides the forced trade after a knockout. The printed rules. |
+| `'afterKnockout'` | Any set, for the rest of the attack after knocking a player out. |
+| `'anyTime'` | Any set, at any moment of the attack. |
+
+A trade during an attack always goes the same way: back into placing, then
+back to attacking. `tradingAllowedNow` in `game.ts` answers the question for
+both the rules and the card panel, so the two cannot disagree.
+
 Value of a set, from `options.cardSetValue`. See D9.
 
 | Setting | Value |
@@ -558,7 +576,9 @@ A player who owns every territory on the map has won. The phase becomes
 interface GameOptions {
   readonly cardSetValue: 'fixed' | 'rising'          // default 'rising'
   readonly fortifyDistance: 'adjacent' | 'connected' // default 'connected'
+  readonly armyPlacement: 'automatic' | 'byHand'     // default 'automatic'
   readonly diceDisplay: 'oneByOne' | 'allAtOnce'     // default 'allAtOnce'
+  readonly cardTrading?: 'classic' | 'afterKnockout' | 'anyTime' // default 'classic'
 }
 ```
 
@@ -566,6 +586,12 @@ interface GameOptions {
 that one value holds every setting a player picked.
 
 See D9, D10 and D11.
+
+**The choices are remembered** (plan 4.21). The new game screen keeps its
+players, map and options in the browser's own storage on the iPad, not a
+cookie: a cookie goes to the server with every request and can run out.
+Everything read back is checked, and anything that does not make sense,
+such as a stored game from an older version, falls back to the default.
 
 ---
 

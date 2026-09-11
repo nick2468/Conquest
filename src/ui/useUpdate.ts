@@ -12,6 +12,9 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
  * this stays quiet unless the page is asked to pretend, which is how the
  * bar was checked on screen.
  */
+/** How long to wait for the new version to take over before reloading anyway. */
+const RELOAD_ANYWAY_AFTER = 4000
+
 export function useUpdate() {
   const {
     needRefresh: [needRefresh],
@@ -32,6 +35,17 @@ export function useUpdate() {
         return
       }
 
+      // Nick: "pressing 'load it' doesn't reload the browser, I still have
+      // to do that in the browser control." The new version was taking
+      // over, but the page never reloaded to show it. So the page reloads
+      // itself the moment the new version takes control, and after a few
+      // seconds regardless, in case that moment is never announced.
+      navigator.serviceWorker?.addEventListener(
+        'controllerchange',
+        () => window.location.reload(),
+        { once: true },
+      )
+      window.setTimeout(() => window.location.reload(), RELOAD_ANYWAY_AFTER)
       void updateServiceWorker(true)
     },
     later: (): void => setDismissed(true),

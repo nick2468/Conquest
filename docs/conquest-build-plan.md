@@ -646,6 +646,37 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       are tried, and a border with no water between at all, such as
       Gascoyne to the Nullarbor, gets no dash.
 
+- [x] 4.21 **Knockouts win cards, and when to trade is an option.** Nick:
+      "do any of the computer also know that annihilating an opponent wins
+      his cards?" Nobody did, because the rule did not exist: a beaten
+      player's cards simply left the game. Now whoever takes a player's last
+      territory takes every card they hold, and six or more must be traded
+      at once down to four, placed, and the attack carries on. Nick: "make
+      it another play time option, default Classic." `cardTrading` is
+      Classic (the printed rules), after a knockout, or any time during the
+      attack. See spec 6.6.
+
+      General values a knockout: 6 for the knockout and 4 for each card it
+      wins, so a player holding five cards is worth far more than one
+      holding one. Measured, General with it against without, three and
+      four players: 83% against 82% on the tuning seeds, 84% against 83% on
+      unseen ones. Level, and it never costs anything.
+
+      **The choices are remembered.** "Can option selections be persisted
+      in a cookie?" In the browser's own storage instead, which stays on
+      the iPad and works offline. Checked when read back.
+      `remembered-setup.ts`, with tests.
+
+      **"Load it" now reloads the page.** "Pressing 'load it' doesn't
+      reload the browser, I still have to do that in the browser control."
+      The new version was taking over, but the page never heard the moment
+      it did. The page now reloads itself when the new version takes
+      control, and after four seconds regardless.
+
+      Tests: knockouts hand over cards, Classic forces six cards down and
+      carries on, five or fewer wait, each of the other two modes, Classic
+      refusing a trade mid-attack, and the choices surviving a round trip.
+
 ---
 
 ## Phase 5 - maps of your own

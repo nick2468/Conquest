@@ -72,6 +72,13 @@ export const RISING_SET_CAP = 20
 /** Holding this many cards forces a player to trade a set. */
 export const CARDS_FORCING_A_TRADE = 5
 
+/**
+ * Holding this many cards straight after knocking a player out forces
+ * trades at once, before attacking again, down to one fewer than
+ * CARDS_FORCING_A_TRADE. The printed rules say six. Plan task 4.21.
+ */
+export const CARDS_AFTER_A_KNOCKOUT = 6
+
 /** Wild cards in the deck. A wild card counts as any symbol. */
 export const WILD_CARDS = 2
 

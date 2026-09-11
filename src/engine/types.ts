@@ -186,6 +186,8 @@ export interface TurnState {
   readonly armiesGiven?: number
   /** True if the player took a territory this turn, so earns a card. */
   readonly hasConquered: boolean
+  /** True once the player has knocked somebody out this turn. */
+  readonly knockedOutThisTurn?: boolean
   /** True once the one fortify move has been used. */
   readonly hasFortified: boolean
   readonly pendingOccupation: Occupation | null
@@ -224,6 +226,22 @@ export interface GameOptions {
   readonly armyPlacement: 'automatic' | 'byHand'
   /** The screen uses this. The engine ignores it. */
   readonly diceDisplay: 'oneByOne' | 'allAtOnce'
+  /**
+   * When cards may be traded, besides the start of a turn. Plan task 4.21.
+   *
+   * In every mode, knocking a player out hands you all their cards, and if
+   * that leaves you holding CARDS_AFTER_A_KNOCKOUT or more, you trade at
+   * once down to four, place those armies, and carry on attacking.
+   *
+   * 'classic'        that is the only trade during an attack, as in the
+   *                  printed rules
+   * 'afterKnockout'  once you have knocked a player out, you may trade any
+   *                  set for the rest of that attack
+   * 'anyTime'        you may trade a set at any moment of your attack
+   *
+   * Missing from a game saved before it existed, which means 'classic'.
+   */
+  readonly cardTrading?: 'classic' | 'afterKnockout' | 'anyTime'
 }
 
 // -------------------------------------------------------------- the whole
