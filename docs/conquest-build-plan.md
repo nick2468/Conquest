@@ -676,6 +676,17 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       Tests: knockouts hand over cards, Classic forces six cards down and
       carries on, five or fewer wait, each of the other two modes, Classic
       refusing a trade mid-attack, and the choices surviving a round trip.
+- [x] 4.22 **Sea routes are clearer.** Nick: "Greenland looks like it is
+      going twice to NWT and not to Ontario", "EAF to Middle East bit hard to
+      see", "don't always use the smallest gap use a clearer one", "make
+      black and a bit heavier", and "Alaska seems to be drawing to the inland
+      junction of YAK, IRK and Kamchatka". Each dash now ends on open coast,
+      at least 6 map units from any third place, and a dash of at least 16
+      is preferred to the narrowest one. Crossings round the back of the
+      world leave from each place's outer coast. The dashes are black and
+      heavier. Tests: every end on its own place, Greenland to Ontario, East
+      Africa to the Middle East long enough to see, and Kamchatka from its
+      eastern coast.
 
 ---
 

@@ -365,14 +365,14 @@ export function MapView({
       <path className="coast" d={allTheLand} filter="url(#coast)" />
 
       {/*
-        The sea crossings, as faint dashes across the water. Under the
+        The sea crossings, as black dashes across the water. Under the
         places, so a dash that reaches a coast never draws over the land.
       */}
       <path
         className="sea-route"
         d={seaRoutes}
-        strokeWidth={steady(1.3)}
-        strokeDasharray={`${steady(5)} ${steady(4)}`}
+        strokeWidth={steady(2.2)}
+        strokeDasharray={`${steady(7)} ${steady(4)}`}
       />
 
       {/*

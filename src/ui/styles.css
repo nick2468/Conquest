@@ -1183,17 +1183,18 @@ button.primary.ready:hover {
   color: var(--ink-soft);
 }
 
-/* The light line between two places inside one region. Drawn once, as its
- * own layer, so a coast never gets both this and the heavy region line. */
-/* A border that crosses water. Faint, dashed, and never in the way of a tap. */
+/* A border that crosses water. Black, dashed, and never in the way of a tap.
+ * Nick: "the sea route needs to be clearer make black and a bit heavier". */
 .sea-route {
   fill: none;
-  stroke: #2b2a26;
-  stroke-opacity: 0.4;
+  stroke: #000;
+  stroke-opacity: 0.85;
   stroke-linecap: round;
   pointer-events: none;
 }
 
+/* The light line between two places inside one region. Drawn once, as its
+ * own layer, so a coast never gets both this and the heavy region line. */
 .inside-border {
   fill: none;
   stroke: #2b2a26;

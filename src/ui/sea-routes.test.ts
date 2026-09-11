@@ -1,12 +1,26 @@
 import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA_BIG } from '../maps/australia-big'
+import { cornersOf } from '../maps/shapes'
 import { WORLD } from '../maps/world'
-import { seaRoutesOf } from './sea-routes'
+import { seaRouteLines, seaRoutesOf } from './sea-routes'
 
 /** How many separate lines a path draws: one per "M". */
 function linesIn(path: string): number {
   return (path.match(/M /g) ?? []).length
+}
+
+function lineBetween(one: string, two: string) {
+  return seaRouteLines(WORLD).filter(
+    ({ places }) => places.includes(one) && places.includes(two),
+  )
+}
+
+/** The world place whose outline has this corner, or undefined. */
+function placeWithCorner([x, y]: readonly [number, number]): string | undefined {
+  return WORLD.territories.find((each) =>
+    cornersOf(each.shape).some(([cx, cy]) => cx === x && cy === y),
+  )?.id
 }
 
 describe('the sea routes drawn on the board', () => {
@@ -39,5 +53,48 @@ describe('the sea routes drawn on the board', () => {
     const waysOntoIslands = crossings.reduce((total, island) => total + island.borders.length, 0)
 
     expect(linesIn(path)).toBeLessThanOrEqual(waysOntoIslands)
+  })
+})
+
+describe('where a sea route is drawn', () => {
+  // Plan task 4.22. Nick: "Greenland looks like it is going twice to NWT and
+  // not to Ontario", "EAF to Middle East bit hard to see", and "Alaska seems
+  // to be drawing to the inland junction of YAK, IRK and Kamchatka".
+
+  it('starts and ends each line on the two places it joins, and nowhere else', () => {
+    for (const { from, to, places } of seaRouteLines(WORLD)) {
+      const [left = 0, , width = 0] = WORLD.viewBox.split(' ').map(Number)
+      const ends = [from, to].filter(([x]) => x !== left && x !== left + width)
+
+      for (const end of ends) {
+        expect(places).toContain(placeWithCorner(end))
+      }
+    }
+  })
+
+  it('draws a Greenland line to Ontario as well as to the Northwest Territory', () => {
+    expect(lineBetween('greenland', 'ontario')).toHaveLength(1)
+    expect(lineBetween('greenland', 'northwestTerritory')).toHaveLength(1)
+  })
+
+  it('draws a short strait long enough to see', () => {
+    const [line] = lineBetween('eastAfrica', 'middleEast')
+
+    expect(line).toBeDefined()
+    if (line === undefined) return
+    expect(Math.hypot(line.to[0] - line.from[0], line.to[1] - line.from[1])).toBeGreaterThan(12)
+  })
+
+  it('takes Kamchatka off the map from its far eastern coast', () => {
+    const kamchatka = WORLD.territories.find((each) => each.id === 'kamchatka')
+    const eastmost = Math.max(...cornersOf(kamchatka?.shape ?? '').map(([x]) => x))
+    const stub = lineBetween('alaska', 'kamchatka').find(
+      ({ from }) => placeWithCorner(from) === 'kamchatka',
+    )
+
+    expect(stub).toBeDefined()
+    // Within a small margin of the easternmost point: a coast corner, not
+    // the inland corner where Kamchatka meets Yakutsk and Irkutsk.
+    expect(eastmost - (stub?.from[0] ?? 0)).toBeLessThan(15)
   })
 })
