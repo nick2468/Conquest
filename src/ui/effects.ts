@@ -1,5 +1,5 @@
 import type { GameAction, GameMap, Point, TerritoryId } from '../engine'
-import { middleOf, middleOfMap } from './zoom'
+import { goesRoundTheBack, middleOf, middleOfMap } from './zoom'
 
 /**
  * What to draw over the map when something happens. Plan task 7.2.
@@ -178,9 +178,15 @@ export function effectFor(map: GameMap, action: GameAction): Effect | null {
       return null
     }
 
+    const attacker = middleOf(from)
+    const defender = middleOf(to)
+
     return {
       kind: 'battle',
-      at: between(middleOf(from), middleOf(to)),
+      // Halfway, unless the fight goes round the back of the world. Nick:
+      // "When alaska fights kamchatka the battle animation happens in the
+      // middle of the board." Then it is fought where the defender stands.
+      at: goesRoundTheBack(map, attacker, defender) ? defender : between(attacker, defender),
       from: null,
       comingFrom: null,
       lasting: LASTS.battle,
@@ -225,6 +231,18 @@ export function effectFor(map: GameMap, action: GameAction): Effect | null {
 
     const start = middleOf(from)
     const end = middleOf(to)
+
+    // Round the back of the world is a sea crossing too, and the boats come
+    // in from the edge of the map the armies left by.
+    if (goesRoundTheBack(map, start, end)) {
+      return {
+        kind: 'landing',
+        at: end,
+        from: null,
+        comingFrom: { x: start.x > end.x ? -1 : 1, y: 0 },
+        lasting: LASTS.landing,
+      }
+    }
 
     // Lorries cannot drive across Bass Strait. Armies that cross water go
     // the same way armies arriving at an island do, by boat.

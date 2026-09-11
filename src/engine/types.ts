@@ -279,4 +279,24 @@ export interface GameState {
   readonly deck: DeckState
   readonly winnerId: PlayerId | null
   readonly log: readonly LogEntry[]
+  /**
+   * The attacks each player made in their latest turn. Plan task 4.28.
+   *
+   * A player's old fights are cleared when their next turn starts, so this
+   * holds what everybody else did since your last turn. The Counter reads
+   * it to hit back at whoever attacked it. Missing from a game saved before
+   * it existed, which means none.
+   */
+  readonly recentFights?: readonly Fight[]
+}
+
+/** One attack, as `recentFights` keeps it. */
+export interface Fight {
+  readonly attackerId: PlayerId
+  /** Null for land that nobody owned. */
+  readonly defenderId: PlayerId | null
+  readonly fromId: TerritoryId
+  readonly toId: TerritoryId
+  /** True if the attack took the territory. */
+  readonly taken: boolean
 }

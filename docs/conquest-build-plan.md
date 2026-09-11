@@ -760,6 +760,43 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       losers. The turn panel is unchanged. Checked in the browser with three
       Generals playing: up to five dice tumbling at once, and no errors. See
       spec S24a.
+- [x] 4.28 **The Counter.** Nick: "Do we also have a strategy that likes
+      to do counter-attacks instead of frontal assaults?" and "build the
+      counter-attack player but I would like to know how good that strategy
+      is." It makes no frontal assaults. It guards its borders, and when
+      attacked, it hits back next turn at the stack that attacked it, which
+      the attack has thinned, and takes back what it lost. It still takes a
+      card each turn and any knockout. To know who attacked it, the engine
+      now keeps `recentFights`: the attacks each player made in their
+      latest turn. `counter.ts`, with tests.
+
+      How good it is, on the world map, 20 games per pairing over four seed
+      ranges (5000, 20000, 90000, 40000):
+
+      | Counter against | 2 players | 4 players |
+      |---|---|---|
+      | Reckless | 20 - 0 | 20 - 0 |
+      | Turtle | 8 - 12 | 2 - 18 |
+      | Cautious | 13 - 7 | 17 - 3 |
+      | Greedy | 4 - 16 | 14 - 6 |
+      | Planner | 2 - 18 | 13 - 7 |
+      | General | 2 - 18 | 7 - 13 |
+
+      So it is a good strategy at a full table and a poor one head to head.
+      With several players, others keep attacking it and each other, and it
+      feeds on the damage. With one opponent it waits while that opponent
+      builds. Its worst match is the Turtle: a player that hardly attacks
+      gives it nothing to hit back at. The General still beats it.
+- [x] 4.29 **A fight round the back of the world, and buttons with colour.**
+      Nick: "When alaska fights kamchatka the battle animation happens in
+      the middle of the board." The smoke went halfway between the two
+      places, which for a crossing off one edge of the map and on at the
+      other is the middle of the board. Now such a fight is drawn where the
+      defender stands, and armies moved that way arrive by boat from the
+      near edge. `goesRoundTheBack` in `zoom.ts`, with tests. Nick: "The
+      Sounds button and New Game button should have some colour, they
+      appear greyed out." They are light blue now, a step below the solid
+      blue of a primary button.
 
 ---
 

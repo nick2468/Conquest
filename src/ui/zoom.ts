@@ -54,6 +54,19 @@ export function middleOfMap(map: GameMap): { readonly x: number; readonly y: num
   }
 }
 
+/**
+ * True when the shortest way between two points goes round the back of the
+ * world, off one edge of the map and on at the other, as Alaska to
+ * Kamchatka does. A straight line between them would cross the whole board.
+ */
+export function goesRoundTheBack(
+  map: GameMap,
+  one: { readonly x: number },
+  two: { readonly x: number },
+): boolean {
+  return Math.abs(one.x - two.x) > readViewBox(map.viewBox).width / 2
+}
+
 interface Box {
   readonly left: number
   readonly top: number

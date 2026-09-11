@@ -1126,13 +1126,14 @@ only return something `legalActions` offered.** So it cannot cheat, because it
 never sees the rules. It sees only the list of what is allowed, the same list
 the screen greys out from. A test walks every position and checks this.
 
-Six of them, built as steps so the difference is visible:
+Seven of them, built as steps so the difference is visible:
 
 | Name | What it does |
 |---|---|
 | Reckless | Picks at random. The baseline everything else is measured against. |
 | Cautious | Attacks only when ahead. Reinforces its frontier, fortifies forward. |
 | Turtle | First takes the continent the Planner would choose, near and easy to hold, and makes it its shell. Then piles its armies on the shell's ways in and attacks once a turn for its card, plus any knockout or last territory of a continent in reach. Comes out and plays as the General once it holds half as many armies again as the strongest other player, or once only one opponent is left in a game that started with more than two. From the Wikipedia page on Risk. |
+| Counter | Makes no frontal assaults. Guards its borders, and when attacked, hits back next turn at the stack that attacked it and takes back what it lost. Still takes a card each turn and any knockout. It learns who attacked it from `recentFights`, which the engine keeps for this (plan 4.28). |
 | Greedy | The same, but chooses attacks and placements by region value. |
 | Planner | Picks a region to own, takes it, then holds the ways in. |
 | General | Holds a front line with a second line behind it, never leaves one army where it has just attacked from, spreads new armies over a weak front, and goes first for a continent somebody else holds. |
@@ -1186,6 +1187,22 @@ So it is a four-player strategy, as the Wikipedia page says of turtling:
 with several players, the others wear each other down while it sits in its
 shell. Head to head it loses, because there is nobody else to do that.
 With four at the table it is level with the General.
+
+Measured 2026-09-11 for the Counter, on the world map, 20 games per
+pairing over seed ranges 5000, 20000, 90000 and 40000:
+
+| Counter against | 2 players | 4 players |
+|---|---|---|
+| Reckless | 20 - 0 | 20 - 0 |
+| Turtle | 8 - 12 | 2 - 18 |
+| Cautious | 13 - 7 | 17 - 3 |
+| Greedy | 4 - 16 | 14 - 6 |
+| Planner | 2 - 18 | 13 - 7 |
+| General | 2 - 18 | 7 - 13 |
+
+Hitting back pays at a full table, where others keep attacking it and each
+other, and does not head to head. A player that hardly attacks, the Turtle,
+gives it nothing to hit back at. See plan task 4.28.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

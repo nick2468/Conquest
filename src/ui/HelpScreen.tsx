@@ -43,6 +43,8 @@ const HOW_THEY_PLAY: Readonly<Record<Skill, string>> = {
     'Only attacks when it has more armies than the defender, and keeps its armies on its borders. Hard to break into, slow to win.',
   turtle:
     'First takes a continent that is easy to hold. Then piles its armies on the ways in and takes just one territory a turn for its card. Hard to knock out. Once it is clearly the strongest, or only one opponent is left, it comes out and plays like the General.',
+  counter:
+    'Makes no big attacks of its own. It guards its borders and waits. When you attack it, it hits back next turn at the armies you attacked with, and takes back what you took.',
   greedy:
     'Makes sure it takes at least one territory every turn to earn a card, and finishes off a continent when it can. Presses hard.',
   planner:

@@ -494,6 +494,43 @@ describe('eliminating a player and winning', () => {
   })
 })
 
+// ---------------------------------------------------------- recent fights
+
+describe('the fights each player made in their latest turn', () => {
+  // Plan task 4.28. The Counter reads these to hit back.
+  it('records an attack, who made it, and whether it took the place', () => {
+    const state = gameWith(boardWhere({ wa: 5 }))
+    const after = applyAction(
+      state,
+      { type: 'attack', fromId: 'wa', toId: 'nt' },
+      scriptedDice([6, 5, 4, 1]),
+    )
+
+    expect(after.recentFights).toEqual([
+      { attackerId: 'p1', defenderId: 'p2', fromId: 'wa', toId: 'nt', taken: true },
+    ])
+  })
+
+  it("clears a player's old fights when their next turn starts, and keeps the rest", () => {
+    const state = gameWith(
+      boardWhere({ wa: 5 }),
+      { phase: 'fortify' },
+      {
+        recentFights: [
+          { attackerId: 'p1', defenderId: 'p2', fromId: 'wa', toId: 'nt', taken: false },
+          { attackerId: 'p2', defenderId: 'p1', fromId: 'nt', toId: 'wa', taken: false },
+        ],
+      },
+    )
+    const after = applyAction(state, { type: 'skipFortify' }, NO_DICE)
+
+    // Now it is p2's turn, so p2's old fight goes and p1's stays.
+    expect(after.recentFights).toEqual([
+      { attackerId: 'p1', defenderId: 'p2', fromId: 'wa', toId: 'nt', taken: false },
+    ])
+  })
+})
+
 // ---------------------------------------------------- many fortify moves
 
 describe('many fortify moves', () => {

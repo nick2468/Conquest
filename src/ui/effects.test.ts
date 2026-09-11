@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { AUSTRALIA_BIG } from '../maps/australia-big'
 import { AUSTRALIA } from '../maps/australia'
+import { WORLD } from '../maps/world'
 import { crossesWater, effectFor, facingAlong, towardsTheSea } from './effects'
 import { middleOf, middleOfMap } from './zoom'
 
@@ -33,6 +34,30 @@ describe('what to draw for an attack', () => {
     expect(effect?.kind).toBe('battle')
     expect(effect?.at.x).toBeCloseTo((from.x + to.x) / 2)
     expect(effect?.at.y).toBeCloseTo((from.y + to.y) / 2)
+  })
+
+  it('fights round the back of the world where the defender stands', () => {
+    // Nick: "When alaska fights kamchatka the battle animation happens in
+    // the middle of the board."
+    const kamchatka = WORLD.territories.find((each) => each.id === 'kamchatka')
+    const effect = effectFor(WORLD, { type: 'attack', fromId: 'alaska', toId: 'kamchatka' })
+
+    expect(kamchatka).toBeDefined()
+    if (kamchatka === undefined) return
+    expect(effect?.at).toEqual(middleOf(kamchatka))
+  })
+
+  it('sends armies round the back of the world by boat, from the near edge', () => {
+    const effect = effectFor(WORLD, {
+      type: 'fortify',
+      fromId: 'kamchatka',
+      toId: 'alaska',
+      count: 1,
+    })
+
+    expect(effect?.kind).toBe('landing')
+    // Kamchatka is at the right-hand edge, so they come in from the left.
+    expect(effect?.comingFrom).toEqual({ x: -1, y: 0 })
   })
 
   it('lasts less than the pause a computer takes after a fight', () => {

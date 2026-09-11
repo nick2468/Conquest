@@ -937,7 +937,7 @@ describe('a big turn is spread over the front first', () => {
    * armies must leave both front territories stronger, whichever of them
    * the player's own plan chose for its stack.
    */
-  for (const skill of ['cautious', 'turtle', 'greedy', 'planner', 'general'] as const) {
+  for (const skill of ['cautious', 'turtle', 'counter', 'greedy', 'planner', 'general'] as const) {
     it(`${skill} boosts every front territory, not just its stack`, () => {
       const ring = riskShapedMap(2, 3, 5)
       const base = createGame({
@@ -985,7 +985,7 @@ describe('an ordinary turn is split too', () => {
    * same three territories as above, now with an ordinary turn of 10
    * armies. Both front territories must end the turn stronger.
    */
-  for (const skill of ['cautious', 'turtle', 'greedy', 'planner', 'general'] as const) {
+  for (const skill of ['cautious', 'turtle', 'counter', 'greedy', 'planner', 'general'] as const) {
     it(`${skill} puts armies on more than one front territory`, () => {
       const ring = riskShapedMap(2, 3, 5)
       const base = createGame({
@@ -1098,6 +1098,67 @@ describe('the Turtle', () => {
     }
 
     expect(choice(board(building, true))).toBe('t0_1')
+  })
+})
+
+describe('the Counter hits back', () => {
+  /**
+   * Plan task 4.28. The ring again. One is the Counter, on t0_2 with 6.
+   * Two attacked it last turn from t1_0, which now holds 3. t0_1 holds a
+   * single army of Three's, the easier capture.
+   */
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(attackedBy: boolean, hasConquered: boolean): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'counter' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const owners: Record<string, [string, number]> = {
+      t0_0: ['p3', 9],
+      t0_1: ['p3', 1],
+      t0_2: ['p1', 6],
+      t1_0: ['p2', 3],
+      t1_1: ['p2', 9],
+      t1_2: ['p3', 9],
+    }
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, [ownerId, armies]] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies }
+    }
+
+    return {
+      ...base,
+      territories,
+      recentFights: attackedBy
+        ? [{ attackerId: 'p2', defenderId: 'p1', fromId: 't1_0', toId: 't0_2', taken: false }]
+        : [],
+      turn: { ...base.turn, playerId: 'p1', phase: 'attack', armiesToPlace: 0, hasConquered },
+    }
+  }
+
+  function choice(state: GameState): string {
+    const action = playerFor('counter').chooseAction(state, seededRandom(1))
+
+    return action.type === 'attack' ? action.toId : action.type
+  }
+
+  it('hits the stack that attacked it before the easy card', () => {
+    expect(choice(board(true, false))).toBe('t1_0')
+  })
+
+  it('still hits back once the card is won', () => {
+    expect(choice(board(true, true))).toBe('t1_0')
+  })
+
+  it('makes no other attack once the card is won', () => {
+    expect(choice(board(false, true))).toBe('endAttackPhase')
   })
 })
 

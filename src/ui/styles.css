@@ -104,6 +104,20 @@ body {
   align-items: center;
 }
 
+/* Nick: "The Sounds button and New Game button should have some colour,
+ * they appear greyed out." A light blue, so they read as buttons that work,
+ * a step below the solid blue of a primary button. */
+.new-game button {
+  font-weight: 600;
+  color: #24476f;
+  background: #e3ecf7;
+  border-color: #9fb7d6;
+}
+
+.new-game button:hover {
+  background: #d4e2f3;
+}
+
 .new-game label {
   display: flex;
   gap: 0.4rem;

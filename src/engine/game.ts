@@ -313,6 +313,10 @@ function endTurn(state: GameState, random: RandomSource): GameState {
   return {
     ...next,
     round,
+    // The next player's fights from their last turn are old news now.
+    recentFights: (next.recentFights ?? []).filter(
+      (fight) => fight.attackerId !== nextPlayer.id,
+    ),
     turn: {
       playerId: nextPlayer.id,
       phase: 'reinforce',
@@ -593,6 +597,10 @@ function doAttack(
   let next: GameState = {
     ...state,
     territories: board,
+    recentFights: [
+      ...(state.recentFights ?? []),
+      { attackerId: player.id, defenderId: to.ownerId, fromId, toId, taken: captured },
+    ],
     turn: {
       ...state.turn,
       lastAttack: outcome,

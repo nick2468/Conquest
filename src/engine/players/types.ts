@@ -8,12 +8,20 @@ import type { GameState } from '../types'
  * The three are built in steps so the difference between them is easy to
  * see. That is the point of having three, not an accident.
  */
-export type Skill = 'reckless' | 'turtle' | 'cautious' | 'greedy' | 'planner' | 'general'
+export type Skill =
+  | 'reckless'
+  | 'turtle'
+  | 'cautious'
+  | 'counter'
+  | 'greedy'
+  | 'planner'
+  | 'general'
 
 export const ALL_SKILLS: readonly Skill[] = [
   'reckless',
   'turtle',
   'cautious',
+  'counter',
   'greedy',
   'planner',
   'general',

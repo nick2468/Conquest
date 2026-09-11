@@ -4,6 +4,7 @@ import { GREEDY } from './greedy'
 import { PLANNER } from './planner'
 import { RECKLESS } from './reckless'
 import { TURTLE } from './turtle'
+import { COUNTER } from './counter'
 import type { ComputerPlayer, Skill } from './types'
 
 export type { ComputerPlayer, Skill } from './types'
@@ -14,6 +15,7 @@ export { GREEDY } from './greedy'
 export { PLANNER } from './planner'
 export { GENERAL } from './general'
 export { TURTLE } from './turtle'
+export { COUNTER } from './counter'
 
 export {
   armiesOn,
@@ -33,6 +35,7 @@ const BY_SKILL: Readonly<Record<Skill, ComputerPlayer>> = {
   reckless: RECKLESS,
   cautious: CAUTIOUS,
   turtle: TURTLE,
+  counter: COUNTER,
   greedy: GREEDY,
   planner: PLANNER,
   general: GENERAL,
