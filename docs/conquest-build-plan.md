@@ -852,6 +852,39 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       then the choosers and cards when they are needed, then the history.
       The turn panel is a fixed height: its words stop at three lines, and
       its buttons sit on its bottom edge.
+- [x] 4.33 **The General breaks a thinly held continent.** Nick, of a
+      one-on-one game: the General had 20 on Ukraine while the Turtle held
+      Europe and North America with one army a territory, and it "should
+      have denied turtles next go continent bonuses but decided to attack
+      in africa and take more of asia. that was poor play."
+
+      A trace of real games found two faults. Before its card, the General
+      counted only 30% of what a target is worth, so breaking Europe scored
+      about the same as any lone army, and the near tie was settled at
+      random. And a stack beside a continent held by one army would not
+      attack if it also faced a big enemy elsewhere: it set aside enough to
+      face that enemy first, and had nothing left, although ten against one
+      loses an army or two.
+
+      Fixed as two settings. `breakBeforeCard`: an attack at two to one or
+      better on a continent, a knockout or a finish counts in full before
+      the card, as it is nearly as sure of the card as the easy capture.
+      Anything less sure still gives way to the card (plan 4.14).
+      `breakWithEverything`: such an attack is judged on the whole stack,
+      and what stays behind is decided when moving in.
+
+      One on one, the General turns that ended with a continent it could
+      have broken at two to one still whole fell from 32 in 217 to 6 in
+      218. Measured on the world map, seeds 5000, 20000, 90000, 40000:
+
+      | General | 2 players | 4 players | Total |
+      |---|---|---|---|
+      | Before | 68 of 80 | 58 of 80 | 126 |
+      | After | 70 of 80 | 64 of 80 | 134 |
+
+      Tests from the traced games: the stack facing a big enemy still
+      breaks the continent, and a three-to-one break beats a lone army for
+      the card every time.
 
 ---
 

@@ -125,6 +125,30 @@ export const GENERAL_SETTINGS = {
   hitBackIsWorth: 8,
   /** And a territory taken from it, while the taker still holds it. */
   retakeIsWorth: 6,
+  /**
+   * Nick watched a one-on-one game: the General had 20 on Ukraine while the
+   * Turtle held Europe and North America with one army a territory, and it
+   * attacked Africa and Asia instead. "That was poor play." Plan task 4.33.
+   *
+   * Two faults did it, and each is a setting so it can be measured. This
+   * one: before its card, the General counted only `cardWorthShare` of
+   * what a target is worth, so breaking Europe scored almost the same as
+   * taking any lone army, and a near tie is chosen at random. An attack at
+   * two to one or better on a continent, a knockout or a finish now counts
+   * in full before the card too: it is nearly as sure to win the card as
+   * the easy capture. Anything less sure still gives way to the card, as
+   * Nick asked in plan task 4.14.
+   */
+  breakBeforeCard: true,
+  /**
+   * The other fault: a stack beside a thinly held continent would not
+   * attack it if the same stack also faced a big enemy elsewhere, because
+   * it first set aside enough to face that enemy. Ten against one loses an
+   * army or two. So for a continent, a knockout or a finish, the attack is
+   * judged on the whole stack, as it already is for the card. What stays
+   * behind is decided when moving in (see `moveIn`).
+   */
+  breakWithEverything: true,
 }
 
 /**
@@ -707,12 +731,19 @@ function attackOrStop(
     }
 
     const theirs = armiesOn(state, action.toId)
-    const keep =
-      needACard && rules.cardAllIn ? 1 : keepBehind(state, me, action.fromId, action.toId)
+    const worthy = worthARisk(worth, action.toId)
+    const allIn = (needACard && rules.cardAllIn) || (worthy && rules.breakWithEverything)
+    const keep = allIn ? 1 : keepBehind(state, me, action.fromId, action.toId)
     const free = armiesOn(state, action.fromId) - keep + 1
     const safe = free >= toWinWell(theirs)
     const even = free >= toWinEvenly(theirs)
-    const bold = even && (needACard || worthARisk(worth, action.toId))
+    const bold = even && (needACard || worthy)
+    // Before the card, what a target is worth counts only in part, unless
+    // it is a near-sure attack on something worth a risk. See
+    // `breakBeforeCard`.
+    const nearlySure = free >= theirs * 2 + 1
+    const shareBeforeCard =
+      nearlySure && worthy && rules.breakBeforeCard ? 1 : rules.cardWorthShare
 
     if (!safe && !bold) {
       return []
@@ -729,7 +760,7 @@ function attackOrStop(
             ? // No card yet this turn: the likeliest capture first, and
               // what the target is worth only as a tie-break.
               Math.min(4, odds) * rules.cardOdds +
-              worthIt * rules.cardWorthShare +
+              worthIt * shareBeforeCard +
               (safe ? 2 : 0)
             : // The card is won: now what it is worth leads. The odds
               // count only up to three to one, or a one-army nobody next

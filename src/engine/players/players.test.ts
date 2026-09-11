@@ -1206,6 +1206,81 @@ describe('the General hits back only sometimes', () => {
   })
 })
 
+describe('the General breaks a thinly held continent', () => {
+  /**
+   * Plan task 4.33. Nick: the General "should have denied turtles next go
+   * continent bonuses but decided to attack in africa and take more of
+   * asia." One on one, on the ring. Two holds region 1 whole.
+   */
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(owners: Record<string, [string, number]>, hasConquered: boolean): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, [ownerId, armies]] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies }
+    }
+
+    return {
+      ...base,
+      territories,
+      turn: { ...base.turn, playerId: 'p1', phase: 'attack', armiesToPlace: 0, hasConquered },
+    }
+  }
+
+  it('attacks the continent with a stack that also faces a big enemy', () => {
+    // t0_2 holds 10. Beside it are Two's 14 on t0_1, and a single army on
+    // t1_0, the way into Two's whole region. Keeping 14 back first left
+    // nothing to attack with, so it stopped.
+    const state = board(
+      {
+        t0_0: ['p1', 1],
+        t0_1: ['p2', 14],
+        t0_2: ['p1', 10],
+        t1_0: ['p2', 1],
+        t1_1: ['p2', 1],
+        t1_2: ['p2', 1],
+      },
+      true,
+    )
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+
+    expect(action.type === 'attack' ? action.toId : action.type).toBe('t1_0')
+  })
+
+  it('breaks the continent for its card, not the lone army beside it', () => {
+    // t0_1 holds one army and is worth nothing: Two also holds t0_0, so it
+    // does not finish a region of ours. t1_0 holds four and is the way into
+    // Two's whole region, at three to one. Every time, not only when a near
+    // tie happens to fall that way.
+    const state = board(
+      {
+        t0_0: ['p2', 1],
+        t0_1: ['p2', 1],
+        t0_2: ['p1', 12],
+        t1_0: ['p2', 4],
+        t1_1: ['p2', 1],
+        t1_2: ['p2', 1],
+      },
+      false,
+    )
+
+    for (let seed = 1; seed <= 10; seed += 1) {
+      const action = playerFor('general').chooseAction(state, seededRandom(seed))
+
+      expect(action.type === 'attack' ? action.toId : action.type).toBe('t1_0')
+    }
+  })
+})
+
 describe('every player can play with many fortify moves', () => {
   // Plan task 4.24. With many moves, a player is asked again after each
   // move, so one that never ends its turn would hang the game.

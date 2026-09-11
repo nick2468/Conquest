@@ -1215,6 +1215,13 @@ so a person who knows how the General plays cannot count on what it does.
 Over 160 games that cost it 12 wins, but on fresh seeds the two were level,
 56 to 57, so the real cost is somewhere between nothing and that.
 
+**Denying a continent comes first when it is nearly sure** (plan 4.33).
+Nick watched the General leave a thinly held Europe and North America
+alone in a one-on-one game. It now counts a two-to-one attack on an enemy
+continent in full even before its card, and judges it on the whole stack.
+One-on-one turns that left such a continent whole fell from 32 in 217 to 6
+in 218, and it won 134 of 160 games against 126 before.
+
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 
 This was learned the hard way, twice. A 40-game run read 21-19 in Greedy's
