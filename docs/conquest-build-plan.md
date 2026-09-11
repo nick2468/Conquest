@@ -797,6 +797,28 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       Sounds button and New Game button should have some colour, they
       appear greyed out." They are light blue now, a step below the solid
       blue of a primary button.
+- [x] 4.30 **The counter-attack tactic in the General: measured, and left
+      out.** Nick: "Roll the counter-attack idea into General. It should be
+      a tactic that General chooses to play sometimes." Built as a worth
+      on the stack that attacked it and on land it lost, played only when
+      somebody had attacked it and two or more opponents were left.
+      Measured on the world map, four players, 80 games each over seeds
+      5000, 20000, 90000 and 40000, against Greedy, the Planner, the
+      Turtle and the Counter:
+
+      | The tactic | General won |
+      |---|---|
+      | Off | 69 of 80 |
+      | Hit back 8, retake 6, worth an even chance | 56 |
+      | Hit back 16, retake 12, worth an even chance | 57 |
+      | Hit back 8, retake 6, safe attacks only | 62 |
+      | Hit back 4, retake 3, safe attacks only | 54 |
+
+      Every version made it weaker, so the General does not play it. The
+      likely reason: the General already attacks where the odds and its
+      plan say, and hitting back pulled armies away from both. The Counter
+      wins with it because it has no plan to lose. `recentFights` stays in
+      the engine for the Counter.
 
 ---
 

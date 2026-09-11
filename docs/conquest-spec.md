@@ -1204,6 +1204,12 @@ Hitting back pays at a full table, where others keep attacking it and each
 other, and does not head to head. A player that hardly attacks, the Turtle,
 gives it nothing to hit back at. See plan task 4.28.
 
+The same tactic was tried inside the General (plan 4.30), and every version
+made it weaker: 69 wins in 80 with it off, 54 to 62 with it on. The General
+already attacks where the odds and its plan say, and hitting back pulled
+armies away from both. So the General does not play it. The Counter wins
+with it because it has no plan to lose.
+
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 
 This was learned the hard way, twice. A 40-game run read 21-19 in Greedy's
