@@ -572,6 +572,45 @@ export function App() {
       </div>
 
       <div className="side">
+        {/* Nick: "Put the ranking first, then dice analysis, then history." */}
+        <table className="scores">
+          <thead>
+            <tr>
+              <th scope="col">Player</th>
+              <th scope="col">Land</th>
+              <th scope="col">Armies</th>
+            </tr>
+          </thead>
+          <tbody>
+            {state.players.map((player) => {
+              const mine = Object.values(state.territories).filter(
+                (each) => each.ownerId === player.id,
+              )
+
+              return (
+                <tr
+                  key={player.id}
+                  className={player.isEliminated ? 'out' : undefined}
+                >
+                  <th scope="row">
+                    <span
+                      className="swatch"
+                      style={{ background: player.colour }}
+                    />
+                    {player.name}
+                    {player.id === current?.id ? ' •' : ''}
+                  </th>
+                  <td>{mine.length}</td>
+                  <td>
+                    {mine.reduce((total, each) => total + each.armies, 0) +
+                      player.reserve}
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+
         {over ? (
           <WinnerScreen
             state={state}
@@ -631,44 +670,6 @@ export function App() {
             onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}
           />
         )}
-
-        <table className="scores">
-          <thead>
-            <tr>
-              <th scope="col">Player</th>
-              <th scope="col">Land</th>
-              <th scope="col">Armies</th>
-            </tr>
-          </thead>
-          <tbody>
-            {state.players.map((player) => {
-              const mine = Object.values(state.territories).filter(
-                (each) => each.ownerId === player.id,
-              )
-
-              return (
-                <tr
-                  key={player.id}
-                  className={player.isEliminated ? 'out' : undefined}
-                >
-                  <th scope="row">
-                    <span
-                      className="swatch"
-                      style={{ background: player.colour }}
-                    />
-                    {player.name}
-                    {player.id === current?.id ? ' •' : ''}
-                  </th>
-                  <td>{mine.length}</td>
-                  <td>
-                    {mine.reduce((total, each) => total + each.armies, 0) +
-                      player.reserve}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
 
         <GameLog state={state} />
       </div>

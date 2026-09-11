@@ -110,6 +110,21 @@ export const GENERAL_SETTINGS = {
   knockoutIsWorth: 6,
   /** ...and this more for each card it wins. Plan task 4.21. */
   cardIsWorth: 4,
+  /**
+   * The counter-attack tactic, played only sometimes. Plan task 4.31.
+   *
+   * Nick: "I want General to be the best computer player, sometimes being
+   * unpredictable will be beneficial especially if there are human players
+   * that know the strategies being played." Played every time, the tactic
+   * cost the General games (plan 4.30). So in a turn after somebody
+   * attacked it, it plays it only with this chance, and then only as a
+   * safe attack.
+   */
+  counterChance: 0.2,
+  /** What the stack that attacked it is worth, when it plays the tactic. */
+  hitBackIsWorth: 8,
+  /** And a territory taken from it, while the taker still holds it. */
+  retakeIsWorth: 6,
 }
 
 /**
@@ -133,6 +148,8 @@ export const GENERAL_DUEL: Partial<typeof GENERAL_SETTINGS> = {
   // Nothing behind the front: the one enemy is not coming that way.
   secondLine: 1,
   occupyKeepsSecondLine: false,
+  // Hitting back does not pay head to head (plan 4.28), so not one on one.
+  counterChance: 0,
 }
 
 /** The rules in play for this move. Chosen afresh at the start of each. */
@@ -359,6 +376,72 @@ interface Worth {
   readonly finishes: ReadonlyMap<TerritoryId, number>
   /** A player's last territory, and what knocking them out is worth. */
   readonly knockouts: ReadonlyMap<TerritoryId, number>
+  /** Where to hit back, when it plays the counter-attack this turn. */
+  readonly counters: ReadonlyMap<TerritoryId, number>
+}
+
+/**
+ * The attacks made on this player since its last turn, as text. It does not
+ * change during the player's own turn: its own attacks are on other people.
+ */
+function attacksOn(state: GameState, me: PlayerId): string {
+  return (state.recentFights ?? [])
+    .filter((fight) => fight.defenderId === me)
+    .map((fight) => `${fight.attackerId}:${fight.fromId}>${fight.toId}`)
+    .join(',')
+}
+
+/**
+ * A number from 0 up to 1, the same every time it is asked for during one
+ * turn, and different from turn to turn. Made by mixing up the round, the
+ * player and the attacks made on it, the way a hash does.
+ *
+ * A computer player holds no memory between moves (spec S20), so a choice
+ * that must last a whole turn cannot be a dice roll: it would be rolled
+ * again at every move. This is worked out afresh each move and comes out
+ * the same. Nobody at the table can see it coming.
+ */
+export function turnChance(state: GameState, me: PlayerId): number {
+  const text = `${state.round}|${me}|${attacksOn(state, me)}`
+  let hash = 2166136261
+
+  for (let at = 0; at < text.length; at += 1) {
+    hash = Math.imul(hash ^ text.charCodeAt(at), 16777619) >>> 0
+  }
+
+  return hash / 4294967296
+}
+
+/**
+ * Where to hit back, if the General plays the counter-attack this turn.
+ * Plan task 4.31.
+ *
+ * The stack an enemy attacked us from, if it is still theirs, and a
+ * territory they took from us, if they still hold it. Empty when nobody
+ * attacked us, and on the turns the General chooses not to play it.
+ */
+function counterTargets(state: GameState, me: PlayerId): Map<TerritoryId, number> {
+  const counters = new Map<TerritoryId, number>()
+
+  if (turnChance(state, me) >= rules.counterChance) {
+    return counters
+  }
+
+  for (const fight of state.recentFights ?? []) {
+    if (fight.defenderId !== me || fight.attackerId === me) {
+      continue
+    }
+
+    if (state.territories[fight.fromId]?.ownerId === fight.attackerId) {
+      counters.set(fight.fromId, rules.hitBackIsWorth)
+    }
+
+    if (fight.taken && state.territories[fight.toId]?.ownerId !== me) {
+      counters.set(fight.toId, Math.max(counters.get(fight.toId) ?? 0, rules.retakeIsWorth))
+    }
+  }
+
+  return counters
 }
 
 function readTheWorth(state: GameState, me: PlayerId): Worth {
@@ -391,7 +474,13 @@ function readTheWorth(state: GameState, me: PlayerId): Worth {
     }
   }
 
-  return { prizes: theirContinents(state, me), plan: chooseGoal(state, me), finishes, knockouts }
+  return {
+    prizes: theirContinents(state, me),
+    plan: chooseGoal(state, me),
+    finishes,
+    knockouts,
+    counters: counterTargets(state, me),
+  }
 }
 
 /** How much taking this enemy territory is worth, before the odds. */
@@ -400,7 +489,9 @@ function worthTaking(worth: Worth, territoryId: TerritoryId): number {
     (worth.prizes.get(territoryId) ?? 0) * rules.breakIsWorth +
     (worth.finishes.get(territoryId) ?? 0) * rules.finishIsWorth +
     (worth.plan?.missing.includes(territoryId) === true ? rules.onPlan : 0) +
-    (worth.knockouts.get(territoryId) ?? 0)
+    (worth.knockouts.get(territoryId) ?? 0) +
+    // Worth more, but never worth a risk: see `worthARisk`.
+    (worth.counters.get(territoryId) ?? 0)
   )
 }
 

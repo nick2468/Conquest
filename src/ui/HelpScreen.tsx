@@ -50,7 +50,7 @@ const HOW_THEY_PLAY: Readonly<Record<Skill, string>> = {
   planner:
     'Picks one continent to own, the one that pays well and is easy to hold, takes it, then guards the ways in.',
   general:
-    'The strongest. Holds a front line with a second line behind it, takes its card first each turn, and breaks up your continents when nobody else will. When only one opponent is left, it changes to an attacking game.',
+    'The strongest. Holds a front line with a second line behind it, takes its card first each turn, and breaks up your continents when nobody else will. Now and then, if you attack it, it hits back next turn at the armies you attacked with. When only one opponent is left, it changes to an attacking game.',
 }
 
 export function HelpScreen({ map, options, onBack }: HelpScreenProps) {

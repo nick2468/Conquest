@@ -819,6 +819,39 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       plan say, and hitting back pulled armies away from both. The Counter
       wins with it because it has no plan to lose. `recentFights` stays in
       the engine for the Counter.
+- [x] 4.31 **The General hits back sometimes, so it is harder to read.**
+      Nick: "I want General to be the best computer player, sometimes being
+      unpredictable will be beneficial especially if there are human players
+      that know the strategies being played." In a turn after somebody
+      attacked it, with two or more opponents left, it plays the
+      counter-attack on 20% of turns (`counterChance`), and only as a safe
+      attack. Whether it plays it is worked out from the round, its seat and
+      the attacks made on it (`turnChance`), so the choice holds for the
+      whole turn without any memory, and nobody at the table can see it
+      coming.
+
+      Measured, four players, 80 games per range:
+
+      | How often it hits back | 5000 to 40000 | 60000 and 70000 | Total |
+      |---|---|---|---|
+      | Never | 69 | 57 | 126 of 160 |
+      | 20% of those turns | 58 | 56 | 114 of 160 |
+      | 35% of those turns | 56 | | |
+
+      On the fresh seeds the two are level, so the 69 was partly luck. The
+      cost against computer players is somewhere between nothing and about
+      one game in thirteen. What it buys, not being read by a person who
+      knows how the General plays, no tournament can measure, because
+      computer players do not learn. Nick asked for it, and the cost is
+      small and uncertain, so it is on. Set `counterChance` to 0 to turn it
+      off.
+- [x] 4.32 **The side panel stops jumping.** Nick: "I'm not a fan of how
+      the right hand side panel keeps jumping around. Make the dice analysis
+      a fixed height" and "Put the ranking first, then dice analysis, then
+      history." The player table is now at the top, then the turn panel,
+      then the choosers and cards when they are needed, then the history.
+      The turn panel is a fixed height: its words stop at three lines, and
+      its buttons sit on its bottom edge.
 
 ---
 

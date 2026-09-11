@@ -8,7 +8,7 @@ import { seededRandom } from '../random'
 import { DEFAULT_OPTIONS, createGame } from '../setup'
 import type { GameMap, GameState } from '../types'
 import { entrancesTo, frontierOf, interiorOf, regionHoldings } from './board'
-import { GENERAL_SETTINGS, breakUrgency } from './general'
+import { GENERAL_SETTINGS, breakUrgency, turnChance } from './general'
 import { ALL_SKILLS, playerFor } from './index'
 import type { Skill } from './types'
 
@@ -1159,6 +1159,50 @@ describe('the Counter hits back', () => {
 
   it('makes no other attack once the card is won', () => {
     expect(choice(board(false, true))).toBe('endAttackPhase')
+  })
+})
+
+describe('the General hits back only sometimes', () => {
+  // Plan task 4.31. Whether it plays the counter-attack is decided once a
+  // turn, and must not change between its moves.
+  const state = createGame({
+    map: WORLD,
+    players: [
+      { name: 'One', kind: 'general' },
+      { name: 'Two', kind: 'greedy' },
+      { name: 'Three', kind: 'greedy' },
+    ],
+    random: seededRandom(1),
+  })
+  const attacked: GameState = {
+    ...state,
+    recentFights: [
+      { attackerId: 'p2', defenderId: 'p1', fromId: 'alaska', toId: 'kamchatka', taken: false },
+    ],
+  }
+
+  it('gives the same answer all through a turn, whatever it does itself', () => {
+    const afterItsOwnAttack: GameState = {
+      ...attacked,
+      recentFights: [
+        ...(attacked.recentFights ?? []),
+        { attackerId: 'p1', defenderId: 'p3', fromId: 'peru', toId: 'brazil', taken: true },
+      ],
+    }
+
+    expect(turnChance(afterItsOwnAttack, 'p1')).toBe(turnChance(attacked, 'p1'))
+  })
+
+  it('plays it on about the share of turns its chance says', () => {
+    let played = 0
+
+    for (let round = 1; round <= 2000; round += 1) {
+      if (turnChance({ ...attacked, round }, 'p1') < GENERAL_SETTINGS.counterChance) {
+        played += 1
+      }
+    }
+
+    expect(played / 2000).toBeCloseTo(GENERAL_SETTINGS.counterChance, 1)
   })
 })
 

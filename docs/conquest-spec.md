@@ -1136,7 +1136,7 @@ Seven of them, built as steps so the difference is visible:
 | Counter | Makes no frontal assaults. Guards its borders, and when attacked, hits back next turn at the stack that attacked it and takes back what it lost. Still takes a card each turn and any knockout. It learns who attacked it from `recentFights`, which the engine keeps for this (plan 4.28). |
 | Greedy | The same, but chooses attacks and placements by region value. |
 | Planner | Picks a region to own, takes it, then holds the ways in. |
-| General | Holds a front line with a second line behind it, never leaves one army where it has just attacked from, spreads new armies over a weak front, and goes first for a continent somebody else holds. |
+| General | Holds a front line with a second line behind it, never leaves one army where it has just attacked from, spreads new armies over a weak front, and goes first for a continent somebody else holds. Now and then, after being attacked, it hits back at the stack that attacked it (plan 4.31). |
 
 `PlayerKind` is `'human'` or one of the skills, as ONE field. Two fields would
 allow "a computer with no skill" and "a person with a skill", neither of which
@@ -1207,8 +1207,13 @@ gives it nothing to hit back at. See plan task 4.28.
 The same tactic was tried inside the General (plan 4.30), and every version
 made it weaker: 69 wins in 80 with it off, 54 to 62 with it on. The General
 already attacks where the odds and its plan say, and hitting back pulled
-armies away from both. So the General does not play it. The Counter wins
-with it because it has no plan to lose.
+armies away from both. So the General does not play it every time. The
+Counter wins with it because it has no plan to lose.
+
+It plays it on 20% of the turns after it was attacked instead (plan 4.31),
+so a person who knows how the General plays cannot count on what it does.
+Over 160 games that cost it 12 wins, but on fresh seeds the two were level,
+56 to 57, so the real cost is somewhere between nothing and that.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

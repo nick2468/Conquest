@@ -226,6 +226,32 @@ body {
   border-radius: 0.75rem;
 }
 
+/*
+ * Nick: "I'm not a fan of how the right hand side panel keeps jumping
+ * around. Make the dice analysis a fixed height." So the turn panel is
+ * always the same height, whatever it holds: the words are cut at three
+ * lines, and the buttons sit on its bottom edge.
+ */
+.turn-panel {
+  display: flex;
+  flex-direction: column;
+  height: 15.5rem;
+  overflow: hidden;
+}
+
+.turn-panel .turn-instruction {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.turn-panel .turn-buttons {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
 .turn-who {
   display: flex;
   flex-wrap: wrap;
