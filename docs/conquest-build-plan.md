@@ -1346,6 +1346,79 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       reward for bridging pulls attacks towards awkward targets they were
       right to ignore. The value of joining is largely already counted, in
       the plan and in the front line.
+- [x] 4.49 **Looking ahead without dice: the odds table is kept, the
+      lookahead is not.** Nick asked to hear more about the deterministic
+      lookahead named at the end of plan task 4.46, then said to build it.
+      It was built in the four steps set out then, measuring at each.
+
+      **Step 1, the odds table. It works, and it stays.**
+      `src/engine/odds.ts` answers exactly what a fight to a finish comes
+      to, with no dice rolled: 20 armies against 15 take it 82.2% of the
+      time, leaving 7.83 of mine and 0.72 of theirs. Two things keep it
+      honest. The one-exchange odds are COUNTED rather than restated, by
+      walking all 6^5 dice combinations through the real `resolveAttack`,
+      so it cannot disagree with the rules about ties or pairs. The
+      chaining is checked by `odds.test.ts`, which rolls 20000 real fights
+      at each of eleven sizes: the worst gap is 0.007 on the chance and
+      0.036 on the armies.
+
+      That guard was mutation-tested rather than trusted, because a guard
+      nobody proves is a guard that fails open. Three deliberate mistakes,
+      each failing many tests: giving ties to the attacker (12 failed),
+      stopping the attack one army early (10), and rolling one defending
+      die instead of two (9).
+
+      **Steps 2 and 3, the lookahead itself. No signal, at any weight.** A
+      move was scored by the board it would leave: the chance of taking it
+      times how good the board is if taken, plus the chance of failing
+      times how good it is if failed. Both endings are exact, because a
+      failed attack always leaves exactly one army. Step 3 added the
+      opponent HITTING BACK at what the move just touched, which is the one
+      thing a player cannot read off the board as it stands.
+
+      It was added to Optimus as a single dial, so that zero is exactly
+      Optimus today. 120 four-player games a setting, every seat played,
+      Optimus against Turtle, General and Planner:
+
+      | seeAhead | Family A | Family B |
+      |---|---|---|
+      | 0 (off) | 63 | 58 |
+      | 10 | 58 | 64 |
+      | 25 | 58 | |
+      | 50 | 46 | |
+      | 100 | 55 | |
+      | 10, with the reply | 61 | 55 |
+      | 25, with the reply | 53 | |
+      | 50, with the reply | 52 | |
+      | 100, with the reply | 55 | |
+
+      The same dial at 10 went five games DOWN on one seed family and six
+      games UP on another. Pooled, it is 122 of 240 against the baseline's
+      121. That is the measurement floor of about five points, and nothing
+      else in the sweep climbs out of it either. The reply did not rescue
+      it, and cost about 60% in speed.
+
+      **The one result worth keeping from the failure.** With the hand
+      terms switched off entirely, so the imagined board CHOSE every
+      attack, Optimus scored 52 of 120 against 63 for the full hand-tuned
+      version. An evaluation of four made-up weights is only nine games
+      behind roughly twenty dials tuned over several sessions. The
+      evaluation is not the weak part. The lookahead is simply telling
+      Optimus things it already knows: it fights along its own borders,
+      values continents and counts odds by hand already, so a one-attack
+      position score is largely a restatement.
+
+      A bug worth recording, because the guard earned its keep. Turning on
+      the reply crashed at once: `A fight needs whole armies, not 2 against
+      1.6392430206941389`. An imagined board carries fractional armies, and
+      the reply then asked the odds table about them. The strict guard
+      refused rather than quietly answering something wrong, which is
+      exactly what it is for. Rounding belongs at the imagination boundary.
+
+      `imagine.ts` and both dials are removed. `odds.ts` stays: it is
+      exact, it is tested, and it would answer a question a PLAYER might
+      like asked out loud, which is what an attack is likely to cost before
+      committing to it.
 
 ---
 
