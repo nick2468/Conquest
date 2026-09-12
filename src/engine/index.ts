@@ -100,6 +100,7 @@ export {
   OPTIMUS_SETTINGS,
   PLANNER_SETTINGS,
   boardMaturity,
+  generalPlaying,
   howClustered,
   SPREADING,
   TURTLE,

@@ -1161,6 +1161,39 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       held-back check said 57.5% against 50.8%. So the gain is real but
       small, and only a large sample sees it. Head to head nothing changes,
       because a two-player board is coalesced almost from the start.
+- [x] 4.44 **Optimus learns the one-on-one game, and the tuner gets four
+      new dials.** Nick: "what can be done to improve optimus further?"
+      then "ok do them in the recommended sequence."
+
+      **Its worst result first.** Optimus lost to the General 10 - 20 head
+      to head, because it had never been tuned there: its one-on-one
+      settings were still the General's hand-written ones. The tuner now
+      plays several tables at once (`--tables`), so a setting cannot suit
+      one opponent alone, and learned `OPTIMUS_DUEL` over four of them.
+
+      What it chose reads like a different game, which it is: attack at a
+      margin of 1 rather than 3, chase the card harder, and value costing
+      the only opponent an army a turn far more (4.5 to 7). Finishing our
+      own continent drops to nothing, because head to head the game is the
+      opponent, not the map.
+
+      | Optimus, two players | Before | After |
+      |---|---|---|
+      | v General | 10 - 20 | 15 - 15 |
+      | v Greedy | 17 - 13 | 21 - 9 |
+      | v Planner | 16 - 14 | 18 - 12 |
+      | v Turtle | 27 - 3 | 28 - 2 |
+
+      On the tuner's own held-back games it was 62.5% against 54.6%, and
+      the four-player table did not suffer.
+
+      **Four decisions became dials**, each starting at exactly what the
+      code did before, so the General is unchanged: when to trade a set
+      (`tradeAt`), whether to roll one die at a lone defender
+      (`oneDieAbove`, the rule from plan 4.35 that no player used), how
+      close counts as a tie when choosing between moves (`nearlyAsGood`),
+      and how much garrison to leave behind after a capture
+      (`keepAfterCapture`). A tuner can only turn dials that exist.
 
 ---
 

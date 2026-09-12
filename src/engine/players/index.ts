@@ -20,7 +20,7 @@ export { COUNTER } from './counter'
 
 // Every number a player plays by, so a tuner can change them and measure
 // what happens. See tools/tune.mjs and plan task 4.42.
-export { GENERAL_SETTINGS, GENERAL_DUEL } from './general'
+export { GENERAL_SETTINGS, GENERAL_DUEL, generalPlaying } from './general'
 export { GREEDY_SETTINGS } from './greedy'
 export { PLANNER_SETTINGS } from './planner'
 export { TURTLE_SETTINGS } from './turtle'

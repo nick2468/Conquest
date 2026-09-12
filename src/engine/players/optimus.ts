@@ -55,8 +55,33 @@ export const OPTIMUS_SETTINGS: typeof GENERAL_SETTINGS = {
  */
 export const OPTIMUS_DUEL: Partial<typeof GENERAL_SETTINGS> = {
   occupyKeepsSecondLine: false,
-  counterChance: 0,
-  denialGuard: 0,
+  // Attack far more freely: with one opponent, ground taken is ground they
+  // have lost, and there is nobody else to punish a thin line.
+  safeMargin: 1,
+  frontShare: 0.4,
+  denialGuard: 1,
+  // The card matters more, and so does costing the only opponent an army a
+  // turn: taxing them is taxing the whole field.
+  cardOdds: 11,
+  cardWorthShare: 0.6,
+  taxIsWorth: 7,
+  // The map matters less. Finishing our own continent is worth nothing
+  // head to head, and their continents only a little more.
+  onPlan: 5.5,
+  finishIsWorth: 0,
+  breakIsWorth: 3.5,
+  leaveItToOthers: 0.3,
+  // Their cards are still a prize, and a player on their last territory is
+  // the whole game, so the race starts only there.
+  knockoutIsWorth: 5,
+  cardsMatter: 3,
+  raceLand: 1,
+  raceIsWorth: 5,
+  leaderIsWorth: 6.5,
+  leaderLead: 1.5,
+  counterChance: 0.1,
+  hitBackIsWorth: 5.5,
+  retakeIsWorth: 1.25,
 }
 
 /**

@@ -249,6 +249,34 @@ export const GENERAL_SETTINGS = {
    * behind is decided when moving in (see `moveIn`).
    */
   breakWithEverything: true,
+  /**
+   * Four decisions that used to be fixed rules, now dials, so the tuner has
+   * something new to find. Plan task 4.44. Each starts at exactly what the
+   * code did before, so the General is unchanged until measured otherwise.
+   *
+   * How many cards to hold before trading a set, when the rules do not
+   * force it. Three trades the moment a set appears. Five holds until the
+   * rules force it, which is worth more armies but leaves them unplaced for
+   * turns on end.
+   */
+  tradeAt: 3,
+  /**
+   * Roll ONE die at a lone defender when this many armies are free, so only
+   * one army is forced into the captured territory and the stack stays
+   * where it is (spec S9a). Zero never does it.
+   */
+  oneDieAbove: 0,
+  /**
+   * How close to the best a choice must be to be treated as a tie and
+   * picked between at random, as a share of the best score. Small makes it
+   * predictable and greedy; large makes it varied and vague.
+   */
+  nearlyAsGood: 0.1,
+  /**
+   * What share of what a territory needs it keeps when its armies move on
+   * into a capture. One is what the line asks for; less pushes harder.
+   */
+  keepAfterCapture: 1,
 }
 
 /**
@@ -811,8 +839,12 @@ export function generalPlaying(
       }
 
       const trades = actions.filter((each) => each.type === 'tradeCards')
+      const held = state.players.find((each) => each.id === me)?.cards.length ?? 0
+      // Trading is the only thing on offer when the rules force it, so a
+      // player that held out then would be stuck. See `tradeAt`.
+      const mustTrade = actions.every((each) => each.type === 'tradeCards')
 
-      if (trades.length > 0) {
+      if (trades.length > 0 && (mustTrade || held >= rules.tradeAt)) {
         return trades[random.nextInt(trades.length)] as GameAction
       }
 
@@ -1056,7 +1088,28 @@ function attackOrStop(
     ]
   })
 
-  return pickAmongBest(random, choices) ?? { type: 'endAttackPhase' }
+  const chosen = pickAmongBest(random, choices, rules.nearlyAsGood) ?? {
+    type: 'endAttackPhase' as const,
+  }
+
+  return chosen.type === 'attack' ? withChosenDice(state, chosen) : chosen
+}
+
+/**
+ * Roll one die at a lone defender when the stack is big enough, so only one
+ * army is forced in and the rest stay where they are. See `oneDieAbove` and
+ * spec S9a.
+ */
+function withChosenDice(
+  state: GameState,
+  action: Extract<GameAction, { type: 'attack' }>,
+): GameAction {
+  const few =
+    rules.oneDieAbove > 0 &&
+    armiesOn(state, action.toId) === 1 &&
+    armiesOn(state, action.fromId) - 1 >= rules.oneDieAbove
+
+  return few ? { ...action, dice: 1 } : action
 }
 
 /**
@@ -1077,7 +1130,7 @@ function moveIn(state: GameState, me: PlayerId, line: Line): GameAction {
   const stillFacing = enemiesBeside(state, me, move.fromId).length > 0
   const keep =
     stillFacing || rules.occupyKeepsSecondLine
-      ? wanted(state, me, line, move.fromId)
+      ? Math.max(1, Math.round(wanted(state, me, line, move.fromId) * rules.keepAfterCapture))
       : 1
   // `count` is the total in the new territory, and the minimum is already
   // there, so the old territory now holds `from` and would keep
@@ -1128,5 +1181,5 @@ function fortify(
     ]
   })
 
-  return pickAmongBest(random, choices) ?? { type: 'skipFortify' }
+  return pickAmongBest(random, choices, rules.nearlyAsGood) ?? { type: 'skipFortify' }
 }

@@ -58,6 +58,11 @@ const DIALS = [
   { name: 'leaderLead', low: 1.1, high: 2.5 },
   { name: 'raceLand', low: 1, high: 6, whole: true },
   { name: 'raceIsWorth', low: 0, high: 10 },
+  // Decisions that used to be fixed rules. Plan task 4.44.
+  { name: 'tradeAt', low: 3, high: 5, whole: true },
+  { name: 'oneDieAbove', low: 0, high: 14, whole: true },
+  { name: 'nearlyAsGood', low: 0.02, high: 0.4 },
+  { name: 'keepAfterCapture', low: 0.4, high: 2 },
 ]
 
 // --------------------------------------------------------- what to run
@@ -81,9 +86,17 @@ const MAP = args.includes('--map') ? args[args.indexOf('--map') + 1] : 'world'
  */
 const TUNING = args.includes('--tuning') ? args[args.indexOf('--tuning') + 1] : 'general'
 const PLAYS_AS = TUNING.startsWith('optimus') ? 'optimus' : 'general'
-const TABLE = args.includes('--table')
-  ? args[args.indexOf('--table') + 1].split(',')
-  : [PLAYS_AS, 'planner', 'greedy', 'turtle']
+/**
+ * The tables to play, separated by semicolons:
+ *
+ *   --tables "optimus,general;optimus,greedy"
+ *
+ * Several tables keep a setting from suiting one opponent alone.
+ */
+const TABLES = args.includes('--tables')
+  ? args[args.indexOf('--tables') + 1].split(';').map((each) => each.split(','))
+  : [[PLAYS_AS, 'planner', 'greedy', 'turtle']]
+const GAMES_EACH = TABLES.reduce((total, table) => total + table.length, 0)
 const OUT = 'tools/tune-report.txt'
 
 // -------------------------------------------------------- the workers
@@ -112,7 +125,7 @@ function score(worker, settings, seeds) {
 
   return new Promise((settle) => {
     waiting.set(id, settle)
-    worker.postMessage({ id, settings, seeds, map: MAP, table: TABLE, tuning: TUNING })
+    worker.postMessage({ id, settings, seeds, map: MAP, tables: TABLES, tuning: TUNING })
   })
 }
 
@@ -155,7 +168,10 @@ const engine = await import('./dist/engine.js')
 const BASELINE = {
   general: { ...engine.GENERAL_SETTINGS },
   optimus: { ...engine.OPTIMUS_SETTINGS },
+  // Both start as a copy of the early numbers, so the tuner begins by
+  // asking "should anything change at all in this stage?".
   'optimus-late': { ...engine.OPTIMUS_SETTINGS },
+  'optimus-duel': { ...engine.OPTIMUS_SETTINGS, ...engine.OPTIMUS_DUEL },
 }[TUNING]
 
 // Start from today's settings, with a wide spread around each.
@@ -163,8 +179,8 @@ let middles = DIALS.map((dial) => BASELINE[dial.name] ?? (dial.low + dial.high) 
 let spreads = DIALS.map((dial) => (dial.high - dial.low) / 4)
 
 const lines = [
-  `Tuning ${TUNING}: ${ROUNDS} rounds, ${CANDIDATES} candidates, ${SEEDS * TABLE.length} games each, on ${MAP}.`,
-  `Table: ${TABLE.join(', ')}. ${cores} cores.`,
+  `Tuning ${TUNING}: ${ROUNDS} rounds, ${CANDIDATES} candidates, ${SEEDS * GAMES_EACH} games each, on ${MAP}.`,
+  `Tables: ${TABLES.map((table) => table.join(' v ')).join('; ')}. ${cores} cores.`,
   '',
 ]
 
@@ -224,7 +240,7 @@ const changed = DIALS.map((dial) => ({
 
 lines.push(
   '',
-  `On ${HELD_BACK.length * TABLE.length} games the tuner never saw:`,
+  `On ${HELD_BACK.length * GAMES_EACH} games the tuner never saw:`,
   `  today's settings  ${(wasScored.won / wasScored.played * 100).toFixed(1)}%`,
   `  tuned settings    ${(nowScored.won / nowScored.played * 100).toFixed(1)}%`,
   '',

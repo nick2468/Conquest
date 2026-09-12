@@ -32,6 +32,7 @@ npm-debug.log*
 # Both are made by "npm run tune". See tools/tune.mjs.
 tools/dist/
 tools/tune-report.txt
+tools/league-report.txt
 
 # Wrangler keeps its local server state here. Not ours to commit.
 .wrangler/

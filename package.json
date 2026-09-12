@@ -16,6 +16,7 @@
     "icons": "node tools/make-icons.mjs",
     "tune:build": "vite build --config tools/engine.config.mjs",
     "tune": "node tools/tune.mjs",
+    "league": "node tools/league.mjs",
     "server": "wrangler dev",
     "server:deploy": "wrangler deploy"
   },

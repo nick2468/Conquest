@@ -23,6 +23,7 @@ const DIALS_OF = {
   general: engine.GENERAL_SETTINGS,
   optimus: engine.OPTIMUS_SETTINGS,
   'optimus-late': engine.OPTIMUS_LATE,
+  'optimus-duel': engine.OPTIMUS_DUEL,
 }
 
 /** Which player wins a game for the job that is tuning these dials. */
@@ -30,6 +31,7 @@ const PLAYS_AS = {
   general: 'general',
   optimus: 'optimus',
   'optimus-late': 'optimus',
+  'optimus-duel': 'optimus',
 }
 
 /** The maps the tuner may use, by name. */
@@ -67,17 +69,18 @@ parentPort.on('message', (job) => {
   let won = 0
   let played = 0
 
-  for (const seed of job.seeds) {
-    // Every seat, so a result is never about who moved first.
-    for (let seat = 0; seat < job.table.length; seat += 1) {
-      const order = job.table.map(
-        (unused, index) => job.table[(index + seat) % job.table.length],
-      )
+  // Several tables, so the numbers cannot suit one opponent alone.
+  for (const table of job.tables) {
+    for (const seed of job.seeds) {
+      // Every seat, so a result is never about who moved first.
+      for (let seat = 0; seat < table.length; seat += 1) {
+        const order = table.map((unused, index) => table[(index + seat) % table.length])
 
-      if (playOne(map, order, seed + seat, job.table.length) === mine) {
-        won += 1
+        if (playOne(map, order, seed + seat, table.length) === mine) {
+          won += 1
+        }
+        played += 1
       }
-      played += 1
     }
   }
 
