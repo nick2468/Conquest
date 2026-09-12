@@ -75,7 +75,15 @@ const KEEP = numberArg('keep', 6)
 /** Seeds per candidate. Each is played once from every seat. */
 const SEEDS = numberArg('seeds', 12)
 const MAP = args.includes('--map') ? args[args.indexOf('--map') + 1] : 'world'
-const TABLE = ['general', 'planner', 'greedy', 'turtle']
+/**
+ * Which numbers to tune: 'general', 'optimus', or 'optimus-late', the set
+ * Optimus uses once the board has coalesced (plan task 4.43).
+ */
+const TUNING = args.includes('--tuning') ? args[args.indexOf('--tuning') + 1] : 'general'
+const PLAYS_AS = TUNING.startsWith('optimus') ? 'optimus' : 'general'
+const TABLE = args.includes('--table')
+  ? args[args.indexOf('--table') + 1].split(',')
+  : [PLAYS_AS, 'planner', 'greedy', 'turtle']
 const OUT = 'tools/tune-report.txt'
 
 // -------------------------------------------------------- the workers
@@ -104,7 +112,7 @@ function score(worker, settings, seeds) {
 
   return new Promise((settle) => {
     waiting.set(id, settle)
-    worker.postMessage({ id, settings, seeds, map: MAP, table: TABLE })
+    worker.postMessage({ id, settings, seeds, map: MAP, table: TABLE, tuning: TUNING })
   })
 }
 
@@ -142,14 +150,20 @@ function freshSeeds(round) {
 }
 
 const engine = await import('./dist/engine.js')
-const BASELINE = { ...engine.GENERAL_SETTINGS }
+// Where each round starts from. The late set begins as a copy of the early
+// one, so the tuner starts by asking "should anything change at all?".
+const BASELINE = {
+  general: { ...engine.GENERAL_SETTINGS },
+  optimus: { ...engine.OPTIMUS_SETTINGS },
+  'optimus-late': { ...engine.OPTIMUS_SETTINGS },
+}[TUNING]
 
 // Start from today's settings, with a wide spread around each.
 let middles = DIALS.map((dial) => BASELINE[dial.name] ?? (dial.low + dial.high) / 2)
 let spreads = DIALS.map((dial) => (dial.high - dial.low) / 4)
 
 const lines = [
-  `Tuning the General: ${ROUNDS} rounds, ${CANDIDATES} candidates, ${SEEDS * TABLE.length} games each, on ${MAP}.`,
+  `Tuning ${TUNING}: ${ROUNDS} rounds, ${CANDIDATES} candidates, ${SEEDS * TABLE.length} games each, on ${MAP}.`,
   `Table: ${TABLE.join(', ')}. ${cores} cores.`,
   '',
 ]

@@ -10,7 +10,27 @@ import { parentPort } from 'node:worker_threads'
 
 const engine = await import('./dist/engine.js')
 
-const { GENERAL_SETTINGS, applyAction, createGame, playerFor, seededRandom } = engine
+const { applyAction, createGame, playerFor, seededRandom } = engine
+
+/**
+ * The settings object each job may change. Plan tasks 4.42 and 4.43.
+ *
+ * 'general' and 'optimus' are the same player with different numbers.
+ * 'optimus-late' is the second set Optimus uses once the board has
+ * coalesced, which is tuned on its own.
+ */
+const DIALS_OF = {
+  general: engine.GENERAL_SETTINGS,
+  optimus: engine.OPTIMUS_SETTINGS,
+  'optimus-late': engine.OPTIMUS_LATE,
+}
+
+/** Which player wins a game for the job that is tuning these dials. */
+const PLAYS_AS = {
+  general: 'general',
+  optimus: 'optimus',
+  'optimus-late': 'optimus',
+}
 
 /** The maps the tuner may use, by name. */
 const MAPS = {
@@ -40,9 +60,10 @@ function playOne(map, order, seed, players) {
 }
 
 parentPort.on('message', (job) => {
-  Object.assign(GENERAL_SETTINGS, job.settings)
+  Object.assign(DIALS_OF[job.tuning], job.settings)
 
   const map = MAPS[job.map]
+  const mine = PLAYS_AS[job.tuning]
   let won = 0
   let played = 0
 
@@ -53,7 +74,7 @@ parentPort.on('message', (job) => {
         (unused, index) => job.table[(index + seat) % job.table.length],
       )
 
-      if (playOne(map, order, seed + seat, job.table.length) === 'general') {
+      if (playOne(map, order, seed + seat, job.table.length) === mine) {
         won += 1
       }
       played += 1

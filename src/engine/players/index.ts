@@ -25,7 +25,8 @@ export { GREEDY_SETTINGS } from './greedy'
 export { PLANNER_SETTINGS } from './planner'
 export { TURTLE_SETTINGS } from './turtle'
 export { COUNTER_SETTINGS } from './counter'
-export { OPTIMUS, OPTIMUS_SETTINGS, OPTIMUS_DUEL } from './optimus'
+export { OPTIMUS, OPTIMUS_SETTINGS, OPTIMUS_DUEL, OPTIMUS_LATE } from './optimus'
+export { boardMaturity, howClustered } from './board'
 export { SPREADING } from './board'
 
 export {

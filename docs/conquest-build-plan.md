@@ -1126,6 +1126,41 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       fixed opponents. Next: tune its one-on-one settings the same way, then
       the self-play league, where it must prove itself against a changing
       population instead.
+- [x] 4.43 **Optimus plays a scattered board differently from a coalesced
+      one.** Nick: "there must be a factor related to the maturity of the
+      board, the game starts with a random distribution but starts to
+      coalesce into clusters... Is there merit in having Optimus being able
+      switch to a different tuning either by number of players being faced
+      or the board maturity state?"
+
+      Maturity, not player count. `boardMaturity` in `board.ts` is the share
+      of the map's borders that join two territories of the SAME owner,
+      normalised so that 0 is as scattered as the deal leaves it and 1 is
+      solid blocks, whatever the number of players. It needs no memory.
+      Measured through real games: a four-player board runs 0.20, 0.50 by
+      round 5, 0.68 by round 9, then a plateau near 0.75. Two-player games
+      start at 0.49 raw, which is why the normalising matters.
+
+      Optimus now carries a second set of numbers, used once maturity
+      reaches 0.4, about round 5 of a four-player game (`OPTIMUS_LATE`).
+      The tuner learned it on its own. What it chose, read together: on a
+      board of blocks, hold an even thinner front (0.3 of the enemy stack)
+      with deeper stacks behind it (6 spare), and treat finishing YOUR OWN
+      continent as the game (`onPlan` 9 to 15) while chasing the card far
+      harder (`cardOdds` 7.5 to 16.5). Small change falls away: taxing the
+      next player and racing a dying player's cards both drop.
+
+      Measured, four-player tables on seeds nothing was tuned on:
+
+      | | Optimus | Turtle | Planner | Greedy |
+      |---|---|---|---|---|
+      | One set, 120 games | 57 | 45 | 15 | 3 |
+      | Two stages, 120 games | 66 | 38 | 12 | 4 |
+
+      An earlier 40-game family showed 24 against 24, and the tuner's own
+      held-back check said 57.5% against 50.8%. So the gain is real but
+      small, and only a large sample sees it. Head to head nothing changes,
+      because a two-player board is coalesced almost from the start.
 
 ---
 

@@ -7,7 +7,14 @@ import { applyAction, legalActions } from '../game'
 import { seededRandom } from '../random'
 import { DEFAULT_OPTIONS, createGame } from '../setup'
 import type { GameMap, GameState } from '../types'
-import { entrancesTo, frontierOf, interiorOf, regionHoldings, runawayLeader } from './board'
+import {
+  boardMaturity,
+  entrancesTo,
+  frontierOf,
+  interiorOf,
+  regionHoldings,
+  runawayLeader,
+} from './board'
 import { GENERAL_SETTINGS, breakUrgency, losingOneCostsAnArmy, turnChance } from './general'
 import { ALL_SKILLS, playerFor } from './index'
 import type { Skill } from './types'
@@ -1286,6 +1293,59 @@ describe('racing to finish off a dying player', () => {
     const armed = board(true)
 
     expect(withRace(3, armed)).toBe(withRace(0, armed))
+  })
+})
+
+describe('how coalesced the board is', () => {
+  /**
+   * Plan task 4.43. Nick: "the game starts with a random distribution but
+   * starts to coalesce into clusters." `boardMaturity` is 0 for a board as
+   * scattered as the deal leaves it and 1 for solid blocks, whatever the
+   * number of players, so one threshold works for every game.
+   */
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(owners: Record<string, string>): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, ownerId] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies: 2 }
+    }
+
+    return { ...base, territories }
+  }
+
+  const asBlocks = board({
+    t0_0: 'p1',
+    t0_1: 'p1',
+    t0_2: 'p1',
+    t1_0: 'p2',
+    t1_1: 'p2',
+    t1_2: 'p2',
+  })
+  const mixedUp = board({
+    t0_0: 'p1',
+    t0_1: 'p2',
+    t0_2: 'p1',
+    t1_0: 'p2',
+    t1_1: 'p1',
+    t1_2: 'p2',
+  })
+
+  it('is higher when each player holds one block', () => {
+    expect(boardMaturity(asBlocks)).toBeGreaterThan(boardMaturity(mixedUp))
+  })
+
+  it('is nothing at all when the two are mixed up together', () => {
+    expect(boardMaturity(mixedUp)).toBe(0)
   })
 })
 

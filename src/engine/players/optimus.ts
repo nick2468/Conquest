@@ -59,10 +59,56 @@ export const OPTIMUS_DUEL: Partial<typeof GENERAL_SETTINGS> = {
   denialGuard: 0,
 }
 
+/**
+ * What changes once the board has coalesced. Plan task 4.43.
+ *
+ * Nick: "the game starts with a random distribution but starts to coalesce
+ * into clusters... Is there merit in having Optimus being able switch to a
+ * different tuning either by number of players being faced or the board
+ * maturity state?" A scattered board and a board of solid blocks are
+ * different games: at the start nobody has a front line and every
+ * territory touches an enemy.
+ *
+ * Empty means Optimus plays one way throughout. The tuner fills this in,
+ * measuring the second stage on its own. See `boardMaturity`.
+ */
+export const OPTIMUS_LATE: Partial<typeof GENERAL_SETTINGS> = {
+  // Thinner still on the front, and deeper stacks to push with.
+  frontShare: 0.3,
+  doorGuard: 3,
+  toKeepGoing: 6,
+  // Once the board is blocks, finishing your own continent IS the game.
+  onPlan: 15,
+  breakIsWorth: 4,
+  finishIsWorth: 2,
+  // And a card is worth chasing much harder: sets are large by now.
+  cardOdds: 16,
+  cardWorthShare: 0.3,
+  knockoutIsWorth: 9,
+  cardsMatter: 2.5,
+  // Less interest in small change: taxing the next player and chasing a
+  // dying player's cards both fall away.
+  taxIsWorth: 2,
+  raceLand: 4,
+  raceIsWorth: 1.25,
+  // More leaning on a leader, and a little more hitting back.
+  leaderIsWorth: 11,
+  leaderLead: 1.7,
+  leaveItToOthers: 0.3,
+  counterChance: 0.3,
+  hitBackIsWorth: 8,
+  retakeIsWorth: 2.5,
+}
+
+/** How coalesced the board must be for the late numbers to take over. */
+export const OPTIMUS_LATE_FROM = 0.4
+
 export const OPTIMUS: ComputerPlayer = generalPlaying(
   'optimus',
   'Optimus',
   'The General, playing by numbers a machine tuned over thirty thousand games.',
   OPTIMUS_SETTINGS,
   OPTIMUS_DUEL,
+  OPTIMUS_LATE,
+  OPTIMUS_LATE_FROM,
 )

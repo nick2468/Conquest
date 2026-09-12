@@ -7,6 +7,7 @@ import {
   SPREADING,
   armiesOn,
   armiesPerCard,
+  boardMaturity,
   bordersOf,
   ownedBy,
   pickAmongBest,
@@ -783,6 +784,14 @@ export function generalPlaying(
   describe: string,
   settings: typeof GENERAL_SETTINGS,
   duel: Partial<typeof GENERAL_SETTINGS>,
+  /**
+   * What changes once the board has coalesced, and how far coalesced it
+   * must be. Plan task 4.43. Nick: "it will also depend on how much
+   * coalescing has happened." Left out, the player plays one way
+   * throughout, which is what the General does.
+   */
+  late: Partial<typeof GENERAL_SETTINGS> = {},
+  lateFrom = 0.4,
 ): ComputerPlayer {
   return {
     skill,
@@ -793,8 +802,13 @@ export function generalPlaying(
       const actions = legalActions(state)
       const me = state.turn.playerId
 
-      // One opponent left changes the game, so it changes the rules.
-      rules = oneOpponentLeft(state) ? { ...settings, ...duel } : settings
+      // A scattered board is a different game from a coalesced one, and one
+      // opponent left is different again. Both change the rules.
+      rules = boardMaturity(state) >= lateFrom ? { ...settings, ...late } : settings
+
+      if (oneOpponentLeft(state)) {
+        rules = { ...rules, ...duel }
+      }
 
       const trades = actions.filter((each) => each.type === 'tradeCards')
 

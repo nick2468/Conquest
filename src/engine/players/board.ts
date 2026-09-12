@@ -103,6 +103,59 @@ export function regionHoldings(
   })
 }
 
+/**
+ * How far the board has coalesced, from 0 to 1. Plan task 4.43.
+ *
+ * Nick: "the game starts with a random distribution but starts to coalesce
+ * into clusters. So it's not just about 1 vs 1, it will also depend on how
+ * much coalescing has happened."
+ *
+ * It is the share of borders on the map that join two territories with the
+ * SAME owner. Just after the deal that is near zero: everybody's land is
+ * scattered, nobody has a front line, and every territory touches an enemy.
+ * Late in a game it is high: a few blocks with real borders between them.
+ *
+ * It needs no memory and no history, so it obeys spec S20 like everything
+ * else a player may ask.
+ */
+export function boardMaturity(state: GameState): number {
+  const alive = state.players.filter((each) => !each.isEliminated).length
+
+  if (alive < 2) {
+    return 1
+  }
+
+  // With this many players, a random deal already joins about this share of
+  // borders by luck alone. Two players start halfway up the raw measure.
+  const byLuck = 1 / alive
+  const grown = (howClustered(state) - byLuck) / (1 - byLuck)
+
+  return Math.min(1, Math.max(0, grown))
+}
+
+/**
+ * The raw share of borders joining two territories of the same owner. Use
+ * `boardMaturity` to compare one game with another.
+ */
+export function howClustered(state: GameState): number {
+  let together = 0
+  let borders = 0
+
+  for (const territory of state.map.territories) {
+    for (const other of territory.borders) {
+      // Each border once, not once from each end.
+      if (other <= territory.id) continue
+
+      borders += 1
+      if (state.territories[territory.id]?.ownerId === state.territories[other]?.ownerId) {
+        together += 1
+      }
+    }
+  }
+
+  return borders === 0 ? 0 : together / borders
+}
+
 /** Three cards make a set. */
 const CARDS_IN_A_SET = 3
 
