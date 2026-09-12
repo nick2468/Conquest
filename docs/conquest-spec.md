@@ -1154,6 +1154,7 @@ Seven of them, built as steps so the difference is visible:
 | Reckless | Picks at random. The baseline everything else is measured against. |
 | Cautious | Attacks only when ahead. Reinforces its frontier, fortifies forward. |
 | Turtle | First takes the continent the Planner would choose, near and easy to hold, and makes it its shell. Then piles its armies on the shell's ways in and attacks once a turn for its card, plus any knockout or last territory of a continent in reach. Comes out and plays as the General once it holds half as many armies again as the strongest other player, or once only one opponent is left in a game that started with more than two. From the Wikipedia page on Risk. |
+| Optimus | The General's code, playing by numbers a tuner chose over about 30,000 games (`tools/tune.mjs`, plan 4.42). A thinner line in fewer places, hitting harder: one army behind the front, half the enemy stack on it, continents worth 2 an army of bonus, attacks at a margin of 3. It wins four-player tables, 21 of 40, and loses head to head to the General, 10 - 20, because tables are all it was tuned on. |
 | Counter | Makes no frontal assaults. Guards its borders, and when attacked, hits back next turn at the stack that attacked it and takes back what it lost. Still takes a card each turn and any knockout. It learns who attacked it from `recentFights`, which the engine keeps for this (plan 4.28). |
 | Greedy | The same, but chooses attacks and placements by region value. |
 | Planner | Picks a region to own, takes it, then holds the ways in. |

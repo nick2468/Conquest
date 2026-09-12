@@ -14,6 +14,8 @@
     "test:ui": "vitest --ui",
     "typecheck": "tsc --noEmit",
     "icons": "node tools/make-icons.mjs",
+    "tune:build": "vite build --config tools/engine.config.mjs",
+    "tune": "node tools/tune.mjs",
     "server": "wrangler dev",
     "server:deploy": "wrangler deploy"
   },

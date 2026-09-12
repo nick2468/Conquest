@@ -16,6 +16,7 @@ export type Skill =
   | 'greedy'
   | 'planner'
   | 'general'
+  | 'optimus'
 
 export const ALL_SKILLS: readonly Skill[] = [
   'reckless',
@@ -25,6 +26,7 @@ export const ALL_SKILLS: readonly Skill[] = [
   'greedy',
   'planner',
   'general',
+  'optimus',
 ]
 
 /**

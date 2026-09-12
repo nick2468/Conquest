@@ -28,6 +28,11 @@ npm-debug.log*
 .env
 .env.local
 
+# The engine built for the tuner's workers, and what the tuner found.
+# Both are made by "npm run tune". See tools/tune.mjs.
+tools/dist/
+tools/tune-report.txt
+
 # Wrangler keeps its local server state here. Not ours to commit.
 .wrangler/
 public/scratch/

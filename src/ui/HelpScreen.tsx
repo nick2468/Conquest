@@ -49,6 +49,8 @@ const HOW_THEY_PLAY: Readonly<Record<Skill, string>> = {
     'Makes sure it takes at least one territory every turn to earn a card, and finishes off a continent when it can. Presses hard.',
   planner:
     'Picks one continent to own, the one that pays well and is easy to hold, takes it, then guards the ways in.',
+  optimus:
+    'The General with different numbers, chosen by a computer that played about thirty thousand games against the others and kept what won. It holds a thinner line than the General, in fewer places, and hits harder where it does. Nobody wrote its numbers by hand.',
   general:
     'The strongest. Holds a front line with a second line behind it, takes its card first each turn, and breaks up your continents when nobody else will. Now and then, if you attack it, it hits back next turn at the armies you attacked with. When only one opponent is left, it changes to an attacking game.',
 }

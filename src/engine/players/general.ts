@@ -16,7 +16,7 @@ import {
 } from './board'
 import { chooseGoal } from './planner'
 import type { Plan } from './planner'
-import type { ComputerPlayer } from './types'
+import type { ComputerPlayer, Skill } from './types'
 
 /**
  * A player that holds a line. Plan task 4.14.
@@ -768,49 +768,72 @@ function worthARisk(worth: Worth, territoryId: TerritoryId): boolean {
 
 // ------------------------------------------------------------ the player
 
-export const GENERAL: ComputerPlayer = {
-  skill: 'general',
-  name: 'General',
-  describe:
-    'Holds a front line with a second line behind it, and breaks up your continents.',
+/**
+ * A player of this kind, playing by a given set of numbers. Plan task 4.43.
+ *
+ * Two players share every line of this file: the General, playing by the
+ * numbers we reasoned out and measured one at a time, and Optimus, playing
+ * by the numbers the tuner found (`optimus.ts`, plan 4.42). They think in
+ * exactly the same way. Only the numbers differ, which is what makes the
+ * pair worth having: it says what the tuning is worth, in games.
+ */
+export function generalPlaying(
+  skill: Skill,
+  name: string,
+  describe: string,
+  settings: typeof GENERAL_SETTINGS,
+  duel: Partial<typeof GENERAL_SETTINGS>,
+): ComputerPlayer {
+  return {
+    skill,
+    name,
+    describe,
 
-  chooseAction(state: GameState, random: RandomSource): GameAction {
-    const actions = legalActions(state)
-    const me = state.turn.playerId
+    chooseAction(state: GameState, random: RandomSource): GameAction {
+      const actions = legalActions(state)
+      const me = state.turn.playerId
 
-    // One opponent left changes the game, so it changes the rules.
-    rules = oneOpponentLeft(state) ? { ...GENERAL_SETTINGS, ...GENERAL_DUEL } : GENERAL_SETTINGS
+      // One opponent left changes the game, so it changes the rules.
+      rules = oneOpponentLeft(state) ? { ...settings, ...duel } : settings
 
-    const trades = actions.filter((each) => each.type === 'tradeCards')
+      const trades = actions.filter((each) => each.type === 'tradeCards')
 
-    if (trades.length > 0) {
-      return trades[random.nextInt(trades.length)] as GameAction
-    }
+      if (trades.length > 0) {
+        return trades[random.nextInt(trades.length)] as GameAction
+      }
 
-    const line = readTheLine(state, me)
+      const line = readTheLine(state, me)
+      const occupy = actions.find((each) => each.type === 'occupy')
 
-    const occupy = actions.find((each) => each.type === 'occupy')
+      if (occupy !== undefined) {
+        return moveIn(state, me, line)
+      }
 
-    if (occupy !== undefined) {
-      return moveIn(state, me, line)
-    }
+      const worth = readTheWorth(state, me)
 
-    const worth = readTheWorth(state, me)
+      // By the phase, never by what happens to be on offer. In an attack
+      // phase with no attack possible, the only thing offered is "stop",
+      // and guessing from that once sent a fortify into the attack phase.
+      if (state.turn.phase === 'attack') {
+        return attackOrStop(state, me, worth, actions, random)
+      }
 
-    // By the phase, never by what happens to be on offer. In an attack
-    // phase with no attack possible, the only thing offered is "stop", and
-    // guessing from that once sent a fortify into the attack phase.
-    if (state.turn.phase === 'attack') {
-      return attackOrStop(state, me, worth, actions, random)
-    }
+      if (state.turn.phase === 'fortify') {
+        return fortify(state, me, line, actions, random)
+      }
 
-    if (state.turn.phase === 'fortify') {
-      return fortify(state, me, line, actions, random)
-    }
-
-    return placement(state, me, line, worth, actions)
-  },
+      return placement(state, me, line, worth, actions)
+    },
+  }
 }
+
+export const GENERAL: ComputerPlayer = generalPlaying(
+  'general',
+  'General',
+  'Holds a front line with a second line behind it, and breaks up your continents.',
+  GENERAL_SETTINGS,
+  GENERAL_DUEL,
+)
 
 // -------------------------------------------------------------- placing
 

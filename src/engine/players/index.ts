@@ -5,6 +5,7 @@ import { PLANNER } from './planner'
 import { RECKLESS } from './reckless'
 import { TURTLE } from './turtle'
 import { COUNTER } from './counter'
+import { OPTIMUS } from './optimus'
 import type { ComputerPlayer, Skill } from './types'
 
 export type { ComputerPlayer, Skill } from './types'
@@ -16,6 +17,16 @@ export { PLANNER } from './planner'
 export { GENERAL } from './general'
 export { TURTLE } from './turtle'
 export { COUNTER } from './counter'
+
+// Every number a player plays by, so a tuner can change them and measure
+// what happens. See tools/tune.mjs and plan task 4.42.
+export { GENERAL_SETTINGS, GENERAL_DUEL } from './general'
+export { GREEDY_SETTINGS } from './greedy'
+export { PLANNER_SETTINGS } from './planner'
+export { TURTLE_SETTINGS } from './turtle'
+export { COUNTER_SETTINGS } from './counter'
+export { OPTIMUS, OPTIMUS_SETTINGS, OPTIMUS_DUEL } from './optimus'
+export { SPREADING } from './board'
 
 export {
   armiesOn,
@@ -39,6 +50,7 @@ const BY_SKILL: Readonly<Record<Skill, ComputerPlayer>> = {
   greedy: GREEDY,
   planner: PLANNER,
   general: GENERAL,
+  optimus: OPTIMUS,
 }
 
 /** The player for a skill. */

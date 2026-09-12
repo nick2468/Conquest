@@ -1066,6 +1066,66 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       Measured 80 games on fresh seeds against ignoring their cards
       altogether: the General is level, 24 to 25, and the Turtle's wins fall
       from 37 to 31. So it is kept at 3.
+- [x] 4.42 **A tuner, and Optimus.** Nick: "is there a way that we could
+      use machine learning techniques to work out the strongest strategy and
+      tactics?"
+
+      `tools/tune.mjs` is the cheapest of them and the one that keeps the
+      game readable. Every number a player plays by is a dial. The tuner
+      plays a spread of candidate settings, keeps the best few, narrows the
+      spread around them, and repeats. That is the cross-entropy method: no
+      neural network, and the answer is still a list of named numbers a
+      person can argue with.
+
+      It costs nothing in tokens: plain code on Nick's machine, no model
+      calls anywhere in the loop. A four-player world game takes 156 ms on
+      one core, so 15 cores play about 350,000 games an hour. The run that
+      made Optimus was 25 rounds of 24 candidates at 48 games each, about
+      30,000 games in six minutes.
+
+      **The rules of measurement are built in** (spec S22): every round
+      plays fresh seeds, and the winner is finally checked against today's
+      settings on a family the tuner never saw. There it won 45.8% of games
+      against 33.8%.
+
+      **The tuner disagreed with us about four things**, and won: the line
+      behind the front holds one army not two, the front holds half the
+      biggest enemy beside it not all of it, breaking a continent is worth 2
+      an army of bonus not 6, and attacks want a margin of 3 not 1, with
+      twice as many armies kept to keep going. In short: a thinner line in
+      fewer places, hitting harder where it hits.
+
+      Nick: "Are we updating general or making a new personality?" A new
+      one, named by Nick: "How about Optimus? Implying tuned and keep
+      General as he is." `generalPlaying` in `general.ts` builds a player
+      from a settings object, so the General and Optimus share every line of
+      code and differ only in their numbers. The General we reasoned out by
+      hand stays exactly as he was, and the pair measures what tuning is
+      worth.
+
+      **Optimus, on seeds nothing was tuned on:**
+
+      | Four-player table, of 40 | Result |
+      |---|---|
+      | Optimus, Planner, Greedy, Turtle | Optimus 21, Turtle 14, Planner 4, Greedy 1 |
+      | Optimus, General, Planner, Turtle | Optimus 18, Turtle 13, Planner 5, General 4 |
+      | Optimus, General, Turtle, Counter | Optimus 21, General 9, Turtle 8, Counter 2 |
+
+      | Head to head | Result |
+      |---|---|
+      | v General | 10 - 20 |
+      | v Greedy | 13 - 17 |
+      | v Planner | 14 - 16 |
+      | v Cautious | 16 - 14 |
+      | v Turtle | 23 - 7 |
+      | v Counter | 24 - 6 |
+
+      So Optimus is a TABLE specialist: it beats the General 18 to 4 with
+      four players and loses to it 10 to 20 head to head. That is exactly
+      what it was tuned for, and the honest limit of one run against three
+      fixed opponents. Next: tune its one-on-one settings the same way, then
+      the self-play league, where it must prove itself against a changing
+      population instead.
 
 ---
 
