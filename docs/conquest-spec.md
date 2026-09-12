@@ -1261,6 +1261,17 @@ Two ideas were measured and thrown away there: policing harder
 same table read Turtle 17, General 13. Over everything measured the two are
 close, and neither is clearly ahead of the other.
 
+**A player nearly out is a race for their cards, while they can be
+finished** (plan 4.40). The General values the land of a player down to
+three territories or fewer, but only while every army they hold anywhere is
+no more than it has free for the attack. A player on two territories with
+thirty armies is left alone, which is what Nick asked for: grinding at them
+is the wrong move.
+
+**A card is worth what a set is worth NOW** (plan 4.41, `armiesPerCard`): a
+third of the next set, so about 1.3 armies early and nearly 7 once sets
+reach 20. The knockout and race rules both scale by it.
+
 **Ganging up on a runaway leader pays only where the leader is THIN** (plan
 4.39). The General adds `leaderIsWorth`, 12, to a runaway's territory when
 it can attack with at least `cheapLean`, 3, armies free per defender, and

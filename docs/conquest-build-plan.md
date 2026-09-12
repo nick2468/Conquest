@@ -1034,6 +1034,38 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
       So Nick's tactic works, once it is spent where the leader is thin
       rather than where it is strong.
+- [x] 4.40 **Racing to finish off a dying player.** Nick: "when players can
+      sense that another player is going to get wiped out soon there is
+      often a race to be the one to do so in order to get his cards...
+      but not always true because the target may have a large force amongst
+      his remaining countries and grinding away at it is probably not the
+      right move."
+
+      Three things must hold together: they are down to `raceLand`
+      territories or fewer (3), every army they hold anywhere is no more
+      than the General has free for this attack, and the attack itself is
+      cheap. Their land is then worth `raceIsWorth` (3) plus their cards.
+      Two tests: it goes for them when it could finish them off, and when
+      the same player keeps a garrison of 30 the rule stays out of the
+      decision entirely.
+
+      Measured on unseen seeds, five versions: 18 wins off, 15 to 20 on.
+      No change outside the noise, so it is kept for the behaviour, like
+      the denial guard and the next-player rule.
+- [x] 4.41 **A card is worth what a set is worth now.** Nick: "the prize
+      also scales according to how much a set is worth in the rising
+      redemption version, early card sets are less valuable than later ones
+      which might be worth 20 armies."
+
+      `armiesPerCard` in `board.ts` is a third of the next set's value: about
+      1.3 armies early, nearly 7 once sets reach 20, and 2.3 in a fixed-value
+      game. The General's knockout rule used a flat 4 a card; it and the race
+      rule now both use `cardsMatter` (3) times that figure, which is 4 early
+      and rises through the game.
+
+      Measured 80 games on fresh seeds against ignoring their cards
+      altogether: the General is level, 24 to 25, and the Turtle's wins fall
+      from 37 to 31. So it is kept at 3.
 
 ---
 

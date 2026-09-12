@@ -1,3 +1,5 @@
+import { RISING_SET_CAP } from '../balance'
+import { risingValueOf } from '../cards'
 import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
 import { reinforcementsFor } from '../reinforce'
@@ -99,6 +101,30 @@ export function regionHoldings(
       missing,
     }
   })
+}
+
+/** Three cards make a set. */
+const CARDS_IN_A_SET = 3
+
+/** The average fixed set: infantry 4, cavalry 6, artillery 8, mixed 10. */
+const AVERAGE_FIXED_SET = 7
+
+/**
+ * What one card in a hand is worth in armies, right now. Plan task 4.41.
+ *
+ * Nick: "the prize also scales according to how much a set is worth in the
+ * rising redemption version, early card sets are less valuable than later
+ * ones which might be worth 20 armies." So the cards a knockout wins are
+ * worth about 1.3 armies each in the first minutes of a game and nearly 7
+ * once sets are worth 20.
+ */
+export function armiesPerCard(state: GameState): number {
+  const next =
+    state.options.cardSetValue === 'fixed'
+      ? AVERAGE_FIXED_SET
+      : risingValueOf(state.deck.setsTraded, state.options.risingSetCap ?? RISING_SET_CAP)
+
+  return next / CARDS_IN_A_SET
 }
 
 /**

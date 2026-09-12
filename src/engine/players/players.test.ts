@@ -1203,6 +1203,92 @@ describe('the Counter hits back', () => {
   })
 })
 
+describe('racing to finish off a dying player', () => {
+  /**
+   * Plan task 4.40. Nick: "when players can sense that another player is
+   * going to get wiped out soon there is often a race to be the one to do
+   * so in order to get his cards... but not always true because the target
+   * may have a large force amongst his remaining countries."
+   *
+   * One holds t0_2 with 12. Two is nearly out, on two territories, and
+   * holds three cards. Three is an ordinary player. t0_0 and t0_1 are the
+   * same in every other way, so only the race can tell them apart.
+   */
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(twoIsArmed: boolean): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+
+    return {
+      ...base,
+      players: base.players.map((player) =>
+        player.id === 'p2'
+          ? {
+              ...player,
+              cards: ['a', 'b', 'c'].map((id) => ({
+                id,
+                symbol: 'infantry' as const,
+                territoryId: null,
+              })),
+            }
+          : player,
+      ),
+      territories: {
+        t0_0: { ownerId: 'p3', armies: 1 },
+        t0_1: { ownerId: 'p2', armies: 1 },
+        t0_2: { ownerId: 'p1', armies: 12 },
+        t1_0: { ownerId: 'p3', armies: 5 },
+        t1_1: { ownerId: 'p3', armies: 5 },
+        // Two's other territory: one army, or a garrison too big to finish.
+        t1_2: { ownerId: 'p2', armies: twoIsArmed ? 30 : 1 },
+      },
+      turn: {
+        ...base.turn,
+        playerId: 'p1',
+        phase: 'attack',
+        armiesToPlace: 0,
+        hasConquered: true,
+      },
+    }
+  }
+
+  function choice(state: GameState): string {
+    const action = playerFor('general').chooseAction(state, seededRandom(4))
+
+    return action.type === 'attack' ? action.toId : action.type
+  }
+
+  function withRace(worth: number, state: GameState): string {
+    const was = GENERAL_SETTINGS.raceIsWorth
+
+    GENERAL_SETTINGS.raceIsWorth = worth
+    try {
+      return choice(state)
+    } finally {
+      GENERAL_SETTINGS.raceIsWorth = was
+    }
+  }
+
+  it('goes for the dying player when it could finish them off', () => {
+    expect(withRace(3, board(false))).toBe('t0_1')
+  })
+
+  it('ignores them while they still hold a big force', () => {
+    // The same choice with the race off and on: the rule stays out of it.
+    const armed = board(true)
+
+    expect(withRace(3, armed)).toBe(withRace(0, armed))
+  })
+})
+
 describe('who is running away with the game', () => {
   /**
    * Plan tasks 4.38 and 4.39. `runawayLeader` is the shared question every

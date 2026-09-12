@@ -6,6 +6,7 @@ import type { GameState, PlayerId, TerritoryId } from '../types'
 import {
   SPREADING,
   armiesOn,
+  armiesPerCard,
   bordersOf,
   ownedBy,
   pickAmongBest,
@@ -115,6 +116,25 @@ export const GENERAL_SETTINGS = {
   cheapLean: 3,
   leaderIsWorth: 12,
   /**
+   * Racing to finish off a player who is nearly out. Plan task 4.40.
+   *
+   * Nick: "when players can sense that another player is going to get
+   * wiped out soon there is often a race to be the one to do so in order
+   * to get his cards... but not always true because the target may have a
+   * large force amongst his remaining countries and grinding away at it is
+   * probably not the right move."
+   *
+   * So all three must hold: they hold `raceLand` territories or fewer,
+   * every army they own together is no more than we have free for this
+   * attack, and this attack is cheap. Their land is then worth
+   * `raceIsWorth` for each card they hold, plus one for the knockout
+   * itself, and their cards on top at what cards are worth now. The last
+   * territory is already worth `knockoutIsWorth`; this is the same
+   * instinct, one or two captures earlier.
+   */
+  raceLand: 3,
+  raceIsWorth: 3,
+  /**
    * Never leave a runaway leader's continent to somebody else. Plan task
    * 4.38.
    *
@@ -178,8 +198,17 @@ export const GENERAL_SETTINGS = {
    * they hold. This is what the knockout itself is worth...
    */
   knockoutIsWorth: 6,
-  /** ...and this more for each card it wins. Plan task 4.21. */
-  cardIsWorth: 4,
+  /**
+   * ...and this much for every army the cards it wins are worth. Plan
+   * tasks 4.21 and 4.41.
+   *
+   * Nick: "the prize also scales according to how much a set is worth in
+   * the rising redemption version, early card sets are less valuable than
+   * later ones which might be worth 20 armies." A card is a third of the
+   * next set, so it is worth about 1.3 armies early and nearly 7 late.
+   * Three times that is 4 early, which is what this was before it scaled.
+   */
+  cardsMatter: 3,
   /**
    * The counter-attack tactic, played only sometimes. Plan task 4.31.
    *
@@ -509,6 +538,52 @@ interface Worth {
   readonly taxable: ReadonlySet<TerritoryId>
   /** Land of a runaway leader. Worth more only where it is cheap to take. */
   readonly runawayLand: ReadonlySet<TerritoryId>
+  /**
+   * Land of players nearly out: the territory, all the armies they hold
+   * anywhere, and what finishing them off is worth. See `raceLand`.
+   */
+  readonly nearlyOut: ReadonlyMap<TerritoryId, { armies: number; worth: number }>
+}
+
+/**
+ * What somebody's hand of cards is worth to us, at what a set is worth
+ * now. See `cardsMatter` and `armiesPerCard`.
+ */
+function cardsAreWorth(state: GameState, cards: number): number {
+  return cards * armiesPerCard(state) * rules.cardsMatter
+}
+
+/** Everything a player has left, and what their cards make them worth. */
+function nearlyOut(
+  state: GameState,
+  me: PlayerId,
+): Map<TerritoryId, { armies: number; worth: number }> {
+  const found = new Map<TerritoryId, { armies: number; worth: number }>()
+
+  if (rules.raceIsWorth <= 0) {
+    return found
+  }
+
+  for (const player of state.players) {
+    if (player.id === me || player.isEliminated) {
+      continue
+    }
+
+    const theirs = ownedBy(state, player.id)
+
+    if (theirs.length > rules.raceLand) {
+      continue
+    }
+
+    const armies = theirs.reduce((total, id) => total + armiesOn(state, id), 0)
+    const worth = rules.raceIsWorth + cardsAreWorth(state, player.cards.length)
+
+    for (const id of theirs) {
+      found.set(id, { armies, worth })
+    }
+  }
+
+  return found
 }
 
 /** The land of an opponent running away with the game. See `cheapLean`. */
@@ -652,7 +727,7 @@ function readTheWorth(state: GameState, me: PlayerId): Worth {
     if (theirs.length === 1) {
       knockouts.set(
         theirs[0] as TerritoryId,
-        rules.knockoutIsWorth + player.cards.length * rules.cardIsWorth,
+        rules.knockoutIsWorth + cardsAreWorth(state, player.cards.length),
       )
     }
   }
@@ -665,6 +740,7 @@ function readTheWorth(state: GameState, me: PlayerId): Worth {
     counters: counterTargets(state, me),
     taxable: taxable(state, me),
     runawayLand: runawayLand(state, me),
+    nearlyOut: nearlyOut(state, me),
   }
 }
 
@@ -915,8 +991,15 @@ function attackOrStop(
     // A runaway leader is worth more only where taking it is cheap.
     const cheapOnTheLeader =
       worth.runawayLand.has(action.toId) && free >= theirs * rules.cheapLean
+    // A player nearly out is a race for their cards, but only while we
+    // could finish them: everything they hold, not just this territory.
+    const dying = worth.nearlyOut.get(action.toId)
+    const racing =
+      dying !== undefined && free >= dying.armies && free >= theirs * rules.cheapLean
     const worthIt =
-      worthTaking(worth, action.toId) + (cheapOnTheLeader ? rules.leaderIsWorth : 0)
+      worthTaking(worth, action.toId) +
+      (cheapOnTheLeader ? rules.leaderIsWorth : 0) +
+      (racing ? dying.worth : 0)
 
     return [
       {
