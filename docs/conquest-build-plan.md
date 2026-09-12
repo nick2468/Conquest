@@ -1007,6 +1007,33 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       (`policeTheLeader`). It costs nothing measurable and it is the right
       instinct, so a test holds it in place, beside the ordinary play-order
       rule from plan 4.14.
+- [x] 4.39 **Leaning on a runaway leader, but only where it is cheap.**
+      Nick, on the finding above: "yes i agree, try it." Every earlier
+      version made the leader's whole territory list worth more, so players
+      ground against its best stacks. This one asks the question the other
+      way round: when a capture is easy anyway, take it from the leader
+      rather than from anybody else.
+
+      It is judged when an attack is chosen, not when armies are placed, so
+      the General never builds a stack to lean with. Cheap means at least
+      `cheapLean` armies free for each defender, 3, and the target is then
+      worth `leaderIsWorth` more, 12.
+
+      Measured, four-player tables on two seed families, 50 games each:
+
+      | Family | Off: General / Turtle | On: General / Turtle |
+      |---|---|---|
+      | 600000s | 12 / 28 | 16 / 14 |
+      | 700000s | 17 / 24 | 17 / 21 |
+      | Both | 29 / 52 | 33 / 35 |
+
+      The Turtle's runaway wins fell in both families, so the direction
+      holds even though the size does not. Head to head it changed nothing:
+      13 - 7 against the Turtle either way, because with one opponent there
+      is nobody else to lean on.
+
+      So Nick's tactic works, once it is spent where the leader is thin
+      rather than where it is strong.
 
 ---
 

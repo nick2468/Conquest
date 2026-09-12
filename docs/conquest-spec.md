@@ -1261,7 +1261,15 @@ Two ideas were measured and thrown away there: policing harder
 same table read Turtle 17, General 13. Over everything measured the two are
 close, and neither is clearly ahead of the other.
 
-**Ganging up on a runaway leader does not pay, in any form measured** (plan
+**Ganging up on a runaway leader pays only where the leader is THIN** (plan
+4.39). The General adds `leaderIsWorth`, 12, to a runaway's territory when
+it can attack with at least `cheapLean`, 3, armies free per defender, and
+never otherwise. Judged when an attack is chosen, not when armies are
+placed, so it never builds a stack to lean with. Over 100 four-player games
+on two seed families the Turtle's wins fell from 52 to 35 and the General's
+rose from 29 to 33.
+
+**Every other form of it lost games** (plan
 4.38). Adding worth to every territory of an opponent drawing 1.5 times our
 income cost the General games whether it did it alone (7 to 13 wins of 40,
 against 18 with it off) or every thinking player did it at once (10 to 13).

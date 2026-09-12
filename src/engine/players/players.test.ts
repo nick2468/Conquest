@@ -7,7 +7,7 @@ import { applyAction, legalActions } from '../game'
 import { seededRandom } from '../random'
 import { DEFAULT_OPTIONS, createGame } from '../setup'
 import type { GameMap, GameState } from '../types'
-import { entrancesTo, frontierOf, interiorOf, regionHoldings } from './board'
+import { entrancesTo, frontierOf, interiorOf, regionHoldings, runawayLeader } from './board'
 import { GENERAL_SETTINGS, breakUrgency, losingOneCostsAnArmy, turnChance } from './general'
 import { ALL_SKILLS, playerFor } from './index'
 import type { Skill } from './types'
@@ -1200,6 +1200,62 @@ describe('the Counter hits back', () => {
 
   it('makes no other attack once the card is won', () => {
     expect(choice(board(false, true))).toBe('endAttackPhase')
+  })
+})
+
+describe('who is running away with the game', () => {
+  /**
+   * Plan tasks 4.38 and 4.39. `runawayLeader` is the shared question every
+   * thinking player may ask: is somebody drawing far more armies a turn
+   * than I am? Income counts continent bonuses, which is how a lead
+   * becomes unbeatable.
+   */
+  const ring = riskShapedMap(2, 3, 5)
+
+  function board(owners: Record<string, string>): GameState {
+    const base = createGame({
+      map: ring,
+      players: [
+        { name: 'One', kind: 'general' },
+        { name: 'Two', kind: 'cautious' },
+        { name: 'Three', kind: 'cautious' },
+      ],
+      random: seededRandom(1),
+    })
+    const territories: Record<string, { ownerId: string; armies: number }> = {}
+
+    for (const [id, ownerId] of Object.entries(owners)) {
+      territories[id] = { ownerId, armies: 2 }
+    }
+
+    return { ...base, territories }
+  }
+
+  it('names an opponent holding a whole continent while we hold scraps', () => {
+    // Three holds all of region 1, worth 5 a turn on top of its land.
+    const state = board({
+      t0_0: 'p2',
+      t0_1: 'p2',
+      t0_2: 'p1',
+      t1_0: 'p3',
+      t1_1: 'p3',
+      t1_2: 'p3',
+    })
+
+    expect(runawayLeader(state, 'p1', 1.5)).toBe('p3')
+  })
+
+  it('names nobody while the others hold no more than we do', () => {
+    const state = board({
+      t0_0: 'p1',
+      t0_1: 'p1',
+      t0_2: 'p1',
+      t1_0: 'p2',
+      t1_1: 'p2',
+      t1_2: 'p3',
+    })
+
+    expect(runawayLeader(state, 'p1', 1.5)).toBeNull()
   })
 })
 
