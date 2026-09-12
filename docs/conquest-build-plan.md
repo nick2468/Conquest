@@ -1307,6 +1307,45 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
       This is also the cleanest measurement of the session, because one
       change at a time is what our sample sizes can actually see.
+- [x] 4.48 **Joining our own blocks: measured, and left out.** Nick: "if
+      the player has more than one cluster of conquests he should give
+      value to try to link them up in order to permit fortifications from
+      one zone to another", and "several personalities should qualify for
+      this tactic."
+
+      The reasoning is right: armies move any distance through our own
+      land, and no distance at all between blocks that do not touch, so a
+      territory joining two blocks turns two armies into one army twice the
+      size. It was built as a shared tactic beside `isTheirLast` and
+      `runawayLeader`: work out our blocks, and value an enemy territory
+      that touches two or more of them. The second version valued a join by
+      the size of the smaller block joined, capped at three, so linking a
+      lone island counted for little.
+
+      Every personality was measured with it, one at a time, 120
+      four-player games each on unseen seeds, everybody else's copy of the
+      tactic switched off:
+
+      | Player | Off | On |
+      |---|---|---|
+      | Optimus | 66 | 51 |
+      | Turtle | 83 | 73 |
+      | Planner | 17 | 13 |
+      | Greedy | 9 | 9 |
+      | General | 33 | 38 |
+      | Counter | 8 | 13 |
+
+      It costs the two strongest players plainly. The two apparent gains
+      were 5 games in 120, inside the noise, and neither survived a check
+      on a fresh family: the General went 43 to 37 with it, the Counter 6
+      to 7. So it is removed.
+
+      **Why a right-sounding idea does not pay.** Our players already fight
+      along their own borders, and continents are contiguous by nature, so
+      their land tends to be one block anyway. When it is not, a separate
+      reward for bridging pulls attacks towards awkward targets they were
+      right to ignore. The value of joining is largely already counted, in
+      the plan and in the front line.
 
 ---
 
