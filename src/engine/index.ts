@@ -132,3 +132,6 @@ export {
   defenderDiceCount,
   resolveAttack,
 } from './attack'
+
+export type { FightOdds } from './odds'
+export { BIGGEST_FIGHT, howAFightGoes } from './odds'
