@@ -32,8 +32,15 @@ const numberArg = (name, fallback) => {
 const ROUNDS = numberArg('rounds', 12)
 const POPULATION = numberArg('population', 16)
 const KEEP = numberArg('keep', 6)
-/** Seeds per table. Each is played from every seat. */
-const SEEDS = numberArg('seeds', 3)
+/**
+ * Seeds per table. Each is played from every seat.
+ *
+ * Raised from 3 to 30 on 2026-09-13, for the reason set out at the top of
+ * tune.mjs and in spec S22a. At 3 seeds a candidate was judged on 48 games,
+ * where the error is about seven percentage points. The league was breeding
+ * from luck.
+ */
+const SEEDS = numberArg('seeds', 30)
 /** How many tables of four each candidate sits at per round. */
 const TABLES_EACH = numberArg('tables', 4)
 const MAP = args.includes('--map') ? args[args.indexOf('--map') + 1] : 'world'

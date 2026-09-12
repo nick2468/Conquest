@@ -16,13 +16,26 @@ import { Worker } from 'node:worker_threads'
  * Run it:
  *
  *   npm run tune:build          once, to build the engine for the workers
- *   npm run tune                a short run, about five minutes
- *   npm run tune -- --rounds 60 a longer one
+ *   npm run tune                a full run, about two hours
+ *   npm run tune -- --seeds 12  the old quick run, for trying the plumbing
  *
  * The rules of measurement from spec S22 are built in. Every round plays
  * FRESH seeds, so a setting cannot flatter itself by being lucky twice, and
  * the winner is finally checked against today's settings on a seed family
  * the tuner never saw.
+ *
+ * **How many games, and why it matters more than anything else here.**
+ * Until 2026-09-13 this ran 12 seeds, which is 48 games a candidate. The
+ * error on 48 games is about seven percentage points, so the tuner could
+ * not tell apart two candidates less than roughly twenty points apart. It
+ * was choosing at random among everything reasonable, and the honest
+ * held-back check at the end kept reporting, correctly, that the winner was
+ * no better. We blamed the ideas for weeks.
+ *
+ * 120 seeds is 480 games a candidate, an error of about two points, and a
+ * full run of about two hours. Spec S22a has the workings. If a run must be
+ * quick, make it fewer ROUNDS rather than fewer seeds: a short honest
+ * search beats a long blind one.
  */
 
 // ------------------------------------------------------------- the dials
@@ -78,7 +91,7 @@ const ROUNDS = numberArg('rounds', 20)
 const CANDIDATES = numberArg('candidates', 24)
 const KEEP = numberArg('keep', 6)
 /** Seeds per candidate. Each is played once from every seat. */
-const SEEDS = numberArg('seeds', 12)
+const SEEDS = numberArg('seeds', 120)
 const MAP = args.includes('--map') ? args[args.indexOf('--map') + 1] : 'world'
 /**
  * Which numbers to tune: 'general', 'optimus', or 'optimus-late', the set
@@ -226,7 +239,7 @@ for (let round = 1; round <= ROUNDS; round += 1) {
 
 // --------------------------------------------- the honest final check
 
-const HELD_BACK = Array.from({ length: 60 }, (unused, index) => 7_000_000 + index * 137)
+const HELD_BACK = Array.from({ length: 300 }, (unused, index) => 7_000_000 + index * 137)
 const [wasScored, nowScored] = await Promise.all([
   score(workers[0], BASELINE, HELD_BACK),
   score(workers[1] ?? workers[0], best.settings, HELD_BACK),

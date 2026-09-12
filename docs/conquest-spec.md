@@ -1341,6 +1341,31 @@ The first range had been used to CHOOSE the rule, so of course the rule did
 well on it. A rule must be judged on games it was not tuned against, or the
 measurement only tells you what you already did.
 
+**S22a. Play enough games to see the answer. A 120-game sample cannot.**
+Learned 2026-09-13, and it invalidates a belief this file and the build plan
+both repeated for weeks: that our measurements have a floor of about five
+percentage points, and that anything smaller is unknowable.
+
+That floor was not a fact about the game. It was a consequence of choosing
+120-game samples, and nobody had checked what a bigger one costs. **1200
+games take 32 seconds** on this machine. Three separate seed families, the
+same four players:
+
+| | Optimus | Turtle | General | Planner |
+|---|---|---|---|---|
+| Family A | 46.3% | 33.0% | 16.3% | 4.3% |
+| Family B | 46.5% | 31.4% | 17.2% | 4.9% |
+| Family C | 44.3% | 32.7% | 17.8% | 5.3% |
+
+About two points of spread, not five to ten. At 12000 games, five minutes,
+it is under one point.
+
+So the rule is: **1200 games is the smallest comparison worth reporting**,
+and a change worth shipping should be confirmed on a second seed family at
+the same size. The old 120-game runs are not wrong, only blind, and every
+"inside the noise" verdict recorded before this date should be read as "not
+measured".
+
 ### The odds a Conquest attack really has
 
 Worked out exactly, by counting every outcome rather than by simulating.
