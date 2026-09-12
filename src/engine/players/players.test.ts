@@ -868,7 +868,25 @@ describe('the General takes its card first, and is not the policeman', () => {
       { phase: 'attack' },
     )
 
-    expect(breakUrgency(state, 'p1', 'p3', 'r1')).toBe(GENERAL_SETTINGS.leaveItToOthers)
+    // On a board this small, whoever holds a whole region counts as a
+    // runaway leader, and the General never leaves a runaway's continent
+    // to anybody (plan 4.38). This test is about the ordinary case.
+    GENERAL_SETTINGS.policeTheLeader = false
+
+    try {
+      expect(breakUrgency(state, 'p1', 'p3', 'r1')).toBe(GENERAL_SETTINGS.leaveItToOthers)
+    } finally {
+      GENERAL_SETTINGS.policeTheLeader = true
+    }
+  })
+
+  it("never leaves a runaway leader's continent to anybody", () => {
+    // Plan task 4.38. Three holds all of region 1 and draws far more
+    // armies a turn than we do, so breaking it is our job whoever else
+    // could reach it.
+    const state = board({ ...choice, t0_0: ['p2', 5] }, { phase: 'attack' })
+
+    expect(breakUrgency(state, 'p1', 'p3', 'r1')).toBe(1)
   })
 
   it('takes it on when that player has nothing to attack with', () => {

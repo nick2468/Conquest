@@ -1,5 +1,6 @@
 import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
+import { reinforcementsFor } from '../reinforce'
 import type {
   GameMap,
   GameState,
@@ -98,6 +99,36 @@ export function regionHoldings(
       missing,
     }
   })
+}
+
+/**
+ * The opponent running away with the game, or null if nobody is. Plan task
+ * 4.38.
+ *
+ * Nick: "players should assess if one player is getting too much of a lead
+ * and increase the priority of attacking that player to knock him back to
+ * size." A runaway is an opponent drawing at least `lead` times the armies
+ * a turn that we draw. Income is the measure, not territories, because a
+ * continent pays every turn and that is how a lead becomes unbeatable.
+ *
+ * One player leaning on the leader alone only spends its own armies on the
+ * best defended player. It takes several doing it at once, which is why
+ * every thinking player asks this question.
+ */
+export function runawayLeader(
+  state: GameState,
+  me: PlayerId,
+  lead: number,
+): PlayerId | null {
+  const income = (playerId: PlayerId) =>
+    reinforcementsFor(state.map, state.territories, playerId)
+  const others = state.players.filter((each) => !each.isEliminated && each.id !== me)
+  const leader = others.reduce<PlayerId | null>(
+    (best, each) => (best === null || income(each.id) > income(best) ? each.id : best),
+    null,
+  )
+
+  return leader !== null && income(leader) >= income(me) * lead ? leader : null
 }
 
 /**

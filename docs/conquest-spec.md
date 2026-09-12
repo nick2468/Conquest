@@ -1261,6 +1261,16 @@ Two ideas were measured and thrown away there: policing harder
 same table read Turtle 17, General 13. Over everything measured the two are
 close, and neither is clearly ahead of the other.
 
+**Ganging up on a runaway leader does not pay, in any form measured** (plan
+4.38). Adding worth to every territory of an opponent drawing 1.5 times our
+income cost the General games whether it did it alone (7 to 13 wins of 40,
+against 18 with it off) or every thinking player did it at once (10 to 13).
+It sends players grinding at the best defended stacks on the board. What is
+kept is the narrow rule: the General never leaves a runaway leader's
+CONTINENT to somebody else (`policeTheLeader`), which changed no result and
+is the right instinct. `runawayLeader` in `board.ts` is shared by every
+player that wants to ask the question.
+
 **Taking one territory off the NEXT player is worth a little more when it
 costs them an army a turn** (plan 4.37, `taxIsWorth`): at 12 territories
 they drop from 4 armies to 3, at 11 they lose nothing. Measured at 0, 4 and

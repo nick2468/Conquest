@@ -10,6 +10,7 @@ import {
   ownedBy,
   pickAmongBest,
   regionHoldings,
+  runawayLeader,
   spreadFirst,
 } from './board'
 import { chooseGoal } from './planner'
@@ -79,6 +80,29 @@ export const GENERAL_SETTINGS = {
    * later has turns in between to win a territory back.
    */
   taxIsWorth: 4,
+  /**
+   * How far ahead an opponent must be to count as running away with the
+   * game: drawing this many times the armies a turn that we draw. Plan
+   * task 4.38.
+   *
+   * Nick: "players should assess if one player is getting too much of a
+   * lead and increase the priority of attacking that player to knock him
+   * back to size." Adding worth to ALL of a leader's land was measured
+   * three ways and lost every time, because it sends players grinding at
+   * the best defended stacks on the board. What is kept is the narrow
+   * version below: never wait for somebody else to break their continent.
+   */
+  leaderLead: 1.5,
+  /**
+   * Never leave a runaway leader's continent to somebody else. Plan task
+   * 4.38.
+   *
+   * `leaveItToOthers` says a continent another player could break first is
+   * mostly their job, which Nick asked for: "it doesn't need to be the
+   * global policeman." Against a player running away with the game that is
+   * how everybody waits and nobody breaks it.
+   */
+  policeTheLeader: true,
   /** How much a territory on our own plan is worth. */
   onPlan: 8,
   /** How much finishing a region of our own is worth, per bonus army. */
@@ -418,6 +442,11 @@ export function breakUrgency(
   ownerId: PlayerId,
   regionId: string,
 ): number {
+  // A runaway leader's continent is nobody else's job. See `policeTheLeader`.
+  if (rules.policeTheLeader && runawayLeader(state, me, rules.leaderLead) === ownerId) {
+    return 1
+  }
+
   const order = state.players.filter((each) => !each.isEliminated).map((each) => each.id)
   const from = order.indexOf(me)
   const between: PlayerId[] = []

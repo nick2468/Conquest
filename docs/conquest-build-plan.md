@@ -974,6 +974,39 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       Turtle. No change outside the noise, and kept for the behaviour, like
       the denial guard. It only fires about one turn in three, and only
       nudges the choice between targets that were already close.
+- [x] 4.38 **Chopping down a runaway leader: what worked and what did
+      not.** Nick: "players should assess if one player is getting too much
+      of a lead and increase the priority of attacking that player to knock
+      him back to size", and "there are some tactics that every player
+      should consider together with his overall strategic bias."
+
+      A runaway leader is an opponent drawing at least 1.5 times the armies
+      a turn that we draw, income counted with continent bonuses
+      (`runawayLeader` in `board.ts`, shared by every thinking player).
+
+      **What was measured, four-player tables of General, Planner, Greedy
+      and Turtle, 40 to 50 games a version on unseen seeds:**
+
+      | Version | General | Turtle |
+      |---|---|---|
+      | Nothing | 18 to 22 | 15 to 19 |
+      | General leans on any opponent ahead of it (plan 4.34) | 28 of 80 | 34 |
+      | General leans on a runaway, 1.25 or 1.5 times, worth 6 or 12 | 7 to 13 | 17 to 25 |
+      | All three lean on a runaway | 10 to 13 | 16 to 20 |
+      | Never leave a runaway's CONTINENT to others | 22 | 20 |
+      | That, plus a flat weight of 4 | 19 | 18 |
+
+      Adding worth to all of a leader's land lost games every way it was
+      tried, alone or together. The reason is plain in the games: it sends
+      players grinding at the best defended stacks on the board, and the
+      Turtle is exactly the wrong player to grind against. Real ganging up
+      also runs on talk and threats, which computer players do not have.
+
+      **What is kept** is the narrow rule: the General never waits for
+      somebody else to break a runaway leader's continent
+      (`policeTheLeader`). It costs nothing measurable and it is the right
+      instinct, so a test holds it in place, beside the ordinary play-order
+      rule from plan 4.14.
 
 ---
 
