@@ -1523,7 +1523,43 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       at -3.722, read as a log-odds. That would make an honest "who is
       winning" reading for a player, which is a thing to SHOW, not a thing
       to steer by. It is recorded here rather than shipped, because nothing
-      in the game asks for it yet.
+      in the game asks for it yet. **Shipped the next day as the leaderboard
+      of plan task 4.51.**
+- [x] 4.51 **The scores panel is a leaderboard.** Nick: "the scoring could be
+      used to sort the player's panel of counts into a leadership board that
+      updates during the game."
+
+      `engine/strength.ts` carries the weights measured in plan task 4.50.
+      The panel gains a Winning column beside Land and Armies, showing each
+      player's chance as a figure with a bar behind it, and the rows are
+      ordered by it so the table reorders as the game turns. A player who is
+      out reads "out" and sits below everyone still in. See spec S30.
+
+      The chances are scaled to add up to 100%. The fit answers each player
+      separately, so four players can each honestly read "40%", which is no
+      use as a table.
+
+      **The argument for showing it, which is not a cosmetic one.** Optimus,
+      the General and the others already work out who the leader is every
+      turn and gang up on them. A person at the table was guessing. The
+      column levels information the rules never meant to weight one way.
+
+      Driven live in the browser on a World game of Optimus, Turtle and
+      Planner. The order changed from Optimus, Planner, Turtle to Turtle,
+      Optimus, Planner within two rounds, and the reason was readable in the
+      other columns: the Planner led on land with 16 and still ranked last,
+      because its armies were fewer and its front line long. Checked in both
+      light and dark, no console errors. Six new tests, 579 green.
+
+      **The guard that matters** plays sixty whole games and checks that the
+      player on top of the table one move BEFORE the end is the player who
+      wins. Measured at 100% on those seeds; the bar is set at 80%, because
+      the point is that the table tracks the game rather than that it is
+      never wrong.
+
+      `strength.ts` is imported by the screen and by nothing in `players/`,
+      which spec S30a states as a rule. Plan task 4.50 measured what happens
+      when a player chooses moves by it: 30 games of 120 against 63.
 
 ---
 

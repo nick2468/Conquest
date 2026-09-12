@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 
 import type { GameAction, GameState, Skill, TerritoryId } from '../engine'
-import { GAME_NAME, armyLimitFor, legalActions, playerFor } from '../engine'
+import { GAME_NAME, armyLimitFor, legalActions, playerFor, standings } from '../engine'
 import { ArmyChooser } from './ArmyChooser'
 import { CardsPanel } from './CardsPanel'
 import { GameLog } from './GameLog'
@@ -572,17 +572,30 @@ export function App() {
       </div>
 
       <div className="side">
-        {/* Nick: "Put the ranking first, then dice analysis, then history." */}
+        {/* Nick: "Put the ranking first, then dice analysis, then history."
+            The order is now the standing, strongest first, and it changes
+            as the game does. See engine/strength.ts. */}
         <table className="scores">
           <thead>
             <tr>
               <th scope="col">Player</th>
               <th scope="col">Land</th>
               <th scope="col">Armies</th>
+              <th scope="col" title="The chance of winning from here">
+                Winning
+              </th>
             </tr>
           </thead>
           <tbody>
-            {state.players.map((player) => {
+            {standings(state).map((standing) => {
+              const player = state.players.find(
+                (each) => each.id === standing.playerId,
+              )
+
+              if (player === undefined) {
+                return null
+              }
+
               const mine = Object.values(state.territories).filter(
                 (each) => each.ownerId === player.id,
               )
@@ -604,6 +617,17 @@ export function App() {
                   <td>
                     {mine.reduce((total, each) => total + each.armies, 0) +
                       player.reserve}
+                  </td>
+                  <td className="winning">
+                    <span
+                      className="winning-bar"
+                      style={{ width: `${Math.round(standing.chance * 100)}%` }}
+                    />
+                    <span className="winning-figure">
+                      {player.isEliminated
+                        ? 'out'
+                        : `${Math.round(standing.chance * 100)}%`}
+                    </span>
                   </td>
                 </tr>
               )

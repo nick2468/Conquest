@@ -133,5 +133,8 @@ export {
   resolveAttack,
 } from './attack'
 
+export type { Standing } from './strength'
+export { STRENGTH, standings, strengthOf } from './strength'
+
 export type { FightOdds } from './odds'
 export { BIGGEST_FIGHT, howAFightGoes } from './odds'

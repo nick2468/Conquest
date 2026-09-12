@@ -770,6 +770,34 @@ See D16.
 3. Hover may add information. It must never be the only way to see something,
    because a finger cannot hover.
 
+### 11.4a The scores panel is a leaderboard
+
+**S30. The scores panel is ordered by who is winning, strongest first, and
+it reorders as the game turns.** It carries a Winning column beside Land and
+Armies: each player's chance of winning, as a figure and as a bar behind it.
+A player who is out reads "out" and sits below everyone still in.
+
+The chance comes from `engine/strength.ts`, and the weights in it were
+MEASURED rather than chosen. 82846 recorded positions from 240 games were
+fitted against who went on to win, and the result names the winner 78.4% of
+the time on games the fit never saw, against 70.7% for guessing that nobody
+wins. Plan task 4.50 has the workings.
+
+The chances are scaled to add up to 100%. The fit answers each player
+separately, so four players can each honestly read "40%", which is useless
+as a table.
+
+**S30a. The reading is for SHOWING, never for choosing moves.** Plan task
+4.50 measured a computer player that chose its attacks by this same ranking:
+it scored 30 games of 120 where the ordinary player scored 63. A rule that
+keeps army share high says never attack. So `strength.ts` is imported by the
+screen and by nothing in `players/`.
+
+**Why it is there at all.** The computer players already work out who the
+leader is every turn, and gang up accordingly. A person at the table was
+guessing. The column levels the information between a person and a computer,
+which the rules never meant to weight one way.
+
 ---
 
 ## 11.5 Animations and sounds

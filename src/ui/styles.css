@@ -12,6 +12,8 @@
   --pick: #1d1c19;
   --target: #c8453b;
   --label: #4c4941;
+  /* The bar behind the winning figure in the scores panel. */
+  --winning: rgba(60, 120, 175, 0.24);
 
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -28,6 +30,7 @@
     --pick: #ffffff;
     --target: #ff7a6e;
     --label: #b9b5a8;
+    --winning: rgba(120, 180, 235, 0.26);
   }
 }
 
@@ -875,6 +878,31 @@ button.primary {
   align-items: center;
   font-weight: 500;
   text-align: left;
+}
+
+/* The chance of winning, shown as a bar behind the figure. The order of
+   the rows is the standing, so the table reorders as the game turns. */
+.scores td.winning {
+  position: relative;
+  min-width: 3.6rem;
+  isolation: isolate;
+}
+
+.scores .winning-bar {
+  position: absolute;
+  right: 0.3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 1.1rem;
+  border-radius: 0.15rem;
+  background: var(--winning);
+  z-index: -1;
+  transition: width 0.4s ease;
+}
+
+.scores .winning-figure {
+  position: relative;
+  font-variant-numeric: tabular-nums;
 }
 
 .scores tr.out {
