@@ -1194,6 +1194,38 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       close counts as a tie when choosing between moves (`nearlyAsGood`),
       and how much garrison to leave behind after a capture
       (`keepAfterCapture`). A tuner can only turn dials that exist.
+- [x] 4.45 **A bigger tuning run, a self-play league, and where the gains
+      stopped.** The rest of Nick's sequence, and the answer is mostly
+      negative, which is worth writing down.
+
+      **A bigger run.** 30 rounds, 24 candidates, 80 games each over two
+      tables, with the four new dials. It won 54.8% against 51.2% on 480
+      held-back games. On a FRESH family it lost, 37 of 80 against 42. So
+      the gain was luck. What the new dials said still stands, because they
+      barely moved: trading a set at once beats hoarding, rolling one die
+      at a lone defender is not worth using, and playing a little more
+      decisively (`nearlyAsGood` 0.1 to 0.06) helps.
+
+      **A league** (`tools/league.mjs`, `npm run league`). Candidates play
+      EACH OTHER in tables of four, winners breed, and past champions stay
+      in the field so the league cannot go round in circles. Our shipped
+      players join as candidates, because every player here is the General
+      with some numbers. Its champion beat Optimus 41 to 25 in its own
+      check, then drew level on fresh games, 59 against 56 over 120
+      four-player games, and was WORSE head to head, 15 against 19. Not
+      adopted.
+
+      **The finding that matters: our measurement floor is about 5 points.**
+      Twice today a 3-to-4-point gain measured over 480 games vanished on
+      the next family. So further tuning must be judged on thousands of
+      games, not hundreds, and gains smaller than that cannot be told from
+      luck. Optimus stays as plans 4.42, 4.43 and 4.44 left it.
+
+      What is left, in order of what it would really buy: a much larger
+      evaluation budget so small gains can be seen at all; more decisions
+      turned into dials; and, the only big step, looking a whole turn ahead
+      and scoring the position at the end, which no amount of tuning can
+      substitute for.
 
 ---
 
