@@ -1419,6 +1419,111 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       exact, it is tested, and it would answer a question a PLAYER might
       like asked out loud, which is what an attack is likely to cost before
       committing to it.
+- [x] 4.50 **How to rank a position: measured, and why a ranking is not a
+      move chooser.** Nick, on the failure above: "How do you rank the value
+      of a player's position? I would think it is determined by the total
+      number of armies a player has and the likely income he will receive
+      from that position by the time his turn comes around next... Either
+      way for the deterministic idea to work we need a post move ranking."
+
+      The judging in plan task 4.49 used four numbers made up on the spot.
+      This measured them instead. 240 four-player games were played and
+      every live player's position was recorded at every turn boundary,
+      82846 positions in all, each labelled with whether that player went
+      on to win. A logistic fit then asked which numbers predicted the
+      winner. **Every model below is scored on 240 DIFFERENT games, from a
+      seed family the fit never saw.**
+
+      | What the model looks at | Loss | Right |
+      |---|---|---|
+      | Guessing nobody wins | 0.6094 | 70.7% |
+      | Armies alone | 0.5466 | 73.9% |
+      | Land alone | 0.4937 | 76.7% |
+      | Income alone | 0.4989 | 77.3% |
+      | Armies + income (Nick's pair) | 0.4927 | 77.8% |
+      | Armies + income + income x wait | 0.4911 | 77.9% |
+      | Land + armies + income | 0.4876 | 77.5% |
+      | Shares of the board | 0.4704 | 78.0% |
+      | Shares + cards + front line + bonus | 0.4653 | 78.4% |
+      | The same, judging armies AFTER income arrives | 0.4645 | 78.4% |
+      | The same, discounted by the wait | 0.4633 | 78.6% |
+      | Against the best opponent | 0.4560 | 78.8% |
+      | Everything at once | 0.4388 | 79.1% |
+
+      **What the numbers say.**
+
+      1. **Income beats armies as a single measure** (0.4989 against
+         0.5466). Nick's pair is right that both matter, but they are not
+         equal partners.
+      2. **The exchange rate is about thirty to one.** In the land + armies
+         + income fit the weights are land 0.107, income 0.111, armies
+         0.0037. One territory, and one army of income per turn, are each
+         worth roughly THIRTY armies standing on the board. The guess in
+         4.49 put it at ten, so it over-valued armies threefold.
+      3. **Shares beat counts.** What matters is not how many armies you
+         hold but what share of every army on the board is yours: as a
+         weight, 5.9 against 0.0037 for the raw count.
+      4. **Nick's "by the time his turn comes around" is real, and has the
+         sign he predicted.** Income multiplied by the number of players
+         who move first carries a NEGATIVE weight of -0.022 against
+         income's +0.281. Income three seats away is worth about a quarter
+         less than income you collect next. It improved the held-out loss
+         every time it was added.
+      5. **A long front line is a weakness**, at -0.039 a territory. That is
+         why a corner region is worth more than its bonus says.
+      6. **Judged against the field beats judged alone** (0.4560 against
+         0.4876). A position is only good compared with the best opponent.
+
+      **And then the part that matters most: it does not work as a move
+      chooser.** Wired in as the judging for the lookahead, at every weight:
+
+      | seeAhead | Won of 120 |
+      |---|---|
+      | 0 (off) | 63 |
+      | 20 | 59 |
+      | 100 | 63 |
+      | 400 | 63 |
+      | 1500 | 56 |
+      | Choosing every attack alone | **30** |
+
+      Choosing attacks on the measured ranking alone scored 30 of 120,
+      against 52 for the made-up one it replaced. A ranking fitted to
+      predict the winner got WORSE at picking moves the better it got at
+      predicting.
+
+      The cause was checked rather than guessed. Over one game, the
+      measured judge called 1074 of 1335 available attacks a WORSENING of
+      the board, and on nine turns in fifty-four even the best attack
+      available scored negative. At the opening every attack scored exactly
+      -0.0389, which is precisely the front-line weight: the land gained and
+      the armies lost cancel, so the whole verdict is "you now have one more
+      territory facing an enemy, which is bad".
+
+      **Why a good description makes a bad guide.** The fit says winners
+      hold a large share of the armies. That is true. But attacking SPENDS
+      armies, so a rule that maximises army share says never attack, and
+      never attacking is how you lose. The model learned what winning looks
+      like, not what causes it. This is the same trap Oracle fell into in
+      plan task 4.46, reached from the opposite direction, and the data
+      walked straight back into it.
+
+      **Nick's own fix was tried and did not rescue it.** Judging a position
+      by the armies it WILL hold once income arrives predicted slightly
+      better (0.4645 against 0.4653), but left the incentive almost
+      untouched: 1072 of 1335 attacks still scored negative. The reason is
+      a rule, not a weight. Income is `floor(land / 3)`, a step. One
+      territory usually adds NO income at all. So counting future income
+      rewards nothing except at every third capture.
+
+      **What is worth keeping.** The ranking is a good ranking. It names the
+      winner from the board alone 78.4% of the time, on games it never saw,
+      against 70.7% for guessing. The weights, should anyone want them
+      again: land share 2.976, army share 5.898, each card 0.101, each
+      front-line territory -0.039, each army of region bonus 0.079, starting
+      at -3.722, read as a log-odds. That would make an honest "who is
+      winning" reading for a player, which is a thing to SHOW, not a thing
+      to steer by. It is recorded here rather than shipped, because nothing
+      in the game asks for it yet.
 
 ---
 
