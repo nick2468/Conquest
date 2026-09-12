@@ -1226,6 +1226,55 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       turned into dials; and, the only big step, looking a whole turn ahead
       and scoring the position at the end, which no amount of tuning can
       substitute for.
+- [x] 4.46 **Looking ahead: built, measured, and taken out again.** Nick:
+      "let's build the look ahead." A player called Oracle: for each move
+      worth thinking about, play it, finish the turn, let every opponent
+      reply, and score the board that results. Territories, income, armies
+      and cards, minus the best opponent's. The engine is pure, so a player
+      can play hundreds of imaginary games and drop them.
+
+      **It lost, every way it was built: about 13 - 27 to Optimus over 40
+      head-to-head games.** The experiments, in the order that found the
+      cause:
+
+      | What Oracle did | Against Optimus, 40 games |
+      |---|---|
+      | Simply played Optimus's move | 22 - 18 |
+      | Played the first move of its own shortlist | 22 - 18 |
+      | Chose by playing each candidate out | 12 - 28 |
+      | The same, but only departing on a 15, 40 or 80 army difference | 12 to 13 - 27 to 28 |
+      | The same, with 6 or 10 imagined games a candidate | 12 to 14 - 26 to 28 |
+      | The same, ending its own turn at once to cut the dice | 12 to 14 - 26 to 28 |
+
+      So the plumbing was right and the shortlist was right. **The judging
+      was wrong, and it is the winner's curse.** Each candidate's score is a
+      handful of imagined games, and the dice diverge the moment two
+      candidates make different attacks, so "the same dice for everyone"
+      does not survive the first roll. The spread between candidates is
+      then far larger than the real difference between them, and taking the
+      best score picks the luckiest playout rather than the best move. More
+      samples shrink that spread far too slowly, and a higher bar for
+      departing does not help because the noise is bigger than any bar
+      worth setting.
+
+      Two wrong turns worth remembering. The first version scored armies
+      and income only, so an attack, which costs armies and gains a third
+      of an army of income, looked like a loss and it learned to sit still;
+      counting territories fixed that. The second seeded its imagined games
+      from the position, which turns Optimus's random tie-breaks into a
+      fixed rule and cost games before any searching happened: 13 - 27 on
+      its own.
+
+      **What it would take to do properly:** resolve imagined attacks by
+      their EXPECTED losses instead of rolling dice, using the odds worked
+      out in spec 6.3. That removes the luck entirely and makes small
+      differences visible. It also means a second, simplified simulator
+      beside the real rules, which can silently disagree with them, so it
+      needs its own guard test. That is a real piece of work and it was not
+      worth starting on the back of a failed first attempt.
+
+      Oracle is removed rather than shipped: a slower, weaker player helps
+      nobody. Optimus remains the strongest.
 
 ---
 
