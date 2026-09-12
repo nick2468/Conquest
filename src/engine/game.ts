@@ -11,6 +11,7 @@ import {
   defenderDiceCount,
   resolveAttack,
   ARMIES_LEFT_BEHIND,
+  MAX_ATTACKER_DICE,
 } from './attack'
 import { mustTradeASet, setValue, setsInHand } from './cards'
 import { rollDice } from './dice'
@@ -40,6 +41,19 @@ export type GameAction =
       readonly type: 'attack'
       readonly fromId: TerritoryId
       readonly toId: TerritoryId
+      /**
+       * How many dice to roll, 1 to 3. Left out, it rolls as many as the
+       * armies allow, which is what almost every attack wants. Plan task
+       * 4.35.
+       *
+       * Rolling fewer is a real tactic, because a capture forces AS MANY
+       * armies in as dice were rolled. Nick: "sometimes 2 against 1 might
+       * be better in order to preserve the primary mass army." Against a
+       * lone defender with a big stack it takes the territory just as
+       * surely and leaves about one more army behind. Against two or more
+       * defenders it is worse in every way. See spec 6.3.
+       */
+      readonly dice?: number
     }
   | { readonly type: 'occupy'; readonly count: number }
   | { readonly type: 'endAttackPhase' }
@@ -531,6 +545,7 @@ function doAttack(
   state: GameState,
   fromId: TerritoryId,
   toId: TerritoryId,
+  dice: number | undefined,
   random: RandomSource,
 ): GameState {
   if (state.turn.phase !== 'attack') {
@@ -563,7 +578,13 @@ function doAttack(
     refuse(`${nameOf(state, fromId)} does not border ${nameOf(state, toId)}.`)
   }
 
-  const attackerDice = rollDice(random, attackerDiceCount(from.armies))
+  if (dice !== undefined && (!Number.isInteger(dice) || dice < 1 || dice > MAX_ATTACKER_DICE)) {
+    refuse(`An attack rolls 1 to ${MAX_ATTACKER_DICE} dice, not ${dice}.`)
+  }
+
+  // As many as the armies allow, unless the player asked for fewer.
+  const rolling = Math.min(attackerDiceCount(from.armies), dice ?? MAX_ATTACKER_DICE)
+  const attackerDice = rollDice(random, rolling)
   const defenderDice = rollDice(random, defenderDiceCount(to.armies))
   const outcome = resolveAttack(attackerDice, defenderDice)
 
@@ -780,7 +801,7 @@ export function applyAction(
     case 'placeArmies':
       return doPlaceArmies(state, action.territoryId, action.count)
     case 'attack':
-      return doAttack(state, action.fromId, action.toId, random)
+      return doAttack(state, action.fromId, action.toId, action.dice, random)
     case 'occupy':
       return doOccupy(state, action.count)
     case 'endAttackPhase':

@@ -484,6 +484,27 @@ function resolveAttack(
 test states the exact dice and the exact answer, with no randomness anywhere.
 This is the single most important testing decision in the project.
 
+**S9a. An attack may roll FEWER dice than the armies allow** (plan 4.35). The
+attack action carries an optional `dice`, 1 to 3. Left out, it rolls as many
+as the armies allow, which is what nearly every attack wants.
+
+Nick: "sometimes 2 against 1 might be better in order to preserve the primary
+mass army." He is right, because a capture forces as many armies in as dice
+were rolled (6.4). Worked out exactly, against ONE defender with 20 armies:
+
+| Dice | Takes it | Armies left in the attacking stack |
+|---|---|---|
+| 3 | 100% | 16.5 |
+| 2 | 100% | 17.3 |
+| 1 | 100% | 17.6 |
+
+Against two or more defenders rolling fewer is worse in every way: 10 armies
+against 3 defenders take it 97% of the time on three dice and 67% on one. So
+the tactic pays only against a lone defender, and only when the stack makes
+the capture near certain. No computer player uses it: given to the Turtle it
+cost games, because armies kept at home are territories not taken. The
+defender always rolls as many as its armies allow.
+
 ### 6.4 Occupying
 
 When the defending territory reaches zero armies, the attacker takes it.
@@ -1221,6 +1242,20 @@ alone in a one-on-one game. It now counts a two-to-one attack on an enemy
 continent in full even before its card, and judges it on the whole stack.
 One-on-one turns that left such a continent whole fell from 32 in 217 to 6
 in 218, and it won 134 of 160 games against 126 before.
+
+**A table of one of each** (plan 4.34). General, Planner, Greedy and Turtle,
+80 games on unseen seeds, every player in every seat: General 30, Turtle 27,
+Planner 14, Greedy 9. Nick's own run of 40 games read Turtle 15, General 10.
+The bigger sample is the one to trust: the Turtle is level with the General
+at that table, not ahead of it.
+
+Greedy and the Planner now weigh a knockout at 20 and take one at level odds
+(plan 4.34): 90 of 94 chances were already taken without it, but the rule
+moved the table from General 27, Turtle 29 to General 30, Turtle 27.
+
+Two ideas were measured and thrown away there: policing harder
+(`leaveItToOthers` 0.6 or 1) changed nothing, and leaning on the leader won
+20 of 40 on the seeds it was chosen on and then lost on 80 unseen ones.
 
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 

@@ -6,6 +6,7 @@ import {
   armiesOn,
   entrancesTo,
   frontierOf,
+  isTheirLast,
   pickAmongBest,
   pressureOn,
   regionHoldings,
@@ -77,6 +78,12 @@ export const PLANNER_SETTINGS = {
    * facing a big stack, which matters more against people.
    */
   threatCosts: 1,
+  /**
+   * How much taking a player's LAST territory is worth: it knocks them out
+   * and wins every card they hold. More than the plan, because the plan
+   * will still be there next turn and the cards will not. Plan task 4.34.
+   */
+  knockoutIsWorth: 20,
 }
 
 /** How many steps it is from any territory we hold to each territory. */
@@ -102,6 +109,7 @@ function stepsFromUs(state: GameState, me: string): Map<TerritoryId, number> {
 
 /** How strongly to prefer a move that serves the plan. */
 const ON_PLAN = 10
+
 
 /**
  * Pick the region to go for.
@@ -257,16 +265,23 @@ function attackValue(
 
   const mine = armiesOn(state, action.fromId)
   const theirs = armiesOn(state, action.toId)
+  // Taking a player's last territory wins every card they hold, so it is
+  // worth a level fight and comes before the plan. Plan task 4.34.
+  const knockout = isTheirLast(state, action.toId)
 
   // Level is enough when a card is at stake, ahead otherwise. Both rules
   // came from Greedy, measured in plan task 4.9.
-  const allowed = needACard ? mine >= theirs : mine > theirs
+  const allowed = needACard || knockout ? mine >= theirs : mine > theirs
 
   if (!allowed) {
     return -1
   }
 
-  return (mine / theirs) * 5 + (serves(plan, action.toId) ? ON_PLAN : 0)
+  return (
+    (mine / theirs) * 5 +
+    (serves(plan, action.toId) ? ON_PLAN : 0) +
+    (knockout ? PLANNER_SETTINGS.knockoutIsWorth : 0)
+  )
 }
 
 /**

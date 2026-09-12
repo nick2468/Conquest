@@ -494,6 +494,66 @@ describe('eliminating a player and winning', () => {
   })
 })
 
+// ------------------------------------------------------- rolling fewer dice
+
+describe('choosing how many dice to roll', () => {
+  /**
+   * Plan task 4.35. Nick: "if three dice are rolled then against 1 defender
+   * the attacker if he wins is required to move 3 armies into the
+   * destination, sometimes 2 against 1 might be better in order to preserve
+   * the primary mass army."
+   */
+  const attacking = (dice?: number): GameAction => ({
+    type: 'attack',
+    fromId: 'wa',
+    toId: 'nt',
+    ...(dice === undefined ? {} : { dice }),
+  })
+
+  it('rolls as many as the armies allow when nobody says otherwise', () => {
+    const after = applyAction(
+      gameWith(boardWhere({ wa: 10 })),
+      attacking(),
+      scriptedDice([6, 5, 4, 1]),
+    )
+
+    expect(after.turn.lastAttack?.attackerDice).toHaveLength(3)
+  })
+
+  it('rolls fewer when asked, and then forces fewer armies in', () => {
+    const after = applyAction(
+      gameWith(boardWhere({ wa: 10 })),
+      attacking(1),
+      scriptedDice([6, 1]),
+    )
+
+    expect(after.turn.lastAttack?.attackerDice).toHaveLength(1)
+    // Took it, so one army moved in: the number of dice rolled.
+    expect(ownerOf(after, 'nt')).toBe('p1')
+    expect(armiesOn(after, 'nt')).toBe(1)
+    expect(armiesOn(after, 'wa')).toBe(9)
+    expect(after.turn.pendingOccupation?.minimumArmies).toBe(1)
+  })
+
+  it('still cannot roll more dice than the armies allow', () => {
+    const after = applyAction(
+      gameWith(boardWhere({ wa: 3 })),
+      attacking(3),
+      scriptedDice([6, 5, 1]),
+    )
+
+    expect(after.turn.lastAttack?.attackerDice).toHaveLength(2)
+  })
+
+  it('refuses a number of dice that is not 1, 2 or 3', () => {
+    for (const dice of [0, 4, 1.5]) {
+      expect(() =>
+        applyAction(gameWith(boardWhere({ wa: 10 })), attacking(dice), scriptedDice([6, 1])),
+      ).toThrow(/1 to 3 dice/)
+    }
+  })
+})
+
 // ---------------------------------------------------------- recent fights
 
 describe('the fights each player made in their latest turn', () => {

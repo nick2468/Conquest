@@ -101,6 +101,22 @@ export function regionHoldings(
 }
 
 /**
+ * True if this is the last territory its owner holds, so taking it knocks
+ * them out and wins every card they hold. Plan task 4.34.
+ *
+ * Nick saw a player walk past one: it "loaded up next door but then
+ * proceeded to attack elsewhere... he should have killed Greedy as a
+ * priority."
+ */
+export function isTheirLast(state: GameState, territoryId: TerritoryId): boolean {
+  const ownerId = state.territories[territoryId]?.ownerId
+
+  return (
+    ownerId !== undefined && ownerId !== null && ownedBy(state, ownerId).length === 1
+  )
+}
+
+/**
  * How much taking this territory would be worth, in bonus armies per turn.
  *
  * Taking the LAST territory of a region is worth the whole region bonus,

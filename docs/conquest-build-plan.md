@@ -885,6 +885,56 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       Tests from the traced games: the stack facing a big enemy still
       breaks the continent, and a three-to-one break beats a lone army for
       the card every time.
+- [x] 4.34 **Knockouts for Greedy and the Planner, and two ideas that
+      failed.** Nick: "I've played quite a few 4 computer player games now
+      General vs planner vs greedy vs turtle. Turtle is nearly always
+      winning." And he saw a player "totally ignore an opportunity to
+      annihilate greedy who only had a single army on one country."
+
+      Measured first. Over 40 games at that table the Turtle won 15, the
+      General and the Planner 10 each and Greedy 5. Knockouts, though, were
+      mostly taken: 90 of 94 chances. Greedy walked past 3 and the General
+      1. Greedy and the Planner had no knockout rule at all and took them
+      only because a lone army is an easy capture. Both now weigh a
+      player's last territory at 20 and will take it at level odds
+      (`GREEDY_SETTINGS`, `PLANNER_SETTINGS`). On 80 unseen games that
+      moved the table from General 27, Turtle 29 to General 30, Turtle 27.
+
+      **Two ideas measured and thrown away.** Policing harder
+      (`leaveItToOthers` 0.6 and 1) changed nothing: the Turtle still won
+      15 to 17. Leaning on the leader, where every territory of the
+      opponent with the biggest income is worth 6 more, looked wonderful on
+      the seeds it was chosen on (General 20 of 40) and then lost on 80
+      unseen ones: General 28, Turtle 34, against General 30, Turtle 27
+      with it off. Removed. That is spec S22 a fourth time.
+
+      **On the Turtle winning:** over 80 unseen games it is level with the
+      General, 27 to 30, not ahead. Nick's run of 40 games showed 15 to 10.
+      Both are true; the bigger sample is the one to trust.
+- [x] 4.35 **A player may roll fewer dice.** Nick: "The players always seem
+      to roll the maximum number of dice they can. Is that right? ... if
+      three dice are rolled then against 1 defender the attacker if he wins
+      is required to move 3 armies into the destination, sometimes 2
+      against 1 might be better in order to preserve the primary mass
+      army."
+
+      Right on both counts. An attack now carries an optional number of
+      dice, 1 to 3, and rolls as many as the armies allow when it says
+      nothing, so nothing changed for anybody who does not ask.
+
+      Worked out exactly, by counting every roll rather than simulating
+      (`scratchpad/dice-choice.mjs`). Against ONE defender with 20 armies:
+      3 dice take it every time and leave 16.5 behind, 1 die takes it every
+      time and leaves 17.6. So the tactic is real, and it is worth about
+      one army. Against two or more defenders it is worse in every way: 10
+      armies against 3 defenders win 97% of the time on three dice and 67%
+      on one.
+
+      Given to the Turtle, the player it suits best, it LOST games: its
+      four-player wins fell from 40 in 60 to 33, because armies kept at
+      home are territories not taken, and territories are income. So no
+      computer player uses it. The engine keeps it, with tests, because it
+      is the real rule and a person may want it. See spec 6.3.
 
 ---
 

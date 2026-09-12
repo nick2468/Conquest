@@ -6,6 +6,7 @@ import {
   armiesOn,
   bonusForTaking,
   frontierOf,
+  isTheirLast,
   pickAmongBest,
   pressureOn,
   regionHoldings,
@@ -42,6 +43,17 @@ const BONUS_IS_WORTH = 4
 
 /** How much to weigh how lopsided a fight is. */
 const RATIO_IS_WORTH = 5
+
+/**
+ * The numbers this player weighs a knockout by, in one place so they can
+ * be measured. Plan task 4.34.
+ *
+ * Taking a player's LAST territory knocks them out and wins every card
+ * they hold, which is worth more than any one territory on the board.
+ */
+export const GREEDY_SETTINGS = {
+  knockoutIsWorth: 20,
+}
 
 /** How much to prefer finishing a region over starting a new one. */
 const NEARLY_MINE = 3
@@ -90,7 +102,10 @@ function scoreAttack(
   const mine = armiesOn(state, fromId)
   const theirs = armiesOn(state, toId)
 
-  const allowed = needACard ? level(mine, theirs) : ahead(mine, theirs)
+  // Knocking a player out wins every card they hold, so it is worth a
+  // level fight whether or not a card is owed this turn. Plan task 4.34.
+  const knockout = isTheirLast(state, toId)
+  const allowed = needACard || knockout ? level(mine, theirs) : ahead(mine, theirs)
 
   if (!allowed) {
     return -1
@@ -98,7 +113,8 @@ function scoreAttack(
 
   return (
     (mine / theirs) * RATIO_IS_WORTH +
-    bonusForTaking(state, me, toId) * BONUS_IS_WORTH
+    bonusForTaking(state, me, toId) * BONUS_IS_WORTH +
+    (knockout ? GREEDY_SETTINGS.knockoutIsWorth : 0)
   )
 }
 
