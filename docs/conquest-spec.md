@@ -1261,6 +1261,11 @@ Two ideas were measured and thrown away there: policing harder
 same table read Turtle 17, General 13. Over everything measured the two are
 close, and neither is clearly ahead of the other.
 
+**Taking one territory off the NEXT player is worth a little more when it
+costs them an army a turn** (plan 4.37, `taxIsWorth`): at 12 territories
+they drop from 4 armies to 3, at 11 they lose nothing. Measured at 0, 4 and
+8: no change outside the noise, kept for the behaviour.
+
 **A lone territory that denies a continent is garrisoned like a door**
 (plan 4.36, `denialGuard`). It changed no result outside the noise, and is
 kept for the behaviour: one army holding the last piece of somebody's

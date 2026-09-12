@@ -955,6 +955,25 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       the Turtle 35 - 5, 35 - 5, 36 - 4. So it changes no result outside
       the noise. It is kept because it is the behaviour Nick asked for and
       it costs nothing.
+- [x] 4.37 **Costing the next player an army.** Nick: "if an attacker
+      realises that the player playing next holds a number of countries
+      exactly equal to that which would award him an extra army then a
+      consideration should be given to taking one more country from the
+      next player to play."
+
+      Armies come one per three territories, never fewer than three. So
+      taking one bites only when the victim sits on an exact multiple of
+      three and above the floor: 12 becomes 3 armies a turn instead of 4,
+      while 11 or 13 changes nothing (`losingOneCostsAnArmy`, with a test).
+      Only the NEXT player counts, because anybody later has turns in
+      between to win a territory back. Their land is then worth
+      `taxIsWorth` more, 4.
+
+      Measured on unseen seeds at 0, 4 and 8: the four-player table read
+      General 8, 10, 8, and head to head 35 - 5, 34 - 6, 35 - 5 against the
+      Turtle. No change outside the noise, and kept for the behaviour, like
+      the denial guard. It only fires about one turn in three, and only
+      nudges the choice between targets that were already close.
 
 ---
 

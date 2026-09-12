@@ -8,7 +8,7 @@ import { seededRandom } from '../random'
 import { DEFAULT_OPTIONS, createGame } from '../setup'
 import type { GameMap, GameState } from '../types'
 import { entrancesTo, frontierOf, interiorOf, regionHoldings } from './board'
-import { GENERAL_SETTINGS, breakUrgency, turnChance } from './general'
+import { GENERAL_SETTINGS, breakUrgency, losingOneCostsAnArmy, turnChance } from './general'
 import { ALL_SKILLS, playerFor } from './index'
 import type { Skill } from './types'
 
@@ -1182,6 +1182,25 @@ describe('the Counter hits back', () => {
 
   it('makes no other attack once the card is won', () => {
     expect(choice(board(false, true))).toBe('endAttackPhase')
+  })
+})
+
+describe('taking one territory off the next player', () => {
+  /**
+   * Plan task 4.37. Nick: "if an attacker realises that the player playing
+   * next holds a number of countries exactly equal to that which would
+   * award him an extra army then a consideration should be given to taking
+   * one more country from the next player to play."
+   */
+  it('costs them an army only at a multiple of three, above the floor', () => {
+    // Armies are one per three territories, never fewer than three.
+    expect(losingOneCostsAnArmy(12)).toBe(true)
+    expect(losingOneCostsAnArmy(15)).toBe(true)
+    expect(losingOneCostsAnArmy(11)).toBe(false)
+    expect(losingOneCostsAnArmy(13)).toBe(false)
+    // Nine or fewer draws the floor of three either way.
+    expect(losingOneCostsAnArmy(9)).toBe(false)
+    expect(losingOneCostsAnArmy(6)).toBe(false)
   })
 })
 

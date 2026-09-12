@@ -1,3 +1,4 @@
+import { MINIMUM_REINFORCEMENTS, TERRITORIES_PER_ARMY } from '../balance'
 import { legalActions } from '../game'
 import type { GameAction } from '../game'
 import type { RandomSource } from '../random'
@@ -65,6 +66,19 @@ export const GENERAL_SETTINGS = {
   frontShare: 1,
   /** How much breaking an enemy's continent is worth, per bonus army. */
   breakIsWorth: 6,
+  /**
+   * How much it is worth to cost the NEXT player an army a turn. Plan task
+   * 4.37.
+   *
+   * Nick: "if an attacker realises that the player playing next holds a
+   * number of countries exactly equal to that which would award him an
+   * extra army then a consideration should be given to taking one more
+   * country from the next player to play." Armies come one per three
+   * territories, so a player on 12 drops to 3 a turn when they lose one,
+   * and a player on 11 loses nothing. Only the next player counts: anybody
+   * later has turns in between to win a territory back.
+   */
+  taxIsWorth: 4,
   /** How much a territory on our own plan is worth. */
   onPlan: 8,
   /** How much finishing a region of our own is worth, per bonus army. */
@@ -441,6 +455,49 @@ interface Worth {
   readonly knockouts: ReadonlyMap<TerritoryId, number>
   /** Where to hit back, when it plays the counter-attack this turn. */
   readonly counters: ReadonlyMap<TerritoryId, number>
+  /** Land of the next player, when taking one costs them an army a turn. */
+  readonly taxable: ReadonlySet<TerritoryId>
+}
+
+/** The player who moves after us, or null if we are the last one left. */
+function nextToPlay(state: GameState, me: PlayerId): PlayerId | null {
+  const order = state.players.filter((each) => !each.isEliminated).map((each) => each.id)
+  const from = order.indexOf(me)
+
+  return from === -1 || order.length < 2 ? null : (order[(from + 1) % order.length] as PlayerId)
+}
+
+/** What a player draws at the start of a turn from territories alone. */
+function armiesFromLand(count: number): number {
+  return Math.max(MINIMUM_REINFORCEMENTS, Math.floor(count / TERRITORIES_PER_ARMY))
+}
+
+/**
+ * True when a player holding this many territories would draw fewer armies
+ * next turn if they lost one of them. Plan task 4.37.
+ *
+ * Armies come one per three territories, so it is true at 12, 15, 18 and
+ * so on, and false at 11 or 13. Below the floor of three armies it is
+ * false too, because they draw three whatever happens.
+ */
+export function losingOneCostsAnArmy(count: number): boolean {
+  return armiesFromLand(count - 1) < armiesFromLand(count)
+}
+
+/**
+ * The next player's land, but only while losing ONE territory would cost
+ * them an army a turn. Empty otherwise. Plan task 4.37.
+ */
+function taxable(state: GameState, me: PlayerId): Set<TerritoryId> {
+  const next = nextToPlay(state, me)
+
+  if (next === null || rules.taxIsWorth <= 0) {
+    return new Set()
+  }
+
+  const theirs = ownedBy(state, next)
+
+  return losingOneCostsAnArmy(theirs.length) ? new Set(theirs) : new Set()
 }
 
 /**
@@ -543,6 +600,7 @@ function readTheWorth(state: GameState, me: PlayerId): Worth {
     finishes,
     knockouts,
     counters: counterTargets(state, me),
+    taxable: taxable(state, me),
   }
 }
 
@@ -554,7 +612,8 @@ function worthTaking(worth: Worth, territoryId: TerritoryId): number {
     (worth.plan?.missing.includes(territoryId) === true ? rules.onPlan : 0) +
     (worth.knockouts.get(territoryId) ?? 0) +
     // Worth more, but never worth a risk: see `worthARisk`.
-    (worth.counters.get(territoryId) ?? 0)
+    (worth.counters.get(territoryId) ?? 0) +
+    (worth.taxable.has(territoryId) ? rules.taxIsWorth : 0)
   )
 }
 
