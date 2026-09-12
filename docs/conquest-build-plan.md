@@ -935,6 +935,26 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       home are territories not taken, and territories are income. So no
       computer player uses it. The engine keeps it, with tests, because it
       is the real rule and a person may want it. See spec 6.3.
+- [x] 4.36 **No sitting ducks: the General guards what it denies.** Nick:
+      "the computer players shouldn't [be] leaving sitting ducks for the
+      next round... at the end of the round he would probably want to
+      fortify alaska because almost certainly he would come under attack
+      because of the motivation to regain north america."
+
+      A territory of ours is a DENIAL when we hold exactly one territory of
+      a region and one other player holds every other one. That single army
+      is all that stops their bonus, and they have every reason to take it
+      back. Such a territory is now garrisoned like a door into our own
+      region: `denialGuard`, 2 armies more. Holding two of a region is not
+      the same thing, so the rule does not fire there. A test from Nick's
+      example: the General fortifies that lone territory rather than the
+      quiet line behind its front.
+
+      Measured on unseen seeds, guard 0, 2 and 4: the four-player table read
+      General 13, 11, 14 and the Turtle 17, 21, 15, and head to head against
+      the Turtle 35 - 5, 35 - 5, 36 - 4. So it changes no result outside
+      the noise. It is kept because it is the behaviour Nick asked for and
+      it costs nothing.
 
 ---
 

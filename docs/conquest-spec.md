@@ -1257,6 +1257,15 @@ Two ideas were measured and thrown away there: policing harder
 (`leaveItToOthers` 0.6 or 1) changed nothing, and leaning on the leader won
 20 of 40 on the seeds it was chosen on and then lost on 80 unseen ones.
 
+**Which seeds you play changes the answer.** On another 40-game family the
+same table read Turtle 17, General 13. Over everything measured the two are
+close, and neither is clearly ahead of the other.
+
+**A lone territory that denies a continent is garrisoned like a door**
+(plan 4.36, `denialGuard`). It changed no result outside the noise, and is
+kept for the behaviour: one army holding the last piece of somebody's
+continent is a sitting duck, and its owner knows it.
+
 **S22. A tournament runs several SEPARATE seed ranges, never one long run.**
 
 This was learned the hard way, twice. A 40-game run read 21-19 in Greedy's

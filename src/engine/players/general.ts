@@ -50,6 +50,17 @@ export const GENERAL_SETTINGS = {
   secondLine: 2,
   /** Extra on a door into a region we hold, because the bonus rides on it. */
   doorGuard: 2,
+  /**
+   * Extra on a territory that DENIES somebody a continent. Plan task 4.36.
+   *
+   * Nick: "the computer players shouldn't [be] leaving sitting ducks for
+   * the next round... at the end of the round he would probably want to
+   * fortify alaska because almost certainly he would come under attack
+   * because of the motivation to regain north america." One army holding
+   * the last piece of an enemy continent is worth far more than one army,
+   * and the enemy has every reason to take it back.
+   */
+  denialGuard: 2,
   /** A front territory holds this share of the biggest enemy beside it. */
   frontShare: 1,
   /** How much breaking an enemy's continent is worth, per bonus army. */
@@ -205,6 +216,33 @@ interface Line {
   readonly depth: ReadonlyMap<TerritoryId, number>
   /** Territories inside a region we hold that border land outside it. */
   readonly doors: ReadonlySet<TerritoryId>
+  /** Ours that keep somebody else off a whole continent. See `denialGuard`. */
+  readonly denials: ReadonlySet<TerritoryId>
+}
+
+/**
+ * The territories of ours that deny a continent: we hold exactly ONE
+ * territory of the region and one other player holds every other one, so
+ * that single territory is all that stops their bonus. Plan task 4.36.
+ *
+ * Holding two of them is not the same thing. They would have to take both,
+ * and neither is the lone piece an enemy is desperate to have back.
+ */
+function denialsIn(state: GameState, me: PlayerId): Set<TerritoryId> {
+  const denials = new Set<TerritoryId>()
+
+  for (const region of state.map.regions) {
+    const inRegion = state.map.territories.filter((each) => each.regionId === region.id)
+    const mine = inRegion.filter((each) => state.territories[each.id]?.ownerId === me)
+    const theirs = inRegion.filter((each) => state.territories[each.id]?.ownerId !== me)
+    const owners = new Set(theirs.map((each) => state.territories[each.id]?.ownerId))
+
+    if (mine.length === 1 && owners.size === 1 && mine[0] !== undefined) {
+      denials.add(mine[0].id)
+    }
+  }
+
+  return denials
 }
 
 function enemiesBeside(
@@ -276,7 +314,7 @@ function readTheLine(state: GameState, me: PlayerId): Line {
     }
   }
 
-  return { depth, doors }
+  return { depth, doors, denials: denialsIn(state, me) }
 }
 
 /**
@@ -301,7 +339,8 @@ function wanted(
         rules.secondLine,
         Math.ceil(dangerTo(state, me, territoryId) * rules.frontShare),
       ) +
-      (line.doors.has(territoryId) ? rules.doorGuard : 0)
+      (line.doors.has(territoryId) ? rules.doorGuard : 0) +
+      (line.denials.has(territoryId) ? rules.denialGuard : 0)
     )
   }
 

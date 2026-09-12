@@ -675,6 +675,29 @@ describe('the General', () => {
     expect(reinforced, 'every weak spot on the front').toEqual(['t0_0', 't0_2'])
   })
 
+  it('fortifies the lone territory that denies somebody a continent', () => {
+    // Plan task 4.36. Nick: "he would probably want to fortify alaska
+    // because almost certainly he would come under attack because of the
+    // motivation to regain north america." We hold all of region 0 and one
+    // territory of region 1, t1_0, with one army. Two holds the rest of
+    // region 1, so that one army is all that stops its bonus.
+    const state = onRing(
+      {
+        t0_0: ['p1', 9],
+        t0_1: ['p1', 3],
+        t0_2: ['p1', 3],
+        t1_0: ['p1', 1],
+        t1_1: ['p2', 2],
+        t1_2: ['p2', 2],
+      },
+      { phase: 'fortify' },
+    )
+    const action = playerFor('general').chooseAction(state, seededRandom(1))
+
+    expect(action.type).toBe('fortify')
+    expect(action.type === 'fortify' ? action.toId : '').toBe('t1_0')
+  })
+
   it('keeps more than one army on the line behind the front', () => {
     // A long line of our own land: t0_0 t0_1 t0_2 t1_0 t1_1, with the enemy
     // only in t1_2. t1_1 and t0_0 are the front, t0_1 and t1_0 are the line
