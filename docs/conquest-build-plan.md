@@ -1275,6 +1275,38 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
       Oracle is removed rather than shipped: a slower, weaker player helps
       nobody. Optimus remains the strongest.
+- [x] 4.47 **The four new dials, one at a time.** Nick: "how about trying
+      the new dials?" The big retune of plan 4.45 moved 28 numbers together
+      and drowned in noise. One dial at a time, 120 four-player games and
+      40 against the General each, on unseen seeds:
+
+      | Optimus with | Table, of 120 | v General, of 40 |
+      |---|---|---|
+      | its own numbers | 74 | 21 |
+      | trade at 4 cards | 63 | 22 |
+      | trade at 5 cards | 65 | 21 |
+      | one die when 6 armies free | 36 | 17 |
+      | one die when 10 free | 50 | 21 |
+      | tie width 0.06 | 68 | 23 |
+      | tie width 0.2 | 57 | 19 |
+      | keep 0.6 of the garrison | 69 | 20 |
+      | keep 1.4 of the garrison | 61 | 19 |
+
+      Nothing changes: what Optimus already does wins every comparison. Two
+      findings are well clear of the noise floor, though.
+
+      **Rolling fewer dice is bad, 36 against 74.** The arithmetic in plan
+      4.35 was right, and beside the point: one die does take a lone
+      defender just as surely and keeps about an army more where it stands,
+      but the forced move-in is the POINT. Armies that stay behind are
+      armies not taking the next territory. The Turtle losing games with
+      the same tactic was not luck.
+
+      **Holding cards for a bigger set costs games,** 63 or 65 against 74.
+      Sets do rise in value, but armies now beat armies later.
+
+      This is also the cleanest measurement of the session, because one
+      change at a time is what our sample sizes can actually see.
 
 ---
 
