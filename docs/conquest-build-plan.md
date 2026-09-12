@@ -1560,6 +1560,82 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       `strength.ts` is imported by the screen and by nothing in `players/`,
       which spec S30a states as a rule. Plan task 4.50 measured what happens
       when a player chooses moves by it: 30 games of 120 against 63.
+- [x] 4.52 **Planning a whole turn: built, measured, and the end of this
+      line of work.** Nick: "In order to make a deployment and attack plan
+      at the start of a turn, do you determine a finite set of different
+      approaches, measure the likely position strength of each post move and
+      then pick the highest score?" Yes, and that is what was built.
+
+      **A player called Seer.** Six whole-turn aims, each one coherent and
+      nameable: finish the region we are nearest to owning, break the region
+      the leader holds whole, cut the leader down, knock out a player who is
+      nearly gone, take the easy ones, press the weakest neighbour, and sit
+      tight. A finite SAMPLE, because deploying eight armies across twelve
+      frontier territories alone is 75582 choices before a single attack is
+      sequenced. Each aim is played out to the end of the turn with the odds
+      table of 4.49, no dice, and the board it leaves is scored with the
+      measured ranking of 4.50. Everything that is not a deployment or an
+      attack is left to Optimus, so the measurement is about the planning
+      alone.
+
+      **It lost, and no dial rescued it.** 120 four-player games, every seat
+      played, against Optimus, the Turtle and the Planner:
+
+      | Change | Seer | Optimus |
+      |---|---|---|
+      | As built | 20 | 53 |
+      | Attack bars 0.4 / 0.3 / 0.2 | 11 | 64 |
+      | Attack bars 0.25 / 0.2 / 0.15 | 15 | 52 |
+      | Attack bars 0.15 / 0.1 / 0.05 | 7 | 67 |
+      | Attack bars all 0.05 | 9 | 65 |
+      | Judge's army weight 4 | 17 | 59 |
+      | Judge's army weight 2 | 16 | 59 |
+      | Judge's army weight 0 | 13 | 62 |
+
+      Head to head on an unseen seed family, 60 games: Seer 20, Optimus 40.
+
+      **The measurement that reopened this was confounded, and I said so at
+      the time and built anyway.** Plan task 4.50 ended by showing the
+      ranking rising with the territories taken in a turn: -0.11 for a turn
+      that took nothing, up to +1.22 for five or more. That looked like the
+      answer to 4.50's failure. It was not a controlled comparison. Turns
+      where a player took five territories were turns where that player was
+      already strong and rising for other reasons.
+
+      The controlled comparison is the one Seer makes: the SAME board, the
+      SAME armies, attack or do not. Watched over 128 Seer turns, **"sit
+      tight" won 41 of them**, nearly a third. Taking one territory gains
+      about 0.07 of land share, costs about 0.07 of army share and another
+      0.04 for the longer front line, so it nets out slightly negative. The
+      ranking is right about the long run and cannot see the compounding
+      from one turn away.
+
+      Turning the army weight down to zero did not help either, which rules
+      out passivity as the binding constraint. Seer is simply weaker: six
+      crude plans chosen perfectly lose to twenty tuned terms chosen
+      greedily.
+
+      **The verdict on the whole line of work.** Four framings now, all
+      measured, none paying:
+
+      | Attempt | Result |
+      |---|---|
+      | 4.46 Oracle, rolled dice | 13 - 27 |
+      | 4.49 One attack, guessed judge | No signal at any weight |
+      | 4.50 One attack, measured judge | 30 of 120, against 63 |
+      | 4.52 Whole-turn plans, measured judge | 20 of 120, against 53 |
+
+      The pattern across all four is the same. Optimus already holds the
+      information a lookahead would add. It fights along its borders, values
+      continents, counts odds, races a dying player and gangs up on a
+      leader. Judging the position afterwards restates what it already knew,
+      and the restatement is cruder than the original.
+
+      Seer and `imagine.ts` are removed. What stays is what measured:
+      `odds.ts` from 4.49 and `strength.ts` from 4.50 and 4.51, both of them
+      shipped and both earning their place on the screen rather than in a
+      player. Anyone rebuilding Seer has the whole design above; the reason
+      not to is in the tables.
 
 ---
 
