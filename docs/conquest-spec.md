@@ -1369,6 +1369,14 @@ same four players:
 About two points of spread, not five to ten. At 12000 games, five minutes,
 it is under one point.
 
+**S22b. One dial at a time cannot find an interaction, however many games
+it plays.** A sweep of all 111 single-dial changes at 1200 games each found
+nothing worth more than a standard error. The tuner then moved the same 28
+dials TOGETHER and found seven percentage points, confirmed on four fields
+it was never tuned against. A one-at-a-time sweep is the right tool for
+finding a dial that does nothing, which is how the bug in S31 was caught,
+and the wrong tool for finding a better player.
+
 So the rule is: **1200 games is the smallest comparison worth reporting**,
 and a change worth shipping should be confirmed on a second seed family at
 the same size. The old 120-game runs are not wrong, only blind, and every

@@ -13,54 +13,86 @@ import type { ComputerPlayer } from './types'
  * serves both. Only these numbers differ, so the pair says what the tuning
  * is worth, in games, and nothing else has changed to muddy it.
  *
- * The tuner disagreed with us about four things, and won three:
+ * **These numbers are the second tuning, and the first honest one.** Plan
+ * task 4.54. Until 2026-09-13 the tuner judged each candidate on 48 games,
+ * where the error is about seven percentage points, so it could not see a
+ * difference smaller than roughly twenty. It was choosing at random among
+ * everything reasonable. Raised to 480 games a candidate, the same search
+ * moved 28 numbers together and found a real gain, confirmed on seed
+ * families it never saw:
  *
- * - a front territory holds HALF the biggest enemy beside it, not all,
- * - breaking somebody's continent is worth 2 an army of bonus, not 6,
- * - and attacks want a margin of 3 over the defender, not 1, with twice as
- *   many armies kept on the stack to keep going.
+ * | Against | Before | After |
+ * |---|---|---|
+ * | Planner, Greedy and the Turtle | 49.7% | 56.6% |
+ * | Turtle, General and Planner | 45.2% | 48.9% |
+ * | the General, head to head | 47.0% | 53.0% |
+ * | the Turtle, head to head | 85.1% | 88.3% |
  *
- * Read together: it holds a thinner line in fewer places, and hits harder
- * where it does hit.
+ * **The gain was in the interactions.** A sweep of every dial ONE AT A TIME
+ * at 1200 games, in plan task 4.53, found nothing worth more than a
+ * standard error. Moving them together found seven points. One-at-a-time
+ * testing cannot see this by construction, which is worth remembering
+ * before the next such sweep.
  *
- * **The fourth it got wrong, and so did we for weeks.** Plan task 4.53
- * swept every dial at 1200 games a change, and confirmed the winners over
- * 26460 games on three seed families the sweep never saw. Three numbers
- * moved, worth about 1.4 points of win rate together, at three standard
- * errors:
+ * Two things it found on its own that we had found by hand that morning,
+ * from different measurements: `onPlan` near 16, and holding a fourth card
+ * before trading. Agreement from two methods is worth more than either.
  *
- * - `secondLine` back to 2. The tuner had cut the line behind the front to
- *   a single army, which is what Nick asked it never to be.
- * - `onPlan` from 9 to 16, so a scattered board chases a continent about as
- *   hard as a coalesced one already does.
- * - `tradeAt` from 3 to 4, holding one extra card before trading.
+ * `secondLine` stays at the General's 2. The tuner wanted 1, and measured
+ * over 17640 games the two are level, so Nick's rule stands: the line
+ * behind the front holds "at least more than one".
  *
- * None of this was the tuner being unlucky. It judged each candidate on 48
- * games, where the error is about seven points, so it could not see a
- * difference smaller than roughly twenty. See spec S22a.
+ * One dial moved for the first time ever. `leaveItToOthers` had been read
+ * off the General's own numbers by mistake, so Optimus's value was thrown
+ * away and every past tuning of it was wasted. Plan task 4.53 fixed that,
+ * and this is the first run where the tuner could actually move it.
  */
 export const OPTIMUS_SETTINGS: typeof GENERAL_SETTINGS = {
   ...GENERAL_SETTINGS,
-  // Left in rather than dropped, because it says the tuner's 1 was measured
-  // and beaten, not merely forgotten. Plan task 4.53.
-  secondLine: 2,
-  frontShare: 0.5,
-  breakIsWorth: 2,
-  onPlan: 16,
-  tradeAt: 4,
+  // Fewer, thicker places. Half the front line the General wants, but a
+  // deeper guard on the doors of a region we hold.
+  doorGuard: 3,
+  denialGuard: 1,
+  frontShare: 0.4,
+  // The map is a means, not the point. Breaking somebody's continent is
+  // worth a third of what the General thinks, and finishing our own a
+  // little less. But WORKING towards one is worth twice as much: a
+  // scattered board should chase a continent about as hard as a coalesced
+  // one already does.
+  breakIsWorth: 1.74,
+  onPlan: 15.47,
+  finishIsWorth: 3.38,
+  // Hit harder and keep going. Three armies of margin, not one.
   toKeepGoing: 4,
   safeMargin: 3,
-  cardOdds: 7.5,
-  cardWorthShare: 0.5,
-  leaveItToOthers: 0.25,
-  cardsMatter: 3.5,
-  taxIsWorth: 4.5,
-  hitBackIsWorth: 7,
-  retakeIsWorth: 4,
-  cheapLean: 2.5,
-  leaderIsWorth: 7,
-  leaderLead: 1.6,
-  raceIsWorth: 3.5,
+  // Cards are the game. Chase the likeliest capture nearly twice as hard as
+  // the General, hold a fourth card before trading, and let a region that
+  // somebody else could break be somebody else's problem.
+  cardOdds: 16.94,
+  cardWorthShare: 0.63,
+  tradeAt: 4,
+  leaveItToOthers: 0.41,
+  knockoutIsWorth: 6.69,
+  cardsMatter: 3.3,
+  // Costing the next player an army is worth twice what the General
+  // thought, and racing a dying player for their cards nearly twice.
+  taxIsWorth: 8.31,
+  raceIsWorth: 5.81,
+  // Hitting back is much as before. Retaking what was taken matters less.
+  counterChance: 0.21,
+  hitBackIsWorth: 7.62,
+  retakeIsWorth: 3.17,
+  // The leader gets chopped only where it is CHEAP. Optimus leans harder on
+  // the odds before it goes and cares far less about the prize, which is
+  // the opposite of what we wrote by hand.
+  cheapLean: 3.72,
+  leaderIsWorth: 2.21,
+  leaderLead: 1.71,
+  // Nearly no ties, so it takes the best move it can see and stays
+  // predictable. And it pushes on after a capture rather than leaving the
+  // garrison the front line asked for.
+  nearlyAsGood: 0.05,
+  keepAfterCapture: 0.44,
 }
 
 /**

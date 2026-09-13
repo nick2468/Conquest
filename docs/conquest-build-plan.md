@@ -1710,6 +1710,61 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       wrong, they are blind, and each should be read as "not measured". The
       four lookahead failures stand: 20 of 120 is far outside any noise
       floor. The small stuff was never measured at all.
+- [x] 4.54 **The tuner, run once with a working ruler: Optimus gains seven
+      points.** With the sample raised from 48 games a candidate to 480
+      (plan task 4.53), the same cross-entropy search that had found nothing
+      for weeks moved all 28 numbers together and found a large, real gain.
+      20 rounds, 24 candidates, about 230000 games, 95 minutes.
+
+      Its own held-back set said 50.0% against 57.3%. That was big enough to
+      be suspicious of, so it was checked four ways on seed families it
+      never saw:
+
+      | Against | Before | After | Sigma |
+      |---|---|---|---|
+      | Planner, Greedy and the Turtle | 49.7% | 56.6% | 9.3 |
+      | Turtle, General and Planner | 45.2% | 48.9% | 4.5 |
+      | the General, head to head | 47.0% | 53.0% | 4.1 |
+      | the Turtle, head to head | 85.1% | 88.3% | 3.0 |
+
+      Then verified once more with the SHIPPED build on a family none of the
+      work had touched: 48.8% and 56.4% on the two four-player tables.
+      Against 44.5% where the day started, that is **more than four points**.
+
+      **The gain was in the interactions, and this is the lesson.** The
+      one-at-a-time sweep of 4.53 tested 111 changes at 1200 games each and
+      found nothing above one standard error. Moving the dials TOGETHER
+      found seven points. A one-at-a-time sweep cannot see an interaction by
+      construction, however many games it plays. It is the right tool for
+      finding a broken dial and the wrong one for finding a better player.
+
+      **Two findings arrived twice, by different roads.** The tuner chose
+      `onPlan` 15.47 and `tradeAt` 4 from scratch, where the morning's hand
+      sweep had chosen 16 and 4. Agreement between two methods is worth more
+      than either alone.
+
+      **`secondLine` stays at 2.** The tuner wanted 1. Measured over 17640
+      games the two are level (+55 and +16 to 2, 0.8 sigma), so the tie goes
+      to Nick's rule that the line behind the front holds "at least more
+      than one".
+
+      **One dial moved for the first time ever.** `leaveItToOthers` went
+      0.25 to 0.41. It had been read off the General's own numbers by
+      mistake, so every past tuning of it was thrown away. Plan task 4.53
+      fixed that hours earlier, and this is the first run in which the tuner
+      could move it at all.
+
+      The largest changes read as a coherent player rather than a scatter:
+      chase cards far harder (`cardOdds` 7.5 to 16.94), punish the next
+      player twice as hard (`taxIsWorth` 4.5 to 8.31), care far less about
+      the prize on a runaway leader but lean much harder on cheap odds
+      before going (`leaderIsWorth` 7 to 2.21, `cheapLean` 2.5 to 3.72), and
+      push on after a capture instead of leaving the garrison the front line
+      asked for (`keepAfterCapture` 1 to 0.44).
+
+      The General is unchanged, as always. That is the point of the pair:
+      the difference between them is now worth about eleven points, and it
+      is all measurement.
 
 ---
 
