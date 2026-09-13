@@ -430,6 +430,11 @@ export function App() {
   const occupation = state.turn.pendingOccupation
   const current = state.players.find((each) => each.id === state.turn.playerId)
   const isAComputer = current !== undefined && current.kind !== 'human'
+  // Each player's chance of winning, looked up by player, so the scores
+  // panel can stay in TURN order and still show the standing.
+  const chances = new Map(
+    standings(state).map((each) => [each.playerId, each.chance]),
+  )
 
   /**
    * Am I watching rather than playing, right now?
@@ -573,8 +578,12 @@ export function App() {
 
       <div className="side">
         {/* Nick: "Put the ranking first, then dice analysis, then history."
-            The order is now the standing, strongest first, and it changes
-            as the game does. See engine/strength.ts. */}
+
+            The rows stay in TURN order, which is what the panel is for.
+            Nick: "it's more important to know who is playing next than who
+            the current leader is, and besides with the % and bar graph we
+            are providing that information anyway." Sorting by the standing
+            was tried and taken out again. See engine/strength.ts. */}
         <table className="scores">
           <thead>
             <tr>
@@ -587,14 +596,8 @@ export function App() {
             </tr>
           </thead>
           <tbody>
-            {standings(state).map((standing) => {
-              const player = state.players.find(
-                (each) => each.id === standing.playerId,
-              )
-
-              if (player === undefined) {
-                return null
-              }
+            {state.players.map((player) => {
+              const chance = chances.get(player.id) ?? 0
 
               const mine = Object.values(state.territories).filter(
                 (each) => each.ownerId === player.id,
@@ -621,12 +624,12 @@ export function App() {
                   <td className="winning">
                     <span
                       className="winning-bar"
-                      style={{ width: `${Math.round(standing.chance * 100)}%` }}
+                      style={{ width: `${Math.round(chance * 100)}%` }}
                     />
                     <span className="winning-figure">
                       {player.isEliminated
                         ? 'out'
-                        : `${Math.round(standing.chance * 100)}%`}
+                        : `${Math.round(chance * 100)}%`}
                     </span>
                   </td>
                 </tr>

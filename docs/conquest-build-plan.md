@@ -1560,6 +1560,14 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       `strength.ts` is imported by the screen and by nothing in `players/`,
       which spec S30a states as a rule. Plan task 4.50 measured what happens
       when a player chooses moves by it: 30 games of 120 against 63.
+
+      **The sorting was taken out again, the next day.** Nick: "restore the
+      player board as it was before, it's more important to know who is
+      playing next than who the current leader is, and besides with the %
+      and bar graph we are providing that information anyway." Right on both
+      counts. Turn order is the one thing the panel can say that nothing
+      else on the screen says, and sorting spent it to repeat what the bar
+      already shows. The column stays, the order goes back. Spec S30.
 - [x] 4.52 **Planning a whole turn: built, measured, and the end of this
       line of work.** Nick: "In order to make a deployment and attack plan
       at the start of a turn, do you determine a finite set of different

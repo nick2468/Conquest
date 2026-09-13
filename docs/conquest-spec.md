@@ -772,10 +772,16 @@ See D16.
 
 ### 11.4a The scores panel is a leaderboard
 
-**S30. The scores panel is ordered by who is winning, strongest first, and
-it reorders as the game turns.** It carries a Winning column beside Land and
-Armies: each player's chance of winning, as a figure and as a bar behind it.
-A player who is out reads "out" and sits below everyone still in.
+**S30. The scores panel stays in TURN order and carries a Winning column.**
+Beside Land and Armies it shows each player's chance of winning, as a figure
+and as a bar behind it. A player who is out reads "out".
+
+**The rows do NOT sort by the standing.** That was tried and taken out
+again. Nick: "it's more important to know who is playing next than who the
+current leader is, and besides with the % and bar graph we are providing
+that information anyway." He is right on both counts. Turn order is the one
+thing the panel can say that nothing else on the screen says, and a sorted
+table would spend it to repeat what the bar already shows.
 
 The chance comes from `engine/strength.ts`, and the weights in it were
 MEASURED rather than chosen. 82846 recorded positions from 240 games were
