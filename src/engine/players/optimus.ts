@@ -13,9 +13,8 @@ import type { ComputerPlayer } from './types'
  * serves both. Only these numbers differ, so the pair says what the tuning
  * is worth, in games, and nothing else has changed to muddy it.
  *
- * The tuner disagreed with us about four things, and won:
+ * The tuner disagreed with us about four things, and won three:
  *
- * - the line behind the front holds ONE army, not two,
  * - a front territory holds HALF the biggest enemy beside it, not all,
  * - breaking somebody's continent is worth 2 an army of bonus, not 6,
  * - and attacks want a margin of 3 over the defender, not 1, with twice as
@@ -23,13 +22,32 @@ import type { ComputerPlayer } from './types'
  *
  * Read together: it holds a thinner line in fewer places, and hits harder
  * where it does hit.
+ *
+ * **The fourth it got wrong, and so did we for weeks.** Plan task 4.53
+ * swept every dial at 1200 games a change, and confirmed the winners over
+ * 26460 games on three seed families the sweep never saw. Three numbers
+ * moved, worth about 1.4 points of win rate together, at three standard
+ * errors:
+ *
+ * - `secondLine` back to 2. The tuner had cut the line behind the front to
+ *   a single army, which is what Nick asked it never to be.
+ * - `onPlan` from 9 to 16, so a scattered board chases a continent about as
+ *   hard as a coalesced one already does.
+ * - `tradeAt` from 3 to 4, holding one extra card before trading.
+ *
+ * None of this was the tuner being unlucky. It judged each candidate on 48
+ * games, where the error is about seven points, so it could not see a
+ * difference smaller than roughly twenty. See spec S22a.
  */
 export const OPTIMUS_SETTINGS: typeof GENERAL_SETTINGS = {
   ...GENERAL_SETTINGS,
-  secondLine: 1,
+  // Left in rather than dropped, because it says the tuner's 1 was measured
+  // and beaten, not merely forgotten. Plan task 4.53.
+  secondLine: 2,
   frontShare: 0.5,
   breakIsWorth: 2,
-  onPlan: 9,
+  onPlan: 16,
+  tradeAt: 4,
   toKeepGoing: 4,
   safeMargin: 3,
   cardOdds: 7.5,

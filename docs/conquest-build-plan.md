@@ -1636,6 +1636,80 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       shipped and both earning their place on the screen rather than in a
       player. Anyone rebuilding Seer has the whole design above; the reason
       not to is in the tables.
+- [x] 4.53 **The ruler was too short. Optimus improves once it is not.**
+      Nick, on the four failures above: "so we've made the strongest player
+      we can with Optimus and there's nothing worthwhile doing to improve
+      him?" No. We had never measured well enough to know.
+
+      **The floor was self-imposed.** This plan had recorded for weeks that
+      measurements have a floor of about five points, and had discarded
+      everything smaller. That came from choosing 120-game samples, and
+      nobody checked what a bigger one costs. **1200 games take 32
+      seconds.** Three seed families, same four players, gave 46.3 / 46.5 /
+      44.3 percent for Optimus: about two points of spread, not five to ten.
+      Spec S22a now sets 1200 games as the smallest comparison worth
+      reporting.
+
+      **The tuner was worse.** `tune.mjs` judged each candidate on 12 seeds,
+      which is 48 games. The error on 48 games is about seven points, so it
+      could not tell apart two candidates less than roughly twenty points
+      apart. It was choosing at random among everything reasonable, and its
+      own honest held-back check kept reporting, correctly, that the winner
+      was no better. We blamed the ideas. Raised to 480 games a candidate,
+      and the league with it.
+
+      **Then every dial was swept, one at a time, 1200 games each**, 111
+      changes, 87 minutes. Nothing cleared one standard error, which is
+      about 24 games. The six best were taken to four fresh families and
+      pooled over 4800 games each, then the survivors to 8820, then three
+      more families. What survived:
+
+      | Change | Pooled, 26460 games | Sigma |
+      |---|---|---|
+      | `onPlan` 9 to 16, `secondLine` 1 to 2, `tradeAt` 3 to 4 | +370 | 3.2 |
+      | `onPlan` 16 alone | +180 over 17640 | 1.9 |
+      | `secondLine` 2 and `tradeAt` 4, without `onPlan` | +34 over 8820 | 0.5 |
+      | `retakeIsWorth` 11 | +9 over 8820 | 0.1 |
+
+      That is **44.5% to 45.9%**, confirmed on a fourth family the work
+      never touched: 4052 of 8820.
+
+      **Two of the three are corrections, not discoveries.** `secondLine`
+      says what the line behind the front holds, and its own comment quotes
+      Nick: "at least more than one". The tuner had cut it to exactly one.
+      `tradeAt` 4 was rejected in plan task 4.47 on 120 games. Only `onPlan`
+      is new, and it says something worth saying: a scattered board should
+      chase a continent about as hard as a coalesced one already does. The
+      two-stage split of plan 4.43 had the early value at 9 against the late
+      15, and that gap was wrong. `onPlan` is flat between 16 and 20 and
+      falls away by 26.
+
+      **A trap the four families exposed.** On one of them EVERY candidate
+      beat the baseline by 30 to 46. That is not six discoveries, it is one
+      low baseline draw: baselines across four families ran 493, 523, 535,
+      558 at 1200 games. Anyone reading a single family would have shipped
+      six false wins. Confirm on a fresh family, always.
+
+      **A real bug the sweep found.** Some dials moved NOTHING at any value,
+      which should be impossible. `general.ts` read
+      `GENERAL_SETTINGS.leaveItToOthers` instead of `rules.leaveItToOthers`.
+      Optimus shares that code, so its tuned 0.25 was thrown away and it
+      quietly used the General's 0.3. Nothing ever failed, and the tuner
+      went on tuning a number nothing read. Fixed, and guarded by
+      `players/dials.test.ts`, which reads the source and fails if any
+      setting is named off one player's object. Proven to block by stashing
+      the fix: it fails on the old line and passes on the new. See spec S31.
+
+      `knockoutIsWorth` is live but fires only when a player is down to
+      exactly one territory, which is too rare to measure. Not a bug, and
+      not doing much. `oneDieAbove` is confirmed badly harmful at far higher
+      confidence than 4.47 could reach: -142 and -95 games.
+
+      **What this says about everything above.** Every "inside the noise"
+      verdict in tasks 4.20 to 4.52 was recorded at 120 games. They are not
+      wrong, they are blind, and each should be read as "not measured". The
+      four lookahead failures stand: 20 of 120 is far outside any noise
+      floor. The small stuff was never measured at all.
 
 ---
 
