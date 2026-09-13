@@ -787,6 +787,15 @@ The chances are scaled to add up to 100%. The fit answers each player
 separately, so four players can each honestly read "40%", which is useless
 as a table.
 
+**S31. A shared setting is read through `rules`, never off one player's
+own object.** The General and Optimus are the same code with different
+numbers, and `rules` is set at the top of each turn to whichever set
+applies. One line read `GENERAL_SETTINGS.leaveItToOthers` directly, so
+Optimus threw away its own tuned value and quietly used the General's.
+Nothing failed, and the tuner went on tuning a number nothing read.
+`players/dials.test.ts` reads the source and fails on any such line. Plan
+task 4.53 has the story.
+
 **S30a. The reading is for SHOWING, never for choosing moves.** Plan task
 4.50 measured a computer player that chose its attacks by this same ranking:
 it scored 30 games of 120 where the ordinary player scored 63. A rule that

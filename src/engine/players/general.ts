@@ -552,7 +552,12 @@ export function breakUrgency(
     ),
   )
 
-  return someoneElseCan ? GENERAL_SETTINGS.leaveItToOthers : 1
+  // `rules`, not GENERAL_SETTINGS. Reading the General's own numbers here
+  // was a real bug: Optimus shares this code, so its tuned 0.25 was thrown
+  // away and it quietly used the General's 0.3 instead. Found on
+  // 2026-09-13 by sweeping every dial at 1200 games, where this one moved
+  // NOTHING at any value. `zz-dials` guards the whole class now.
+  return someoneElseCan ? rules.leaveItToOthers : 1
 }
 
 interface Worth {
