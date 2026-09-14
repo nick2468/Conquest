@@ -365,33 +365,55 @@ export function touchingLength(
 
   for (const edge of edgesOf(one)) {
     for (const other of edgesOf(two)) {
-      most = Math.max(most, sharedLength(edge, other))
+      // BOTH ways round. `sharedLength` needs the second edge to end within
+      // the first, so a short coast lying along part of a long one answered
+      // nothing when asked in that order. A small place against the side of
+      // a big one then read as an island, and the board drew a sea route
+      // across dry land. Plan task 5.12.
+      most = Math.max(
+        most,
+        sharedLength(edge, other),
+        sharedLength(other, edge),
+      )
     }
   }
 
   return most
 }
 
-/** How much of one edge lies along another, when the two are in line. */
+/**
+ * How much of the SECOND edge lies along the first, when the two are in
+ * line. Answers nothing unless both ends of the second lie on the first, so
+ * callers must ask both ways round and take the larger. `touchingLength`
+ * does.
+ */
 function sharedLength(
   one: readonly [Corner, Corner],
   two: readonly [Corner, Corner],
 ): number {
   const [from, to] = one
-
-  // Not in line, so they cross at a point at most, which has no length.
-  if (
-    distanceToEdge(two[0], from, to) > TOUCHING ||
-    distanceToEdge(two[1], from, to) > TOUCHING
-  ) {
-    return 0
-  }
-
   const alongX = to[0] - from[0]
   const alongY = to[1] - from[1]
   const length = Math.hypot(alongX, alongY)
 
   if (length === 0) {
+    return 0
+  }
+
+  /** How far the point sits off the LINE this edge runs along. */
+  const offTheLine = (point: Corner): number =>
+    Math.abs(alongY * (point[0] - from[0]) - alongX * (point[1] - from[1])) /
+    length
+
+  // Measured to the LINE, not to the edge itself. Measuring to the edge
+  // asked the other edge to STOP inside this one, which two coasts that
+  // merely overlap never do: a short coast along a long one failed, and so
+  // did two that each ran past the other. Both answered "no border at all",
+  // and the board then drew a sea route across dry land. Plan task 5.12.
+  //
+  // The line is safe to use, because two edges collinear but far apart
+  // still overlap by nothing once they are clipped below.
+  if (offTheLine(two[0]) > TOUCHING || offTheLine(two[1]) > TOUCHING) {
     return 0
   }
 
