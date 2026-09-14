@@ -5,6 +5,12 @@ interface WinnerScreenProps {
   readonly state: GameState
   readonly onPlayAgain: () => void
   readonly onNewGame: () => void
+  /**
+   * Watch the whole game again on the map. Left out when the game was
+   * played across several iPads, where the moves were made elsewhere and
+   * this device never recorded them. Plan task 4.55.
+   */
+  readonly onWatchAgain?: (() => void) | undefined
 }
 
 /** How the game ended, and the two ways on from here. */
@@ -12,6 +18,7 @@ export function WinnerScreen({
   state,
   onPlayAgain,
   onNewGame,
+  onWatchAgain,
 }: WinnerScreenProps) {
   const winner = state.players.find((each) => each.id === state.winnerId)
 
@@ -44,6 +51,11 @@ export function WinnerScreen({
       </ol>
 
       <div className="winner-buttons">
+        {onWatchAgain === undefined ? null : (
+          <button type="button" onClick={onWatchAgain}>
+            Watch it again
+          </button>
+        )}
         <button type="button" onClick={onNewGame}>
           Change the settings
         </button>

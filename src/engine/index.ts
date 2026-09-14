@@ -133,6 +133,9 @@ export {
   resolveAttack,
 } from './attack'
 
+export type { Recording } from './replay'
+export { replayTo } from './replay'
+
 export type { Standing } from './strength'
 export { STRENGTH, standings, strengthOf } from './strength'
 

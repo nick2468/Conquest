@@ -880,6 +880,58 @@ button.primary {
   text-align: left;
 }
 
+/* Watching a finished game again. Plan task 4.55. It sits where the turn
+   panel sits, because during a replay there is no turn to take. */
+.replay-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.9rem;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 0.5rem;
+}
+
+.replay-where {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.replay-who {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.replay-count {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+.replay-slider {
+  width: 100%;
+}
+
+.replay-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.replay-speed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+}
+
 /* The chance of winning, shown as a bar behind the figure. The order of
    the rows is the standing, so the table reorders as the game turns. */
 .scores td.winning {

@@ -793,6 +793,38 @@ The chances are scaled to add up to 100%. The fit answers each player
 separately, so four players can each honestly read "40%", which is useless
 as a table.
 
+### 11.4b Watching a finished game again
+
+**S32. When a game ends, it can be watched again on the map.** A frame is
+one MOVE, and it plays at 5 to 50 moves a second with a slider to go
+anywhere. Nick: "I mostly just want to rewatch how the player colours
+coalesce over time until there is one winner", and "moves will be nicer to
+watch, by turns will be a bit jerky." Whole turns were tried first and he is
+right that they jump.
+
+**No sounds, and no dice.** Nick asked for both. Sounds come free, because
+they are only played by the code that makes a real move. The dice panel is
+hidden while watching.
+
+**S32a. No board is stored. A recording is the first board and the list of
+actions.** The engine is pure and the dice come from a seeded source, so
+replaying the actions gives back exactly the same game. A long game is a few
+thousand small objects rather than a few thousand boards. Going forward one
+frame costs one action; going backwards replays from the start, which takes
+a few milliseconds. `engine/replay.test.ts` plays whole games and compares
+board for board, log and all, because a second way of producing states can
+quietly disagree with the first.
+
+**S32b. Nothing may act while a replay is showing.** The replayed board
+takes the place of the live one everywhere, so the computer players, the
+taps and the set bell must all be held off. Without that the computer reads
+a board from the middle of the game and tries to move in the finished game
+behind it, which throws "Optimus has already won". That was a real bug,
+found by driving the replay in a browser rather than by reading the code.
+
+**Not offered across iPads.** There the moves were made on other devices and
+this one never recorded them.
+
 **S31. A shared setting is read through `rules`, never off one player's
 own object.** The General and Optimus are the same code with different
 numbers, and `rules` is set at the top of each turn to whichever set

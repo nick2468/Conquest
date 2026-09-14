@@ -20,7 +20,9 @@ import { BoardDice } from './BoardDice'
 import { playSound, rememberSound, soundWasOn, startSound, unlockOnFirstTap } from './sounds'
 import { setReadyToTrade } from './hand'
 import { highlightsFor, whatATapDoes } from './taps'
+import { ReplayBar } from './ReplayBar'
 import { useGame } from './useGame'
+import { useReplay } from './useReplay'
 import { SERVER, useTable } from './useTable'
 import { useUpdate } from './useUpdate'
 
@@ -92,7 +94,12 @@ export function App() {
   const table = useTable()
   const across = table.state !== null && table.map !== null
 
-  const state = across ? (table.state as GameState) : onOneIPad.state
+  // Watching the finished game again. Plan task 4.55. The replayed board
+  // simply takes the place of the live one, so the map, the scores panel
+  // and everything else follow it without knowing it is a replay.
+  const replay = useReplay(onOneIPad.recording, onOneIPad.diceSeed)
+  const live = across ? (table.state as GameState) : onOneIPad.state
+  const state = replay.showing ?? live
   const chooser = onOneIPad.chooser
   const act = across ? table.act : onOneIPad.act
   const actUntilDone = onOneIPad.actUntilDone
@@ -174,6 +181,11 @@ export function App() {
   )
   const playing: Skill | null =
     screen === 'playing' &&
+    // Nothing plays during a replay. The board on screen is a board from
+    // the PAST, so without this the computer reads a mid-game position and
+    // tries to move in the finished game behind it. That was a real bug,
+    // caught by driving the replay live: "Optimus has already won."
+    !replay.watching &&
     // In a game across iPads the SERVER plays the computers, one step at a
     // time, and sends each move out. Every iPad running its own copy would
     // mean four of them all deciding the same move at once.
@@ -196,6 +208,7 @@ export function App() {
    */
   const aSetIsWaiting =
     screen === 'playing' &&
+    !replay.watching &&
     state.winnerId === null &&
     whoseTurn !== undefined &&
     whoseTurn.kind === 'human' &&
@@ -457,6 +470,12 @@ export function App() {
   const closeUpOn = state.map.territories.find((each) => each.id === view)
 
   const handleTap = (territoryId: TerritoryId): void => {
+    // A replay is for watching. Tapping the map must not reach into the
+    // finished game behind it.
+    if (replay.watching) {
+      return
+    }
+
     // On the whole board a tap opens the close view. Playing happens in the
     // close view, where everything is big enough to hit.
     if (lookingAt === null) {
@@ -571,7 +590,8 @@ export function App() {
           onTapSea={view === null ? undefined : showWholeBoard}
         />
 
-        {state.turn.lastAttack === null ? null : (
+        {/* No dice during a replay. Nick: "no need to show dice rolls". */}
+        {state.turn.lastAttack === null || replay.watching ? null : (
           <BoardDice outcome={state.turn.lastAttack} display={state.options.diceDisplay} />
         )}
       </div>
@@ -638,9 +658,12 @@ export function App() {
           </tbody>
         </table>
 
-        {over ? (
+        {replay.watching ? (
+          <ReplayBar replay={replay} state={state} />
+        ) : over ? (
           <WinnerScreen
             state={state}
+            onWatchAgain={across ? undefined : replay.start}
             onPlayAgain={() => start({ ...setup, seed: setup.seed + 1 })}
             onNewGame={() => setScreen('newGame')}
           />

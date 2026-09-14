@@ -6,6 +6,7 @@ import type {
   GameState,
   NewPlayer,
   RandomSource,
+  Recording,
 } from '../engine'
 import type { GameMap } from '../engine'
 import { applyAction, createGame, seededRandom } from '../engine'
@@ -35,6 +36,17 @@ export interface NewGameSettings {
  */
 interface Holding {
   readonly state: GameState
+  /**
+   * The board before anybody moved, and every action since, so the game can
+   * be watched again when it is over. Plan task 4.55.
+   *
+   * Only the actions are kept, never the boards. The engine is pure and the
+   * dice come from a seeded source, so replaying the actions produces
+   * exactly the same game. See `engine/replay.ts`.
+   */
+  readonly recording: Recording
+  /** The seed the dice source started from, so a replay can begin again. */
+  readonly diceSeed: number
   /** Rolls the dice. */
   readonly random: RandomSource
   /**
@@ -52,18 +64,23 @@ function deal(settings: NewGameSettings): Holding {
   // Two sources from one seed keep the board the same when only the dice
   // differ, which makes a board easy to set up again.
   const dealer = seededRandom(settings.seed)
-  const random = seededRandom(settings.seed * 7919 + 13)
+  const diceSeed = settings.seed * 7919 + 13
+  const random = seededRandom(diceSeed)
   const chooser = seededRandom(settings.seed * 104729 + 5)
 
+  const state = createGame({
+    map: settings.map,
+    players: settings.players,
+    random: dealer,
+    options: settings.options,
+  })
+
   return {
-    state: createGame({
-      map: settings.map,
-      players: settings.players,
-      random: dealer,
-      options: settings.options,
-    }),
+    state,
     random,
     chooser,
+    recording: { first: state, actions: [] },
+    diceSeed,
   }
 }
 
@@ -83,6 +100,10 @@ export function useGame(initial: NewGameSettings) {
       setHolding({
         ...holding,
         state: applyAction(holding.state, action, holding.random),
+        recording: {
+          first: holding.recording.first,
+          actions: [...holding.recording.actions, action],
+        },
       })
     },
     [holding],
@@ -101,6 +122,7 @@ export function useGame(initial: NewGameSettings) {
   const actUntilDone = useCallback(
     (chooseNext: (state: GameState) => GameAction | null) => {
       let state = holding.state
+      const taken: GameAction[] = []
 
       // A guard, not a rule. It stops a chooser that never returns null from
       // hanging the page, and 2000 is far more than any real run needs.
@@ -111,10 +133,18 @@ export function useGame(initial: NewGameSettings) {
           break
         }
 
+        taken.push(action)
         state = applyAction(state, action, holding.random)
       }
 
-      setHolding({ ...holding, state })
+      setHolding({
+        ...holding,
+        state,
+        recording: {
+          first: holding.recording.first,
+          actions: [...holding.recording.actions, ...taken],
+        },
+      })
     },
     [holding],
   )
@@ -126,6 +156,8 @@ export function useGame(initial: NewGameSettings) {
   return {
     state: holding.state,
     chooser: holding.chooser,
+    recording: holding.recording,
+    diceSeed: holding.diceSeed,
     act,
     actUntilDone,
     newGame,

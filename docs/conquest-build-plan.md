@@ -1773,6 +1773,49 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       The General is unchanged, as always. That is the point of the pair:
       the difference between them is now worth about eleven points, and it
       is all measurement.
+- [x] 4.55 **Watching a finished game again.** Nick: "could we create a post
+      game replay animation, no sounds, that lets the human player see the
+      map change as it was played? The player board should track with it."
+
+      It cost very little, and the reason is spec S2 and S3. The engine is
+      pure and never changes a value in place, and every dice roll comes
+      from a source handed in. So a whole game is three small things: the
+      board it started on, the actions taken, and the dice seed. **No board
+      is stored.** A long game is a few thousand small objects, not a few
+      thousand boards.
+
+      The replayed board simply takes the place of the live one at the one
+      line in `App.tsx` that chooses which board to draw. So the map, the
+      scores panel and the history all follow it without knowing it is a
+      replay. That is the whole of "the player board should track with it".
+
+      **A frame is one MOVE.** Whole turns were built first and Nick was
+      right that they jump: "moves will be nicer to watch, by turns will be a
+      bit jerky." Moves flow, because armies gather and a border gives way a
+      little at a time. It plays at 5 to 50 moves a second with a slider.
+      `turnStarts` was written, tested and then deleted rather than left
+      unused.
+
+      Sounds and dice are both out, as asked. Sounds come free: they are
+      only played by the code that makes a real move, and a replay never
+      calls it.
+
+      **The bug this found, which only driving it could find.** With the
+      board swapped underneath, the computer players read a position from
+      the MIDDLE of the game and tried to move in the finished game behind
+      it: "Optimus has already won." The taps and the set bell had the same
+      fault. All three now stand down while a replay shows, which is spec
+      S32b. The test suite could not have caught this: every test was green
+      throughout.
+
+      The guard that matters is `engine/replay.test.ts`. It plays whole
+      games keeping every board, then replays and compares board for board,
+      log and all, because a second way of producing states can quietly
+      disagree with the first. If it ever fails, the engine has stopped
+      being pure, which is worth knowing whatever the replay is doing.
+
+      Not offered across iPads: there the moves were made elsewhere and this
+      device never recorded them. Driven live end to end, 590 tests green.
 
 ---
 
