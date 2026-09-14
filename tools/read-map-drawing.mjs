@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { pathToFileURL } from 'node:url'
 import { inflateSync } from 'node:zlib'
 
 /**
@@ -28,6 +29,34 @@ import { inflateSync } from 'node:zlib'
  * continents and bonuses. Anything left over is named "place 1", "place
  * 2" and so on, and is renamed in the editor at /editor.html.
  */
+
+// ------------------------------------------------------- names with quotes
+
+/**
+ * A piece of text, ready to sit inside single quotes in TypeScript.
+ *
+ * Without this a place called "Cote d'Ivoire" wrote a file that would not
+ * compile, and `theOldPlaces` below could not find it again. No place on
+ * any map of ours has an apostrophe, which is exactly why it went unseen.
+ * Plan task 5.13.
+ */
+export function quoted(text) {
+  return String(text).replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+}
+
+/** The other way round: what a quoted piece of text really says. */
+export function unquoted(text) {
+  return String(text).replace(/\\(.)/g, '$1')
+}
+
+/**
+ * Matches a single-quoted TypeScript string, escapes and all.
+ *
+ * The pattern used to be `[^']+`, which stops dead at the backslash of an
+ * escaped quote. The rest of the block then failed to match and the place
+ * was dropped without a word.
+ */
+const QUOTED = String.raw`'((?:\\.|[^'\\])*)'`
 
 const WRITE_TO = 'src/maps/world.ts'
 
@@ -1159,29 +1188,43 @@ function readPng(file) {
  * islands. Read with patterns, because this is a plain script and the
  * map is TypeScript written in a shape that does not vary.
  */
-function theOldPlaces(file) {
+export function theOldPlaces(file) {
   const text = readFileSync(file, 'utf8')
   const places = new Map()
   const blocks = text.matchAll(
-    /id: '([^']+)',\s*name: '([^']+)',\s*shortName: '([^']+)',\s*regionId: '([^']+)',\s*borders: \[([^\]]*)\]([\s\S]*?)\n  \},/g,
+    new RegExp(
+      String.raw`id: ${QUOTED},\s*name: ${QUOTED},\s*shortName: ${QUOTED},` +
+        String.raw`\s*regionId: ${QUOTED},\s*borders: \[([^\]]*)\]([\s\S]*?)\n  \},`,
+      'g',
+    ),
   )
 
   for (const [, id, name, shortName, regionId, borders, rest] of blocks) {
-    places.set(id, {
-      id,
-      name,
-      shortName,
-      regionId,
-      borders: [...borders.matchAll(/'([^']+)'/g)].map((found) => found[1]),
+    places.set(unquoted(id), {
+      id: unquoted(id),
+      name: unquoted(name),
+      shortName: unquoted(shortName),
+      regionId: unquoted(regionId),
+      borders: [...borders.matchAll(new RegExp(QUOTED, 'g'))].map((found) =>
+        unquoted(found[1]),
+      ),
       isIsland: /isIsland: true/.test(rest),
     })
   }
 
   const regions = [
     ...text.matchAll(
-      /id: '([^']+)',\s*name: '([^']+)',\s*bonus: (\d+),\s*outline: '([^']+)'/g,
+      new RegExp(
+        String.raw`id: ${QUOTED},\s*name: ${QUOTED},\s*bonus: (\d+),\s*outline: ${QUOTED}`,
+        'g',
+      ),
     ),
-  ].map(([, id, name, bonus, outline]) => ({ id, name, bonus: Number(bonus), outline }))
+  ].map(([, id, name, bonus, outline]) => ({
+    id: unquoted(id),
+    name: unquoted(name),
+    bonus: Number(bonus),
+    outline: unquoted(outline),
+  }))
 
   return { places, regions }
 }
@@ -1609,13 +1652,18 @@ function theOldMap(file) {
     regions.push({ id, name, bonus: Number(bonus), outline })
   }
 
-  const named = /name: '([^']+)',\s*viewBox/.exec(text)
+  const named = new RegExp(String.raw`name: ${QUOTED},\s*viewBox`).exec(text)
 
   if (territories.length === 0) {
     return null
   }
 
-  return { id: 'world', name: named?.[1] ?? 'World', territories, regions }
+  return {
+    id: 'world',
+    name: named === null ? 'World' : unquoted(named[1]),
+    territories,
+    regions,
+  }
 }
 
 function frameFor(places) {
@@ -1644,9 +1692,9 @@ function asTypeScript(places, mapName, replacing, viewBox) {
     [{ id: 'everywhere', name: 'Everywhere', bonus: 2, outline: '#7a6f5d' }]
   const blocks = places.map(
     (place) => `  {
-    id: '${place.id}',
-    name: '${place.name}',
-    shortName: '${place.shortName}',
+    id: '${quoted(place.id)}',
+    name: '${quoted(place.name)}',
+    shortName: '${quoted(place.shortName)}',
     regionId: '${place.regionId}',
     borders: [
 ${place.borders.map((each) => `      '${each}',`).join('\n')}
@@ -1714,17 +1762,17 @@ function toTerritory(place: Place): TerritoryDefinition {
 
 export const WORLD: GameMap = {
   id: '${(replacing?.id ?? mapName).toLowerCase().replace(/[^a-z0-9]+/g, '')}',
-  name: '${mapName}',
+  name: '${quoted(mapName)}',
   viewBox: '${viewBox}',
 
   regions: [
 ${regions
   .map(
     (region) => `    {
-      id: '${region.id}',
-      name: '${region.name}',
+      id: '${quoted(region.id)}',
+      name: '${quoted(region.name)}',
       bonus: ${region.bonus},
-      outline: '${region.outline}',
+      outline: '${quoted(region.outline)}',
     },`,
   )
   .join('\n')}
@@ -1735,4 +1783,11 @@ ${regions
 `
 }
 
-main()
+// Only when this file is the thing being RUN. A test can then import the
+// helpers above without the tool setting off and rewriting a map.
+if (
+  process.argv[1] !== undefined &&
+  import.meta.url === pathToFileURL(process.argv[1]).href
+) {
+  main()
+}

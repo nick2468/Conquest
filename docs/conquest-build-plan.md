@@ -1816,6 +1816,80 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
       Not offered across iPads: there the moves were made elsewhere and this
       device never recorded them. Driven live end to end, 590 tests green.
+- [x] 5.12 **`touchingLength` was not symmetric, and both Australia maps
+      were drawn wrong because of it.** Reported by another session, which
+      found it in copied code. Verified at source here before anything was
+      changed, and it is worse than reported.
+
+      `sharedLength` measured how far the other edge's ENDS were from THIS
+      edge, using a distance that clamps to the ends. So the other edge had
+      to STOP inside this one. Two coasts that merely overlap never do.
+
+      The report suggested measuring both ways round and taking the larger.
+      That fixes one case and not the other, which a test showed: a short
+      coast lying along a long one then works, but two edges that each run
+      past the other, 0 to 100 against 50 to 150, still answer nothing.
+      **The real fix is to measure to the LINE the edge runs along rather
+      than to the edge**, then clip the overlap. That is symmetric by
+      construction and covers every case.
+
+      **What it was doing to the maps**, counted before and after:
+
+      | Map | Before | After |
+      |---|---|---|
+      | World | 58 land, 25 sea | unchanged |
+      | Australia in detail | 32 land, 33 sea | 48 land, 17 sea |
+      | Australia | 3 land, 10 sea | 9 land, 4 sea |
+
+      Ten of the small Australia map's thirteen borders were drawn as dashed
+      SEA CROSSINGS, between places that plainly share a coast. Only one
+      dashed line belongs there, Victoria to Tasmania across Bass Strait,
+      plus the stubs out to the two islands. The picture had been lying for
+      as long as the map has existed and nobody noticed, because a dashed
+      line looks deliberate.
+
+      **The world map is untouched, and the reason matters.** Its shapes
+      come from Nick's drawing through `read-map-drawing.mjs`, which gives
+      neighbours the identical run of points, so each edge does end inside
+      its neighbour. The Australia maps are built from a shared table of
+      whole numbers, where one long edge meets several short ones. That is
+      exactly the case the fault hid.
+
+      **Seven disagreements it uncovered, NOT settled here.** On the
+      detailed Australia map seven pairs share a coast without naming each
+      other: `arnhem`/`gulfCountry`, `barkly`/`gascoyne`,
+      `darlingDowns`/`outbackSa`, `farWest`/`outbackSa`,
+      `gascoyne`/`outbackSa`, `goldfields`/`outbackSa` and
+      `pilbara`/`topEnd`. This is the disagreement Nick settled once before,
+      for Eyre Peninsula and The Riverland, by adding the border. Seven more
+      changes how that map plays, and `pilbara`/`topEnd` share only 2 units
+      where the map allows a stray of 2.5 (spec 3.2 rule 9), so that one may
+      be a slip of the pen rather than a coast. Nick's call. They are
+      written out in `edits.test.ts`, which still catches drift: a new
+      disagreement, or one of these being settled, fails it.
+- [x] 5.13 **The map reader could not cope with an apostrophe.** Also
+      reported, also verified here, and it is two faults rather than one.
+
+      `read-map-drawing.mjs` writes a map out as TypeScript with
+      `name: '${place.name}'` and no escaping, so "Cote d'Ivoire" would have
+      written a file that does not compile. It reads the old map back with
+      `name: '([^']+)'`, which stops dead at the backslash of an escaped
+      quote: the whole block then fails to match and the place is dropped
+      without a word.
+
+      Both halves fixed, with `quoted` and `unquoted` and a pattern that
+      understands escapes. `main()` now runs only when the file is the one
+      being RUN, so a test can import the tool without it setting off and
+      rewriting a map.
+
+      `src/maps/names.test.ts` round-trips awkward names, checks the written
+      form is something both a pattern and JavaScript itself agree with, and
+      shows the old pattern failing where the new one does not. It also
+      reads the REAL world map back and checks all 42 places come through
+      with their names, short names, regions and borders, because rewriting
+      those patterns is the kind of change that quietly breaks what worked.
+
+      Latent in Conquest: no place on any map of ours has an apostrophe.
 
 ---
 
