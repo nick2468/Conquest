@@ -1568,6 +1568,18 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       counts. Turn order is the one thing the panel can say that nothing
       else on the screen says, and sorting spent it to repeat what the bar
       already shows. The column stays, the order goes back. Spec S30.
+
+      **A Cards column, added 2026-09-15.** Nick: "the player board is
+      missing representation of how many cards each player has." How MANY,
+      never which, which is how the real game works. A hand of five is
+      marked, because the rules then force a trade on that player's next
+      turn and a pile of armies is coming.
+
+      It went in wearing the class name `cards`, which is already the cards
+      PANEL: a padded white box with a border and rounded corners. The table
+      cell wore all of it and drew a box down the middle of the scores. No
+      test could have caught that, and it was only found by looking at the
+      screen. Renamed to `in-hand`, with the reason written beside it.
 - [x] 4.52 **Planning a whole turn: built, measured, and the end of this
       line of work.** Nick: "In order to make a deployment and attack plan
       at the start of a turn, do you determine a finite set of different

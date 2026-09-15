@@ -880,6 +880,21 @@ button.primary {
   text-align: left;
 }
 
+/* How many cards each player holds. A full hand is marked, because the
+   rules force a trade at that point and everyone can see it coming.
+
+   NOT called `cards`: that is already the cards PANEL, a padded white box
+   with a border, and a table cell wearing it drew a box down the middle of
+   the scores. Caught by looking at the screen, not by a test. */
+.scores td.in-hand {
+  font-variant-numeric: tabular-nums;
+}
+
+.scores td.must-trade {
+  font-weight: 600;
+  color: var(--target);
+}
+
 /* Watching a finished game again. Plan task 4.55. It sits where the turn
    panel sits, because during a replay there is no turn to take. */
 .replay-bar {

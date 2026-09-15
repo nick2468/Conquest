@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 
 import type { GameAction, GameState, Skill, TerritoryId } from '../engine'
-import { GAME_NAME, armyLimitFor, legalActions, playerFor, standings } from '../engine'
+import {
+  CARDS_FORCING_A_TRADE,
+  GAME_NAME,
+  armyLimitFor,
+  legalActions,
+  playerFor,
+  standings,
+} from '../engine'
 import { ArmyChooser } from './ArmyChooser'
 import { CardsPanel } from './CardsPanel'
 import { GameLog } from './GameLog'
@@ -610,6 +617,9 @@ export function App() {
               <th scope="col">Player</th>
               <th scope="col">Land</th>
               <th scope="col">Armies</th>
+              <th scope="col" title="Cards in hand. Everyone can see how MANY, never which.">
+                Cards
+              </th>
               <th scope="col" title="The chance of winning from here">
                 Winning
               </th>
@@ -640,6 +650,24 @@ export function App() {
                   <td>
                     {mine.reduce((total, each) => total + each.armies, 0) +
                       player.reserve}
+                  </td>
+                  {/* How MANY cards, never which. That is public in Risk,
+                      and a full hand is worth seeing: at
+                      CARDS_FORCING_A_TRADE the rules make them cash in, so
+                      a big set of armies is coming. */}
+                  <td
+                    className={
+                      player.cards.length >= CARDS_FORCING_A_TRADE
+                        ? 'in-hand must-trade'
+                        : 'in-hand'
+                    }
+                    title={
+                      player.cards.length >= CARDS_FORCING_A_TRADE
+                        ? 'Must trade a set on their next turn'
+                        : undefined
+                    }
+                  >
+                    {player.cards.length}
                   </td>
                   <td className="winning">
                     <span

@@ -772,9 +772,16 @@ See D16.
 
 ### 11.4a The scores panel is a leaderboard
 
-**S30. The scores panel stays in TURN order and carries a Winning column.**
-Beside Land and Armies it shows each player's chance of winning, as a figure
-and as a bar behind it. A player who is out reads "out".
+**S30. The scores panel stays in TURN order and carries Cards and Winning
+columns.** Beside Land and Armies it shows how many cards each player holds,
+and their chance of winning as a figure with a bar behind it. A player who
+is out reads "out".
+
+**How MANY cards, never which.** That is how the real game works: a hand is
+counted openly and its faces are secret. A hand at `CARDS_FORCING_A_TRADE`
+is marked, because the rules then make that player cash in on their next
+turn and a pile of armies is coming. Nick asked for the column: "the player
+board is missing representation of how many cards each player has".
 
 **The rows do NOT sort by the standing.** That was tried and taken out
 again. Nick: "it's more important to know who is playing next than who the
