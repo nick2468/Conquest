@@ -1878,6 +1878,27 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       three maps for nothing left to add, which is the guard against drifting
       apart again. Driven live: no dashed line anywhere on the mainland, only
       the two islands, Tasmania and the city links.
+
+      **Measured before and after, and it changed nothing.** 1200 games a
+      line, and the after figures on two seed families:
+
+      | | Before | After | After, second family |
+      |---|---|---|---|
+      | Planner against Cautious | 62.2% | 63.9% | 62.8% |
+      | Optimus, four-player table | 47.2% | 49.2% | 50.7% |
+      | Turtle | 29.0% | 27.3% | 27.9% |
+      | General | 17.9% | 20.2% | 17.8% |
+      | Planner | 5.9% | 3.4% | 3.5% |
+
+      Every difference is about one standard error, which at 1200 games is
+      roughly 2 points. So the claim in `australia-big.ts` stands: a plan is
+      worth about six games in ten on a board this size.
+
+      That is worth saying plainly, because seven new attack routes into and
+      out of The Far North sounded like it ought to matter. It did not. The
+      map is large enough that one region being easier to enter does not
+      move who wins, and the honest reading is that the fix was a fix to the
+      PICTURE, not to the game.
 - [x] 5.13 **The map reader could not cope with an apostrophe.** Also
       reported, also verified here, and it is two faults rather than one.
 

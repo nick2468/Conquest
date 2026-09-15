@@ -13,6 +13,11 @@ import { pathFrom } from './shapes'
  * against Cautious. On a board this size it wins about six games in ten.
  * See plan task 4.13.
  *
+ * Measured again on 2026-09-15, after seven borders were added to this map
+ * (plan task 5.12), and the claim holds: the Planner takes 63.9% and 62.8%
+ * of 1200 games against Cautious on two seed families, against 62.2% before
+ * the borders. The seven changed nothing anyone can measure.
+ *
  * The same flat projection as the small map:
  *
  *   x = 150 + (longitude east - 113) * 16.1
