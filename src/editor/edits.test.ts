@@ -304,56 +304,22 @@ describe('working borders out from the shapes', () => {
     expect(placeIn(draft, 'island').borders).toEqual(['left'])
   })
 
-  it('finds nothing left to add on the two maps that agree', () => {
+  it('finds nothing left to add on any map we ship', () => {
     // It found something the day it was written. Eyre Peninsula and The
     // Riverland share 28 units of edge at x=543, and neither named the
     // other, so the picture said you could walk across South Australia
     // there and the rules said you could not. Nick chose to add the border.
+    //
+    // It found seven more on 2026-09-14, once `touchingLength` stopped
+    // answering "no border at all" whenever one coast ran past the end of
+    // the other (plan task 5.12). Nick chose to add all seven, the same way
+    // and for the same reason: the picture must not tell a player something
+    // the rules will not allow.
+    //
     // This test is what stops the two drifting apart again.
     expect(bordersFromShapes(toDraft(WORLD)).added).toBe(0)
     expect(bordersFromShapes(toDraft(AUSTRALIA)).added).toBe(0)
-  })
-
-  it('lists the SEVEN the detailed map still argues about', () => {
-    // Found on 2026-09-14, once `touchingLength` was fixed (plan task
-    // 5.12). It used to answer "no border at all" whenever one coast ran
-    // past the end of the other, which hid these. The picture says you can
-    // walk between them and the rules say you cannot, which is the same
-    // disagreement Nick settled for Eyre Peninsula and The Riverland by
-    // adding the border.
-    //
-    // They are NOT added here. Seven new borders change how that map plays,
-    // and two of them are short enough to be a slip of the pen rather than
-    // a coast: the map allows shapes to stray 2.5 units into one another
-    // (spec 3.2 rule 9), and `pilbara`/`topEnd` share only 2. That is
-    // Nick's call, not this test's.
-    //
-    // Written out in full on purpose. The test still catches DRIFT: any
-    // new disagreement, or any of these being settled, fails it.
-    const { draft } = bordersFromShapes(toDraft(AUSTRALIA_BIG))
-    const stillArguing: string[] = []
-
-    for (const place of draft.places) {
-      const before = AUSTRALIA_BIG.territories.find(
-        (each) => each.id === place.id,
-      )
-
-      for (const other of place.borders) {
-        if (before?.borders.includes(other) === false && place.id < other) {
-          stillArguing.push(`${place.id}-${other}`)
-        }
-      }
-    }
-
-    expect(stillArguing.sort()).toEqual([
-      'arnhem-gulfCountry',
-      'barkly-gascoyne',
-      'darlingDowns-outbackSa',
-      'farWest-outbackSa',
-      'gascoyne-outbackSa',
-      'goldfields-outbackSa',
-      'pilbara-topEnd',
-    ])
+    expect(bordersFromShapes(toDraft(AUSTRALIA_BIG)).added).toBe(0)
   })
 
   it('rebuilds a land border of the real map from nothing', () => {

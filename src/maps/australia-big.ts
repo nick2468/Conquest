@@ -64,7 +64,7 @@ const PLACES: readonly Place[] = [
     name: 'The Pilbara',
     shortName: 'PIL',
     regionId: 'wa',
-    borders: ['kimberley', 'gascoyne', 'barkly'],
+    borders: ['kimberley', 'gascoyne', 'barkly', 'topEnd'],
     corners: [
       [298, 248], [262, 278], [240, 289], [202, 301], [168, 316], [408, 316],
       [408, 248],
@@ -76,7 +76,10 @@ const PLACES: readonly Place[] = [
     name: 'The Gascoyne',
     shortName: 'GAS',
     regionId: 'wa',
-    borders: ['pilbara', 'goldfields', 'southWest', 'redCentre', 'nullarbor'],
+    borders: [
+      'pilbara', 'goldfields', 'southWest', 'redCentre', 'nullarbor',
+      'barkly', 'outbackSa',
+    ],
     corners: [
       [168, 316], [182, 342], [166, 362], [156, 381], [172, 391], [159, 400],
       [168, 420], [408, 420], [408, 316],
@@ -88,7 +91,7 @@ const PLACES: readonly Place[] = [
     name: 'The Goldfields',
     shortName: 'GLD',
     regionId: 'wa',
-    borders: ['gascoyne', 'southWest', 'nullarbor'],
+    borders: ['gascoyne', 'southWest', 'nullarbor', 'outbackSa'],
     corners: [
       [408, 420], [408, 490], [350, 506], [293, 529], [262, 540], [250, 545],
       [250, 420],
@@ -134,7 +137,7 @@ const PLACES: readonly Place[] = [
     name: 'The Top End',
     shortName: 'TOP',
     regionId: 'nt',
-    borders: ['kimberley', 'arnhem', 'barkly', 'darwin'],
+    borders: ['kimberley', 'arnhem', 'barkly', 'darwin', 'pilbara'],
     corners: [
       [408, 192], [424, 178], [437, 150], [452, 162], [459, 127], [472, 148],
       [480, 140], [480, 250], [408, 250],
@@ -156,7 +159,7 @@ const PLACES: readonly Place[] = [
     name: 'Arnhem Land',
     shortName: 'ARN',
     regionId: 'nt',
-    borders: ['topEnd', 'barkly'],
+    borders: ['topEnd', 'barkly', 'gulfCountry'],
     corners: [
       [480, 140], [492, 133], [512, 141], [533, 146], [522, 172], [540, 189],
       [553, 225], [553, 250], [480, 250],
@@ -168,7 +171,9 @@ const PLACES: readonly Place[] = [
     name: 'The Barkly',
     shortName: 'BAR',
     regionId: 'nt',
-    borders: ['topEnd', 'arnhem', 'redCentre', 'pilbara', 'gulfCountry'],
+    borders: [
+      'topEnd', 'arnhem', 'redCentre', 'pilbara', 'gulfCountry', 'gascoyne',
+    ],
     corners: [[408, 250], [553, 250], [553, 320], [408, 320]],
     labelAt: at(480, 288),
   },
@@ -202,7 +207,7 @@ const PLACES: readonly Place[] = [
     regionId: 'qld',
     borders: [
       'capeYork', 'farNorth', 'northQld', 'centralQld', 'darlingDowns',
-      'barkly', 'redCentre', 'outbackSa',
+      'barkly', 'redCentre', 'outbackSa', 'arnhem',
     ],
     corners: [
       [553, 222], [575, 236], [598, 243], [607, 214], [640, 214], [640, 390],
@@ -272,6 +277,7 @@ const PLACES: readonly Place[] = [
     regionId: 'qld',
     borders: [
       'centralQld', 'gulfCountry', 'brisbane', 'farWest', 'newEngland',
+      'outbackSa',
     ],
     corners: [
       [601, 390], [640, 390], [640, 400], [760, 400], [770, 443], [601, 443],
@@ -287,7 +293,7 @@ const PLACES: readonly Place[] = [
     regionId: 'sa',
     borders: [
       'nullarbor', 'eyre', 'riverland', 'adelaide', 'redCentre',
-      'gulfCountry',
+      'gulfCountry', 'gascoyne', 'goldfields', 'darlingDowns', 'farWest',
     ],
     corners: [[408, 390], [601, 390], [601, 470], [408, 470]],
     labelAt: at(500, 430),
@@ -346,6 +352,7 @@ const PLACES: readonly Place[] = [
     regionId: 'nsw',
     borders: [
       'newEngland', 'hunter', 'riverina', 'darlingDowns', 'riverland',
+      'outbackSa',
     ],
     corners: [[601, 443], [680, 443], [680, 531], [601, 531]],
     labelAt: at(640, 487),

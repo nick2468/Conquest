@@ -1864,9 +1864,20 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       for Eyre Peninsula and The Riverland, by adding the border. Seven more
       changes how that map plays, and `pilbara`/`topEnd` share only 2 units
       where the map allows a stray of 2.5 (spec 3.2 rule 9), so that one may
-      be a slip of the pen rather than a coast. Nick's call. They are
-      written out in `edits.test.ts`, which still catches drift: a new
-      disagreement, or one of these being settled, fails it.
+      be a slip of the pen rather than a coast. Nick's call.
+
+      **Nick chose to add all seven**, including `pilbara`/`topEnd`. Same
+      answer as last time and for the same reason: the picture must not tell
+      a player something the rules will not allow. Each was checked against
+      the corner table before it was added, and all seven are real shared
+      edges. For instance `outbackSa` and `darlingDowns` both carry an edge
+      at x=601, overlapping from y=390 to y=443, which is the 53 units
+      reported.
+
+      The detailed map now agrees with itself, so `edits.test.ts` asks all
+      three maps for nothing left to add, which is the guard against drifting
+      apart again. Driven live: no dashed line anywhere on the mainland, only
+      the two islands, Tasmania and the city links.
 - [x] 5.13 **The map reader could not cope with an apostrophe.** Also
       reported, also verified here, and it is two faults rather than one.
 
