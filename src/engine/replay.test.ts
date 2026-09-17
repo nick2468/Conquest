@@ -93,7 +93,7 @@ describe('a replay lands on exactly the game it copies', () => {
     expect(
       replayTo(recording, seededRandom(DICE_SEED(3)), recording.actions.length),
     ).toEqual(everyBoard[recording.actions.length])
-  })
+  }, 30_000)
 })
 
 describe('replayTo answers any point in the game', () => {

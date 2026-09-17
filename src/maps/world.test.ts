@@ -5,10 +5,13 @@ import { WORLD } from './world'
 import { assertValidMap, validateMap } from './validate'
 
 describe('the world map', () => {
+  // About two seconds on a quiet machine, because the overlap rules compare
+  // every pair of shapes point by point. It timed out twice under the usual
+  // five-second limit while tournaments were running, so it gets room.
   it('obeys every rule a map must obey', () => {
     expect(validateMap(WORLD).map((problem) => problem.message)).toEqual([])
     expect(() => assertValidMap(WORLD)).not.toThrow()
-  })
+  }, 30_000)
 
   it('has 42 places in 6 continents', () => {
     expect(WORLD.territories).toHaveLength(42)
