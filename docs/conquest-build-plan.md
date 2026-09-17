@@ -1870,16 +1870,18 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       remembered-setup reader kept only words and one number.
 
       **Measured: it changes nothing about who wins.** 1200 four-player games
-      a line, Optimus, Turtle, General and Planner:
+      a line on two seed families, Optimus, Turtle, General and Planner:
 
-      | | Rule off | Rule on |
-      |---|---|---|
-      | Optimus | 49.8% | 48.4% |
-      | Turtle | 30.9% | 30.3% |
-      | General | 15.0% | 16.8% |
-      | Planner | 4.3% | 4.5% |
+      | | Off | On | Off, 2nd family | On, 2nd family |
+      |---|---|---|---|---|
+      | Optimus | 49.8% | 48.4% | 47.7% | 48.6% |
+      | Turtle | 30.9% | 30.3% | 29.5% | 31.2% |
+      | General | 15.0% | 16.8% | 17.5% | 15.1% |
+      | Planner | 4.3% | 4.5% | 5.3% | 5.2% |
 
-      Every difference is inside one standard error. Every player collects
+      Pooled, Optimus wins 1170 of 2400 with the rule off and 1164 with it
+      on. Every difference is inside one standard error, and the two
+      families disagree about which way each small difference goes. Every player collects
       the bonus the same way, so it moves armies without moving the
       balance.
 
