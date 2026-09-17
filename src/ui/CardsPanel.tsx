@@ -1,11 +1,15 @@
 import { useState } from 'react'
 
-import type { Card, CardId, GameState } from '../engine'
+import type { Card, CardId, GameState, PlayerId } from '../engine'
 import { TERRITORY_CARD_BONUS } from '../engine'
 import { adviseOnHand, describeCard, setReadyToTrade } from './hand'
 
 interface CardsPanelProps {
   readonly state: GameState
+  /** Whose hand this is. Not always the player whose turn it is. */
+  readonly playerId: PlayerId
+  /** True only on that player's own turn, when cards can be picked and traded. */
+  readonly yourTurn: boolean
   readonly onTrade: (cardIds: readonly CardId[]) => void
 }
 
@@ -23,66 +27,52 @@ const SHAPES: Readonly<Record<Card['symbol'], string>> = {
 }
 
 /**
- * What a card is worth to the player holding it, in words, for its footer.
- * Plan task 4.57.
+ * True if trading this card would pay the territory card bonus. Plan 4.57.
  *
- * Nick asked for each card to show "the country it is a benefit for". A
- * card is a benefit to the player only if they HOLD the territory it shows,
- * so the footer says who holds it now. It changes as the map does, which is
- * the point: a card for a place you are about to lose is worth knowing.
+ * Nick asked for each card to show "the country it is a benefit for". A card
+ * is a benefit only when its player holds that territory, so that is all a
+ * card says: a small "+2" when it will pay, and nothing otherwise.
+ *
+ * It says nothing about who ELSE holds a place. Nick: "Owned by ... is
+ * private I think in the classic game." The first version wrote "Held by
+ * Turtle" on the card and coloured it in Turtle's colour, and he did not
+ * want that on his hand.
  */
-function benefitOf(
-  state: GameState,
-  card: Card,
-  mine: string,
-): { readonly text: string; readonly pays: boolean; readonly colour: string | null } {
-  if (card.territoryId === null) {
-    return { text: 'Any territory', pays: false, colour: null }
-  }
-
-  const ownerId = state.territories[card.territoryId]?.ownerId ?? null
-  const owner = state.players.find((each) => each.id === ownerId)
-
-  if (ownerId !== mine) {
-    return {
-      text: owner === undefined ? 'Nobody holds it' : `Held by ${owner.name}`,
-      pays: false,
-      colour: owner?.colour ?? null,
-    }
-  }
-
-  // Yours. It pays only if the rule is on and not used up this turn.
-  const pays =
+function paysHere(state: GameState, card: Card, playerId: PlayerId): boolean {
+  return (
+    card.territoryId !== null &&
+    state.territories[card.territoryId]?.ownerId === playerId &&
     state.options.territoryCardBonus === true &&
-    state.turn.territoryBonusTaken !== true
-
-  return {
-    text: pays ? `Yours: +${TERRITORY_CARD_BONUS} here` : 'Yours',
-    pays,
-    colour: owner?.colour ?? null,
-  }
+    !(state.turn.playerId === playerId && state.turn.territoryBonusTaken === true)
+  )
 }
 
-/** The cards in the current player's hand, and the button to trade three. */
-export function CardsPanel({ state, onTrade }: CardsPanelProps) {
+/**
+ * One player's hand, as a strip of small cards above the map.
+ *
+ * Nick: "the cards are far too big and I only need to see my cards." The
+ * cards are small, and the strip stays put for the whole game rather than
+ * appearing only on the player's own turn, which made the map jump up and
+ * down every turn and hid the hand for most of the game.
+ */
+export function CardsPanel({ state, playerId, yourTurn, onTrade }: CardsPanelProps) {
   const [chosen, setChosen] = useState<CardId[]>([])
 
-  const player = state.players.find(
-    (each) => each.id === state.turn.playerId,
-  )
-
+  const player = state.players.find((each) => each.id === playerId)
   const cards = player?.cards ?? []
 
   // A card that is no longer held cannot stay chosen. This happens the
-  // moment a set is traded, and again when play passes to the next player.
-  const held = chosen.filter((id) => cards.some((card) => card.id === id))
+  // moment a set is traded, and whenever it stops being this player's turn.
+  const held = yourTurn
+    ? chosen.filter((id) => cards.some((card) => card.id === id))
+    : []
   const advice = adviseOnHand(state, cards, held)
 
   /**
-   * A set the player is holding right now, whether or not they have picked
-   * it out. This is what turns the button green. See spec S30.
+   * A set the player could trade right now, picked out or not. This is what
+   * turns the button green. See spec S30.
    */
-  const waiting = setReadyToTrade(state)
+  const waiting = yourTurn ? setReadyToTrade(state) : null
 
   if (held.length !== chosen.length) {
     setChosen(held)
@@ -100,98 +90,96 @@ export function CardsPanel({ state, onTrade }: CardsPanelProps) {
     })
   }
 
-  if (cards.length === 0) {
-    return (
-      <section className="cards" aria-label="Your cards">
-        <h2>Cards</h2>
-        <p className="cards-none">
-          No cards yet. Take at least one territory in a turn to earn one.
-        </p>
-      </section>
-    )
-  }
+  const forced = yourTurn && advice.forced
+  const canPress = yourTurn && (advice.canTrade || waiting !== null)
+
+  // Only worth a line when there is something to act on this turn.
+  const saying = !yourTurn
+    ? null
+    : forced || advice.canTrade || held.length > 0
+      ? advice.message
+      : waiting !== null
+        ? `You hold a set. Trade it for ${waiting.value} armies.`
+        : null
 
   return (
     <section
-      className={advice.forced ? 'cards cards-forced' : 'cards'}
-      aria-label="Your cards"
+      className={forced ? 'hand hand-forced' : 'hand'}
+      aria-label={`${player?.name ?? 'Your'} cards`}
     >
-      <h2>
-        Cards <span className="cards-count">{cards.length}</span>
-      </h2>
+      <div className="hand-row">
+        <span className="hand-title">
+          Your cards <span className="hand-count">{cards.length}</span>
+        </span>
 
-      <ul className="card-list">
-        {cards.map((card) => {
-          const words = describeCard(state, card)
-          const picked = held.includes(card.id)
-          const benefit = benefitOf(state, card, player?.id ?? '')
+        {cards.length === 0 ? (
+          <span className="hand-none">
+            None yet. Take a territory in a turn to earn one.
+          </span>
+        ) : (
+          <ul className="hand-cards">
+            {cards.map((card) => {
+              const words = describeCard(state, card)
+              const picked = held.includes(card.id)
+              const pays = paysHere(state, card, playerId)
 
-          return (
-            <li key={card.id}>
-              <button
-                type="button"
-                className={[
-                  'card',
-                  picked ? 'card-picked' : '',
-                  card.symbol === 'wild' ? 'card-wild' : '',
-                ].join(' ').trim()}
-                aria-pressed={picked}
-                aria-label={`${words.symbol}, ${words.place}. ${benefit.text}.`}
-                onClick={() => toggle(card.id)}
-              >
-                {/* The colour of whoever holds the place, along the top,
-                    so a card can be matched to the map at a glance. */}
-                <span
-                  className="card-stripe"
-                  style={{ background: benefit.colour ?? 'transparent' }}
-                />
-                <span className="card-symbol">{words.symbol}</span>
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                  <path d={SHAPES[card.symbol]} />
-                </svg>
-                <span className="card-place">{words.place}</span>
-                <span
-                  className={benefit.pays ? 'card-benefit card-pays' : 'card-benefit'}
-                >
-                  {benefit.text}
-                </span>
-              </button>
-            </li>
-          )
-        })}
-      </ul>
+              return (
+                <li key={card.id}>
+                  <button
+                    type="button"
+                    className={[
+                      'mini-card',
+                      picked ? 'mini-picked' : '',
+                      card.symbol === 'wild' ? 'mini-wild' : '',
+                    ]
+                      .join(' ')
+                      .trim()}
+                    aria-pressed={picked}
+                    aria-label={
+                      `${words.symbol}, ${words.place}` +
+                      (pays ? `. Pays ${TERRITORY_CARD_BONUS} armies there when traded.` : '')
+                    }
+                    title={`${words.symbol}: ${words.place}`}
+                    disabled={!yourTurn}
+                    onClick={() => toggle(card.id)}
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d={SHAPES[card.symbol]} />
+                    </svg>
+                    <span className="mini-place">{words.place}</span>
+                    {pays ? (
+                      <span className="mini-pays">+{TERRITORY_CARD_BONUS}</span>
+                    ) : null}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        )}
 
-      <p className="cards-advice">
-        {waiting !== null && !advice.canTrade && !advice.forced
-          ? `You are holding a set. Trade it for ${waiting.value} armies.`
-          : advice.message}
-      </p>
-
-      <div className="cards-buttons">
-        <button
-          type="button"
-          className={
-            advice.canTrade || waiting !== null ? 'primary ready' : 'primary'
-          }
-          disabled={!advice.canTrade && waiting === null}
-          onClick={() => {
-            // Respect what the player picked. Only when they have picked
-            // nothing does the button reach for the set itself.
-            onTrade(
-              advice.canTrade
-                ? held
-                : (waiting?.cards ?? []).map((card) => card.id),
-            )
-            setChosen([])
-          }}
-        >
-          {advice.canTrade
-            ? `Trade for ${advice.value}`
-            : waiting !== null
-              ? `Trade a set for ${waiting.value}`
-              : 'Trade'}
-        </button>
+        {canPress ? (
+          <button
+            type="button"
+            className="primary ready hand-trade"
+            onClick={() => {
+              // Respect what the player picked. Only when they have picked
+              // nothing does the button reach for the set itself.
+              onTrade(
+                advice.canTrade
+                  ? held
+                  : (waiting?.cards ?? []).map((card) => card.id),
+              )
+              setChosen([])
+            }}
+          >
+            {advice.canTrade
+              ? `Trade for ${advice.value}`
+              : `Trade a set for ${waiting?.value ?? 0}`}
+          </button>
+        ) : null}
       </div>
+
+      {saying === null ? null : <p className="hand-advice">{saying}</p>}
     </section>
   )
 }

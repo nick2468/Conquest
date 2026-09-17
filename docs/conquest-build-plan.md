@@ -1895,6 +1895,26 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       case, in light and dark, then deleted. 13 tests for the rule, 627 in
       all.
 
+      **Then cut down, the same day.** Nick: "the cards are far too big and
+      I only need to see my cards. 'Owned by ...' is private I think in the
+      classic game. My cards are not showing."
+
+      All three were right. The cards were 5.6 by 8 rem; they are now about
+      62 by 50 pixels, with the territory and a small "+2" badge when
+      trading pays, and nothing about who else holds what. The panel
+      chrome became one slim strip.
+
+      "Not showing" had a real cause. The hand was drawn only while a
+      PERSON was taking a turn, so against computer players it vanished for
+      most of the game and the map jumped each turn. It now stays up for
+      the whole game: this iPad's own player across iPads, the only person
+      when one person plays, and each person on their own turn when several
+      share one iPad, so nobody sees another's hand. The strip keeps a
+      card's height when empty, so the map never moves. Driven live: played
+      a turn, took the Whitsundays, earned an infantry card for Queensland,
+      and watched it stay on screen, marked "+2", through the computer's
+      turn. Spec S33.
+
       **Spec 14 was wrong in three rows.** It listed as missing the card
       bonus, placing first armies by hand, and taking a beaten player's
       cards. The last two had been built long ago. A list of what we chose

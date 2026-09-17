@@ -859,20 +859,34 @@ Nothing failed, and the tuner went on tuning a number nothing read.
 `players/dials.test.ts` reads the source and fails on any such line. Plan
 task 4.53 has the story.
 
-**S33. The player's own cards are shown above the map, as cards.** Nick: "a
-player should be able to see a representation of his own cards. Put their
-images above the map. Should include the card type and the country it is a
-benefit for." Each card is drawn upright with its symbol, the territory it
-shows, and a footer saying who holds that territory now:
+**S33. A player's own hand sits above the map as a strip of small cards,
+for the whole game.** Nick: "a player should be able to see a representation
+of his own cards. Put their images above the map. Should include the card
+type and the country it is a benefit for." Each card shows its symbol and
+the territory on it, and a small "+2" when trading it would pay the
+territory card bonus. Nothing else.
 
-- "Yours: +2 here" when trading it would pay the territory card bonus,
-- "Yours" when you hold it but the bonus is off or already taken this turn,
-- "Held by Turtle" when somebody else holds it, and
-- "Any territory" for a wild card.
+**Only your own hand, and nothing about anyone else.** Nick: "I only need to
+see my cards. 'Owned by ...' is private I think in the classic game." A
+first version wrote "Held by Turtle" on a card and coloured it in Turtle's
+colour. That came off.
 
-A band along the top of each card is the colour of whoever holds the place,
-so a card can be matched to the map at a glance. The panel shows only on a
-person's turn, and never during a replay.
+**Whose hand:**
+
+- across several iPads, always this iPad's own player;
+- on one iPad with ONE person playing, always that person, through the
+  computers' turns too;
+- on one iPad shared by several people, only on each person's own turn, so
+  nobody sees another's hand.
+
+Cards can be picked and traded only on that player's own turn. The strip
+keeps the height of a card even when the hand is empty, so the map does not
+move when the first card arrives or the last one is traded.
+
+**Why it stays up.** The first version showed the hand only while a person
+was taking a turn. Against computer players that hid it for most of the
+game, and the map jumped down and up every turn. Nick: "my cards are not
+showing."
 
 **S34. The turn panel says where the armies came from.** Under "14 armies
 left to place" it lists the land, each region held, and any sets traded:

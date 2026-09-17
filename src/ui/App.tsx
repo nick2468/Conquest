@@ -465,6 +465,30 @@ export function App() {
    */
   const computer = isAComputer || (across && current?.id !== table.you)
 
+  /**
+   * Whose cards to show above the map. Plan task 4.57.
+   *
+   * Nick: "I only need to see my cards", and "my cards are not showing".
+   * They were shown only while a PERSON was taking a turn, so against the
+   * computer the hand vanished for most of the game, and the map jumped up
+   * and down each time it came and went. Now:
+   *
+   * - across iPads, always this iPad's own player;
+   * - on one iPad with ONE person playing, always that person;
+   * - on one iPad shared by several people, only on each one's own turn,
+   *   so nobody sees another person's hand.
+   */
+  const people = state.players.filter(
+    (each) => each.kind === 'human' && !each.isEliminated,
+  )
+  const handOf: string | null = across
+    ? (table.you ?? null)
+    : people.length === 1
+      ? (people[0]?.id ?? null)
+      : current?.kind === 'human'
+        ? current.id
+        : null
+
   // Somebody being watched moves anywhere, so their turn is watched from
   // above rather than through a close view of one corner.
   const view = computer ? null : lookingAt
@@ -584,11 +608,13 @@ export function App() {
       <div className="board-column">
         {/* The player's own cards, above the map. Nick: "a player should be
             able to see a representation of his own cards. Put their images
-            above the map." Only on a person's turn, and never during a
-            replay, where there is no turn to take. Plan task 4.57. */}
-        {over || computer || replay.watching || state.turn.phase === 'setup' ? null : (
+            above the map." Never during a replay, where there is no hand to
+            play. See `handOf` for whose. Plan task 4.57. */}
+        {handOf === null || over || replay.watching || state.turn.phase === 'setup' ? null : (
           <CardsPanel
             state={state}
+            playerId={handOf}
+            yourTurn={!computer && current?.id === handOf}
             onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}
           />
         )}
