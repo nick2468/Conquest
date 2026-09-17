@@ -8,6 +8,7 @@ import {
   RISING_SET_CAP,
   RISING_SET_VALUES,
   TERRITORIES_PER_ARMY,
+  TERRITORY_CARD_BONUS,
   WILD_CARDS,
   playerFor,
 } from '../engine'
@@ -146,6 +147,11 @@ export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
               : options.cardTrading === 'afterKnockout'
                 ? 'In this game you may also trade any set after you knock a player out, for the rest of that attack.'
                 : 'In this game you may trade a set at any moment of your attack.'}
+          </p>
+          <p>
+            {options.territoryCardBonus === true
+              ? `Every card but a wild one also shows a territory. If a set you trade has a card showing a territory you hold, ${TERRITORY_CARD_BONUS} more armies go straight onto it. Only once a turn, however many sets you trade. Your cards, above the map, say which ones will pay.`
+              : 'Every card but a wild one also shows a territory. In this game that is only a picture: it pays nothing extra.'}
           </p>
           <p>
             {options.cardSetValue === 'rising'

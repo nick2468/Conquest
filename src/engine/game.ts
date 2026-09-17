@@ -5,7 +5,11 @@
  * The screen and the computer players both read the same list, so they can
  * never disagree about the rules. See spec S11.
  */
-import { CARDS_AFTER_A_KNOCKOUT, CARDS_FORCING_A_TRADE } from './balance'
+import {
+  CARDS_AFTER_A_KNOCKOUT,
+  CARDS_FORCING_A_TRADE,
+  TERRITORY_CARD_BONUS,
+} from './balance'
 import {
   attackerDiceCount,
   defenderDiceCount,
@@ -13,12 +17,12 @@ import {
   ARMIES_LEFT_BEHIND,
   MAX_ATTACKER_DICE,
 } from './attack'
-import { mustTradeASet, setValue, setsInHand } from './cards'
+import { mustTradeASet, setValue, setsInHand, territoryForBonus } from './cards'
 import { rollDice } from './dice'
 import { fortifyProblem, fortifyTargets } from './fortify'
 import type { RandomSource } from './random'
 import { shuffle } from './random'
-import { reinforcementsFor } from './reinforce'
+import { armiesAtTurnStart } from './reinforce'
 import type {
   Board,
   Card,
@@ -322,7 +326,7 @@ function endTurn(state: GameState, random: RandomSource): GameState {
   const nextPlayer = order[nextIndex] as Player
   // The round moves on whenever play wraps past the end of the player list.
   const round = nextIndex <= startedAt ? next.round + 1 : next.round
-  const given = reinforcementsFor(next.map, next.territories, nextPlayer.id)
+  const start = armiesAtTurnStart(next.map, next.territories, nextPlayer.id)
 
   return {
     ...next,
@@ -334,8 +338,11 @@ function endTurn(state: GameState, random: RandomSource): GameState {
     turn: {
       playerId: nextPlayer.id,
       phase: 'reinforce',
-      armiesToPlace: given,
-      armiesGiven: given,
+      armiesToPlace: start.given,
+      armiesGiven: start.given,
+      armiesForLand: start.forLand,
+      territoriesHeld: start.territoriesHeld,
+      regionsHeld: start.regionsHeld,
       hasConquered: false,
       hasFortified: false,
       pendingOccupation: null,
@@ -373,8 +380,26 @@ function doTradeCards(state: GameState, cardIds: readonly string[]): GameState {
   const trio = [cards[0], cards[1], cards[2]] as [Card, Card, Card]
   const value = setValue(trio, state.options, state.deck.setsTraded)
 
+  // A card showing a territory the player holds puts extra armies straight
+  // onto it, once a turn at most. Off unless the game asked for it, which
+  // is also how every game before this rule was played. Spec 6.6.
+  const bonusOn =
+    state.options.territoryCardBonus === true && state.turn.territoryBonusTaken !== true
+      ? territoryForBonus(state, player.id, trio)
+      : null
+  const bonusHere = bonusOn === null ? undefined : state.territories[bonusOn]
+
   const traded: GameState = {
     ...state,
+    territories:
+      bonusOn === null || bonusHere === undefined
+        ? state.territories
+        : withBoard(state, {
+            [bonusOn]: {
+              ...bonusHere,
+              armies: bonusHere.armies + TERRITORY_CARD_BONUS,
+            },
+          }),
     players: state.players.map((each) =>
       each.id === player.id
         ? {
@@ -395,10 +420,19 @@ function doTradeCards(state: GameState, cardIds: readonly string[]): GameState {
       phase: 'reinforce',
       armiesToPlace: state.turn.armiesToPlace + value,
       armiesGiven: (state.turn.armiesGiven ?? state.turn.armiesToPlace) + value,
+      territoryBonusTaken: state.turn.territoryBonusTaken === true || bonusOn !== null,
     },
   }
 
-  return noted(traded, `${player.name} trades a set for ${value} armies.`)
+  const said = noted(traded, `${player.name} trades a set for ${value} armies.`)
+
+  return bonusOn === null
+    ? said
+    : noted(
+        said,
+        `${player.name} holds ${nameOf(state, bonusOn)}, which is on a card ` +
+          `in the set, so ${TERRITORY_CARD_BONUS} more armies go straight there.`,
+      )
 }
 
 /**
@@ -464,7 +498,7 @@ function doSetupPlacement(
 
   // Nobody has any left, so the game proper begins.
   const first = players[0] as Player
-  const given = reinforcementsFor(noted1.map, noted1.territories, first.id)
+  const start = armiesAtTurnStart(noted1.map, noted1.territories, first.id)
 
   return noted(
     {
@@ -473,8 +507,11 @@ function doSetupPlacement(
         ...noted1.turn,
         playerId: first.id,
         phase: 'reinforce',
-        armiesToPlace: given,
-        armiesGiven: given,
+        armiesToPlace: start.given,
+        armiesGiven: start.given,
+        armiesForLand: start.forLand,
+        territoriesHeld: start.territoriesHeld,
+        regionsHeld: start.regionsHeld,
       },
     },
     'Every army is on the board. Play begins.',

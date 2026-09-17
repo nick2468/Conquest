@@ -109,4 +109,33 @@ describe('the new game screen is remembered', () => {
     )
     expect(recallSetup(store)?.options.risingSetCap).toBe(DEFAULT_OPTIONS.risingSetCap)
   })
+
+  it('keeps the territory card bonus turned off, and turns it on for an older setup', () => {
+    const store = aStore()
+    const players = [
+      { name: 'A', kind: 'human' },
+      { name: 'B', kind: 'turtle' },
+    ]
+
+    // Turned off, and remembered as off. This was being forgotten.
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({ players, options: { territoryCardBonus: false }, mapId: 'world' }),
+    )
+    expect(recallSetup(store)?.options.territoryCardBonus).toBe(false)
+
+    // Saved before the rule existed: gets the default, which is on.
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({ players, options: { fortifyMoves: 'many' }, mapId: 'world' }),
+    )
+    expect(recallSetup(store)?.options.territoryCardBonus).toBe(true)
+
+    // Anything that is not yes or no is ignored.
+    store.setItem(
+      'conquest.setup',
+      JSON.stringify({ players, options: { territoryCardBonus: 'no' }, mapId: 'world' }),
+    )
+    expect(recallSetup(store)?.options.territoryCardBonus).toBe(true)
+  })
 })

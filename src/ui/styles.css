@@ -14,6 +14,8 @@
   --label: #4c4941;
   /* The bar behind the winning figure in the scores panel. */
   --winning: rgba(60, 120, 175, 0.24);
+  /* A card that pays extra armies when traded. */
+  --pays: #2e7d4f;
 
   color-scheme: light dark;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -31,6 +33,7 @@
     --target: #ff7a6e;
     --label: #b9b5a8;
     --winning: rgba(120, 180, 235, 0.26);
+    --pays: #6fcf97;
   }
 }
 
@@ -779,35 +782,74 @@ button.primary {
   color: var(--ink-soft);
 }
 
+/* Where this turn's armies came from: land, each region held, cards. */
+.turn-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.9rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.turn-sources li {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.turn-sources strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The hand, as a row of upright cards above the map. Plan task 4.57.
+   Nick: "a player should be able to see a representation of his own
+   cards. Put their images above the map." */
 .card-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
-  gap: 0.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin: 0 0 0.75rem;
   padding: 0;
   list-style: none;
 }
 
 .card {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-  gap: 0 0.4rem;
-  width: 100%;
-  min-height: 3.2rem;
-  padding: 0.4rem 0.5rem;
-  text-align: left;
-  background: var(--page);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.2rem;
+  width: 5.6rem;
+  height: 8rem;
+  padding: 0.7rem 0.4rem 0.45rem;
+  overflow: hidden;
+  text-align: center;
+  background: var(--panel);
   border: 1px solid var(--edge);
-  border-radius: 0.5rem;
+  border-radius: 0.55rem;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 14%, transparent);
+}
+
+/* Whoever holds the place shown, as a band along the top edge. */
+.card-stripe {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 0.35rem;
 }
 
 .card svg {
-  grid-row: 1 / 3;
-  align-self: center;
-  width: 1.4rem;
-  height: 1.4rem;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
   fill: var(--ink-soft);
+}
+
+.card-wild svg {
+  fill: #c89b2c;
 }
 
 .card-picked {
@@ -821,13 +863,32 @@ button.primary {
 }
 
 .card-symbol {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
 }
 
 .card-place {
-  font-size: 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+/* Who holds the place, and whether trading the card pays extra armies. */
+.card-benefit {
+  width: 100%;
+  padding-top: 0.25rem;
+  font-size: 0.64rem;
+  line-height: 1.15;
   color: var(--ink-soft);
+  border-top: 1px solid var(--edge);
+}
+
+.card-pays {
+  font-weight: 700;
+  color: var(--pays);
 }
 
 .cards-buttons {

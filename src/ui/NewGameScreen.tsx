@@ -10,6 +10,7 @@ import {
   MAX_PLAYERS,
   MIN_PLAYERS,
   PLAYER_COLOURS,
+  TERRITORY_CARD_BONUS,
   playerFor,
 } from '../engine'
 import { writeMap } from '../maps/format'
@@ -475,6 +476,21 @@ export function NewGameScreen({
               <option value="classic">At the start of a turn (classic)</option>
               <option value="afterKnockout">Also after knocking a player out</option>
               <option value="anyTime">Any time during your attack</option>
+            </select>
+          </label>
+
+          <label className="setup-field">
+            A card showing your territory
+            <select
+              value={options.territoryCardBonus === false ? 'off' : 'on'}
+              onChange={(event) =>
+                change('territoryCardBonus', event.target.value === 'on')
+              }
+            >
+              <option value="on">
+                Puts {TERRITORY_CARD_BONUS} armies there when traded (classic)
+              </option>
+              <option value="off">Is worth nothing extra</option>
             </select>
           </label>
 

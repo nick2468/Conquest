@@ -15,7 +15,7 @@ import {
 import { createDeck } from './cards'
 import type { RandomSource } from './random'
 import { shuffle } from './random'
-import { reinforcementsFor } from './reinforce'
+import { armiesAtTurnStart } from './reinforce'
 import type {
   GameMap,
   GameOptions,
@@ -42,6 +42,7 @@ export const DEFAULT_OPTIONS: GameOptions = {
   armyPlacement: 'automatic',
   diceDisplay: 'allAtOnce',
   cardTrading: 'classic',
+  territoryCardBonus: true,
 }
 
 export interface NewGame {
@@ -174,7 +175,8 @@ export function createGame(game: NewGame): GameState {
   }))
 
   const firstPlayer = withReserves[0] as Player
-  const firstArmies = byHand ? 0 : reinforcementsFor(map, board, firstPlayer.id)
+  const first = byHand ? null : armiesAtTurnStart(map, board, firstPlayer.id)
+  const firstArmies = first?.given ?? 0
 
   return {
     options,
@@ -187,6 +189,13 @@ export function createGame(game: NewGame): GameState {
       phase: byHand ? 'setup' : 'reinforce',
       armiesToPlace: firstArmies,
       armiesGiven: firstArmies,
+      ...(first === null
+        ? {}
+        : {
+            armiesForLand: first.forLand,
+            territoriesHeld: first.territoriesHeld,
+            regionsHeld: first.regionsHeld,
+          }),
       hasConquered: false,
       hasFortified: false,
       pendingOccupation: null,

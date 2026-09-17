@@ -90,6 +90,14 @@ export const CARDS_AFTER_A_KNOCKOUT = 6
 export const WILD_CARDS = 2
 
 /**
+ * Extra armies for trading a set that includes a card showing a territory
+ * you hold. They go straight onto that territory, and a player gets them
+ * at most once a turn, however many sets they trade. The printed rules say
+ * two. Plan task 4.57, spec 6.6.
+ */
+export const TERRITORY_CARD_BONUS = 2
+
+/**
  * The colour for each player, in the order players join.
  *
  * Picked to stay apart from each other for someone who cannot tell red from

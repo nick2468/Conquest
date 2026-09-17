@@ -1828,6 +1828,76 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
 
       Not offered across iPads: there the moves were made elsewhere and this
       device never recorded them. Driven live end to end, 590 tests green.
+- [x] 4.56 **Region bonuses are paid at the start of a turn, and now the
+      screen says so.** Nick: "check that continent bonuses are being applied
+      at the start of the turn."
+
+      They were. `reinforce.test.ts` already checked the sum, but nothing
+      checked that the GAME hands that sum over when a turn begins, so
+      `turn-start.test.ts` now plays whole games and stops at every turn
+      start, working out what is owed by hand from the board rather than by
+      asking `reinforcementsFor` to check itself. 1804 turn starts on all
+      three maps, 824 of them carrying a bonus, none wrong.
+
+      Proven to block rather than trusted: with the bonus deliberately
+      dropped from the sum, three of its four tests fail.
+
+      **But nothing on screen said so**, which is almost certainly why the
+      question was asked. The turn panel only ever read "7 armies left to
+      place". It now lists where they came from, for example "4 territories
+      3 · The West +3 · Cards +8". The parts are recorded when the turn
+      begins rather than worked out again, because with `cardTrading:
+      'anyTime'` a set can be traded after the board has changed hands.
+      Spec S34.
+- [x] 4.57 **The player's own cards, above the map, and the rule that makes a
+      card a benefit to a territory.** Nick: "a player should be able to see
+      a representation of his own cards. Put their images above the map.
+      Should include the card type and the country it is a benefit for."
+
+      **The rule did not exist.** In the printed rules, trading a set that
+      includes a card showing a territory you hold puts two extra armies
+      there. Spec 14 had left it out, "until trading works", and trading had
+      worked for weeks. Without the rule, "the country it is a benefit for"
+      would have described a benefit the game never paid.
+
+      Built as option `territoryCardBonus`, on by default. The armies go
+      straight onto the territory, since the rules give no choice of where,
+      and that is what removed the "fiddly special case in the screen" that
+      had kept it out. Once a turn at most; when several cards qualify, the
+      one facing the most enemy armies. A game from before the option is
+      played without it. The new game screen offers it, and the choice is
+      remembered: turning it OFF was being forgotten at first, because the
+      remembered-setup reader kept only words and one number.
+
+      **Measured: it changes nothing about who wins.** 1200 four-player games
+      a line, Optimus, Turtle, General and Planner:
+
+      | | Rule off | Rule on |
+      |---|---|---|
+      | Optimus | 49.8% | 48.4% |
+      | Turtle | 30.9% | 30.3% |
+      | General | 15.0% | 16.8% |
+      | Planner | 4.3% | 4.5% |
+
+      Every difference is inside one standard error. Every player collects
+      the bonus the same way, so it moves armies without moving the
+      balance.
+
+      **The cards.** The side panel moved above the map, and each card is
+      now drawn upright: its symbol, the territory it shows, and a footer
+      saying who holds that territory now, "Yours: +2 here", "Yours",
+      "Held by Turtle" or "Any territory". A band along the top is the
+      holder's colour, so a card matches the map at a glance. Spec S33.
+
+      Checked on a throwaway preview page with a made-up hand covering every
+      case, in light and dark, then deleted. 13 tests for the rule, 627 in
+      all.
+
+      **Spec 14 was wrong in three rows.** It listed as missing the card
+      bonus, placing first armies by hand, and taking a beaten player's
+      cards. The last two had been built long ago. A list of what we chose
+      NOT to build is worthless once it lists things we did build, so all
+      three came off it, with a note saying where each now lives.
 - [x] 5.12 **`touchingLength` was not symmetric, and both Australia maps
       were drawn wrong because of it.** Reported by another session, which
       found it in copied code. Verified at source here before anything was

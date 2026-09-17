@@ -15,7 +15,16 @@ import {
 } from './balance'
 import type { RandomSource } from './random'
 import { shuffle } from './random'
-import type { Card, CardSymbol, DeckState, GameMap, GameOptions } from './types'
+import type {
+  Card,
+  CardSymbol,
+  DeckState,
+  GameMap,
+  GameOptions,
+  GameState,
+  PlayerId,
+  TerritoryId,
+} from './types'
 
 /** The three symbols on the ordinary cards, in the order they are dealt out. */
 const SYMBOLS: readonly CardSymbol[] = ['infantry', 'cavalry', 'artillery']
@@ -199,4 +208,50 @@ export function setsInHand(cards: readonly Card[]): CardTrio[] {
  */
 export function mustTradeASet(cards: readonly Card[]): boolean {
   return cards.length >= CARDS_FORCING_A_TRADE
+}
+
+/**
+ * Where a traded set puts the territory card bonus, or null for nowhere.
+ * Plan task 4.57, spec 6.6.
+ *
+ * A card showing a territory the player holds earns TERRITORY_CARD_BONUS
+ * extra armies on that territory. The printed rules say the armies MUST go
+ * there, so there is nothing to decide about where, and they are placed at
+ * once rather than handed to the player to place. That is what the spec
+ * called "a fiddly special case in the screen", and placing them directly
+ * is how it stops being one.
+ *
+ * When more than one of the three cards qualifies, only one bonus is paid.
+ * It goes on the one facing the most enemy armies, because that is where
+ * two armies do the most good, and every player gets the same choice made
+ * the same way. A tie goes to the card traded first.
+ */
+export function territoryForBonus(
+  state: GameState,
+  playerId: PlayerId,
+  cards: readonly Card[],
+): TerritoryId | null {
+  let best: { id: TerritoryId; facing: number } | null = null
+
+  for (const card of cards) {
+    const id = card.territoryId
+
+    if (id === null || state.territories[id]?.ownerId !== playerId) continue
+
+    const borders =
+      state.map.territories.find((each) => each.id === id)?.borders ?? []
+    const facing = borders.reduce((total, border) => {
+      const there = state.territories[border]
+
+      return there !== undefined && there.ownerId !== null && there.ownerId !== playerId
+        ? total + there.armies
+        : total
+    }, 0)
+
+    if (best === null || facing > best.facing) {
+      best = { id, facing }
+    }
+  }
+
+  return best?.id ?? null
 }

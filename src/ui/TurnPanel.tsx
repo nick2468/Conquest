@@ -1,4 +1,5 @@
 import type { GameState, TerritoryId } from '../engine'
+import { whereArmiesCameFrom } from '../engine'
 import { Dice } from './Dice'
 import { whatToDoNow } from './taps'
 
@@ -39,6 +40,7 @@ export function TurnPanel({
   )
 
   const dice = state.turn.lastAttack
+  const sources = whereArmiesCameFrom(state.map, state.turn)
 
   return (
     <section className="turn-panel">
@@ -62,6 +64,22 @@ export function TurnPanel({
         <p className="turn-armies">
           <strong>{state.turn.armiesToPlace}</strong> armies left to place
         </p>
+      ) : null}
+
+      {/* Where they came from. Nick asked whether region bonuses were being
+          paid. They were, but nothing on screen said so. Plan task 4.56. */}
+      {state.turn.phase === 'reinforce' && sources.length > 0 ? (
+        <ul className="turn-sources" aria-label="Where these armies came from">
+          {sources.map((source) => (
+            <li key={source.label}>
+              <span>{source.label}</span>
+              <strong>
+                {source === sources[0] ? '' : '+'}
+                {source.armies}
+              </strong>
+            </li>
+          ))}
+        </ul>
       ) : null}
 
       {state.turn.phase === 'setup' ? (

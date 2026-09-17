@@ -582,6 +582,17 @@ export function App() {
       </header>
 
       <div className="board-column">
+        {/* The player's own cards, above the map. Nick: "a player should be
+            able to see a representation of his own cards. Put their images
+            above the map." Only on a person's turn, and never during a
+            replay, where there is no turn to take. Plan task 4.57. */}
+        {over || computer || replay.watching || state.turn.phase === 'setup' ? null : (
+          <CardsPanel
+            state={state}
+            onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}
+          />
+        )}
+
         <MapView
           state={state}
           highlights={computer ? (watching?.highlights ?? EMPTY_HIGHLIGHTS) : highlights}
@@ -739,13 +750,6 @@ export function App() {
                 count,
               })
             }
-          />
-        )}
-
-        {over || computer || state.turn.phase === 'setup' ? null : (
-          <CardsPanel
-            state={state}
-            onTrade={(cardIds) => run({ type: 'tradeCards', cardIds })}
           />
         )}
 

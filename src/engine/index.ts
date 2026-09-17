@@ -48,6 +48,7 @@ export {
   RISING_SET_VALUES,
   STARTING_ARMIES,
   TERRITORIES_PER_ARMY,
+  TERRITORY_CARD_BONUS,
   WILD_CARDS,
 } from './balance'
 
@@ -59,6 +60,7 @@ export {
   risingValueOf,
   setValue,
   setsInHand,
+  territoryForBonus,
 } from './cards'
 
 export type { FortifyDistance } from './fortify'
@@ -69,11 +71,14 @@ export {
   fortifyTargets,
 } from './fortify'
 
+export type { ArmySource, TurnStartArmies } from './reinforce'
 export {
+  armiesAtTurnStart,
   ownsWholeRegion,
   regionBonusFor,
   reinforcementsFor,
   territoriesOwnedBy,
+  whereArmiesCameFrom,
 } from './reinforce'
 
 export type { GameAction } from './game'

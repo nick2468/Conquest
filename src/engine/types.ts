@@ -184,12 +184,30 @@ export interface TurnState {
    * it existed, which is why readers fall back to `armiesToPlace`.
    */
   readonly armiesGiven?: number
+  /**
+   * How many of `armiesGiven` came from the land held when the turn began,
+   * the minimum included. Plan task 4.56. Missing in a game from before.
+   */
+  readonly armiesForLand?: number
+  /** How many territories the player held when the turn began. */
+  readonly territoriesHeld?: number
+  /**
+   * The regions held whole when the turn began, each of which added its
+   * bonus to `armiesGiven`. Missing in a game from before.
+   */
+  readonly regionsHeld?: readonly RegionId[]
   /** True if the player took a territory this turn, so earns a card. */
   readonly hasConquered: boolean
   /** True once the player has knocked somebody out this turn. */
   readonly knockedOutThisTurn?: boolean
   /** True once the player has made a fortify move this turn. */
   readonly hasFortified: boolean
+  /**
+   * True once the player has had the territory card bonus this turn. It is
+   * given once a turn at most, however many sets are traded. Missing means
+   * not yet.
+   */
+  readonly territoryBonusTaken?: boolean
   /**
    * The territories fortify moves have sent armies INTO this turn. With
    * `fortifyMoves: 'many'` they may not send any on. Missing means none.
@@ -264,6 +282,14 @@ export interface GameOptions {
    * Missing from a game saved before it existed, which means 'classic'.
    */
   readonly cardTrading?: 'classic' | 'afterKnockout' | 'anyTime'
+  /**
+   * Whether a traded card showing a territory you hold puts
+   * TERRITORY_CARD_BONUS extra armies on that territory. Plan task 4.57.
+   *
+   * On by default, because it is in the printed rules. Missing means OFF,
+   * which is how every game before this option was played.
+   */
+  readonly territoryCardBonus?: boolean
 }
 
 // -------------------------------------------------------------- the whole

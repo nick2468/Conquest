@@ -559,6 +559,24 @@ symbols.
 A player may trade one set during the reinforce phase. A player holding five or
 more cards must trade before doing anything else.
 
+**A card showing a territory you hold pays two extra armies there** (plan
+4.57, option `territoryCardBonus`, on by default). Trade a set that includes
+one, and `TERRITORY_CARD_BONUS` armies go straight onto that territory. The
+printed rules say the armies MUST go there, so there is no choice to offer,
+and they are placed at once rather than handed over to place. That is what
+removed the "fiddly special case in the screen" that kept this rule out for
+so long.
+
+- Once a turn at most, however many sets are traded (`territoryBonusTaken`).
+- If two or three cards in the set qualify, it goes on the one facing the
+  most enemy armies, for every player alike. A tie goes to the card traded
+  first.
+- A game whose options never mention the rule is played without it, which
+  is how every game before it was played.
+
+Measured on 2400 four-player games, it changes nothing about who wins: every
+player benefits from it the same way.
+
 **Knocking a player out wins their cards** (plan 4.21). The player who takes
 someone's last territory takes every card they hold. If that leaves six or
 more (`CARDS_AFTER_A_KNOCKOUT`), the game steps straight back into placing,
@@ -840,6 +858,32 @@ Optimus threw away its own tuned value and quietly used the General's.
 Nothing failed, and the tuner went on tuning a number nothing read.
 `players/dials.test.ts` reads the source and fails on any such line. Plan
 task 4.53 has the story.
+
+**S33. The player's own cards are shown above the map, as cards.** Nick: "a
+player should be able to see a representation of his own cards. Put their
+images above the map. Should include the card type and the country it is a
+benefit for." Each card is drawn upright with its symbol, the territory it
+shows, and a footer saying who holds that territory now:
+
+- "Yours: +2 here" when trading it would pay the territory card bonus,
+- "Yours" when you hold it but the bonus is off or already taken this turn,
+- "Held by Turtle" when somebody else holds it, and
+- "Any territory" for a wild card.
+
+A band along the top of each card is the colour of whoever holds the place,
+so a card can be matched to the map at a glance. The panel shows only on a
+person's turn, and never during a replay.
+
+**S34. The turn panel says where the armies came from.** Under "14 armies
+left to place" it lists the land, each region held, and any sets traded:
+"4 territories 3 · The West +3 · Cards +8". Nick asked whether region
+bonuses were being paid. They were, and `turn-start.test.ts` proves it over
+1804 turn starts on all three maps, but nothing on screen said so.
+
+The parts are RECORDED when the turn begins (`armiesForLand`,
+`territoriesHeld`, `regionsHeld`) rather than worked out again later.
+With `cardTrading: 'anyTime'` a set can be traded after the board has
+changed hands, and the land held by then is not the land that paid.
 
 **S30a. The reading is for SHOWING, never for choosing moves.** Plan task
 4.50 measured a computer player that chose its attacks by this same ranking:
@@ -1494,12 +1538,15 @@ confused with "we forgot".
 
 | Left out | Why |
 |---|---|
-| Placing your first armies by hand | A whole interactive phase. It stands between us and a playable game. Worth doing in phase 2. |
 | The neutral third army in a two-player game | Only affects two-player games. Play three-handed until it exists. |
-| Two extra armies for trading a card showing a territory you own | A small rule with a fiddly special case in the screen. Add once trading works. |
-| Taking a beaten player's cards | Needs the forced trade-down rule when the winner then holds six or more. Both together, later. |
 | Mission cards, such as "capture Asia" | A different way to win. A big change. Not phase 1. |
 | Saving a game part way through | Needs the game state written to storage. Cheap once the state settles, so wait until it has. |
+
+**Built since, and taken off this list.** Three rows here had become untrue,
+which is the one thing this list must never be. Placing your first armies by
+hand is option `armyPlacement: 'byHand'`. Taking a beaten player's cards,
+with the forced trade-down, is in 6.6. Two extra armies for a card showing a
+territory you hold is in 6.6 too (plan 4.57).
 
 ---
 

@@ -136,6 +136,14 @@ export function recallSetup(
     if (typeof cap === 'number' && RISING_SET_CAP_CHOICES.includes(cap)) {
       chosen.risingSetCap = cap
     }
+
+    // The one option that is yes or no. Without this, turning it OFF was
+    // forgotten the next time the screen opened. Plan task 4.57.
+    const bonus = (options as Record<string, unknown>).territoryCardBonus
+
+    if (typeof bonus === 'boolean') {
+      chosen.territoryCardBonus = bonus
+    }
   }
 
   return {
