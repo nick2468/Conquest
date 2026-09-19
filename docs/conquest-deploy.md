@@ -20,7 +20,7 @@ has been played with the server switched off.
 | Cloudflare's own URL | `conquest-bih.pages.dev` |
 | Build command | `npm run build` |
 | Output directory | `dist` |
-| Node version | 22.12.0, from `.node-version` and a `NODE_VERSION` variable |
+| Node version | 24.21.0, from `.node-version` and a `NODE_VERSION` variable |
 
 **Every push to `main` now rebuilds and republishes.** Nothing else to run.
 
@@ -97,13 +97,16 @@ Private is fine. Cloudflare can read a private repository once you grant it.
 
 **The Node version matters.** Cloudflare's default is older than Vite 8
 accepts, and the build fails with a version error. The repository holds a
-`.node-version` file saying `22.12.0`, and a `NODE_VERSION` build variable
-was set to the same value as a belt and braces. The build log confirms it
-installed Node 22.12.0.
+`.node-version` file, and a `NODE_VERSION` build variable is set to the same
+value as a belt and braces. Keep the two equal. Cloudflare does not document
+which one wins when they differ. The build log says which version it installed.
 
-That log also warns that Node 22 is in maintenance mode and nearing the end
-of its life. Nothing is broken, but the version is worth raising the next
-time this is touched.
+The first setup used 22.12.0, and its build log warned that Node 22 was
+nearing the end of its life. On 2026-09-19 both were raised to **24.21.0**,
+the long-term-support line. The tests, typecheck and production build all
+passed on 24.21.0 first. The `NODE_VERSION` variable lives in the Cloudflare
+dashboard, so changing it is Nick's step: **Workers & Pages**, `conquest`,
+**Settings**, **Variables and Secrets**.
 
 The first build takes a couple of minutes. It ends with a URL like
 `conquest-abc.pages.dev`. Open it and check the game runs.
