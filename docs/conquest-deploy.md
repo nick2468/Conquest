@@ -98,8 +98,11 @@ Private is fine. Cloudflare can read a private repository once you grant it.
 **The Node version matters.** Cloudflare's default is older than Vite 8
 accepts, and the build fails with a version error. The repository holds a
 `.node-version` file, and a `NODE_VERSION` build variable is set to the same
-value as a belt and braces. Keep the two equal. Cloudflare does not document
-which one wins when they differ. The build log says which version it installed.
+value as a belt and braces. Keep the two equal. **When they differ, the
+variable wins.** Cloudflare does not document that, but on 2026-09-19 a build
+of a commit whose `.node-version` said 24.21.0 still installed 22.12.0 from
+the variable. The build log says which version it installed, on a line
+starting "Detected the following tools from environment".
 
 The first setup used 22.12.0, and its build log warned that Node 22 was
 nearing the end of its life. On 2026-09-19 both were raised to **24.21.0**,
