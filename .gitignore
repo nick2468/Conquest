@@ -5,6 +5,9 @@ node_modules/
 dist/
 build/
 .vite/
+# TypeScript's note of what it last checked, so the next check runs faster.
+# It is rebuilt by any type check and belongs to one machine.
+*.tsbuildinfo
 # The service worker built for development. devOptions is off, so this
 # should never appear, but it costs nothing to keep it out of the repo.
 dev-dist/
