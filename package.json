@@ -17,6 +17,7 @@
     "tune:build": "vite build --config tools/engine.config.mjs",
     "tune": "node tools/tune.mjs",
     "league": "node tools/league.mjs",
+    "read-game": "node tools/read-game.mjs",
     "server": "wrangler dev",
     "server:deploy": "wrangler deploy"
   },

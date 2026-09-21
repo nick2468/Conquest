@@ -8,6 +8,7 @@ import {
   legalActions,
   playerFor,
   standings,
+  toSavedGame,
 } from '../engine'
 import { ArmyChooser } from './ArmyChooser'
 import { CardsPanel } from './CardsPanel'
@@ -28,6 +29,7 @@ import { playSound, rememberSound, soundWasOn, startSound, unlockOnFirstTap } fr
 import { setReadyToTrade } from './hand'
 import { highlightsFor, whatATapDoes } from './taps'
 import { ReplayBar } from './ReplayBar'
+import { offerFile } from './save-game'
 import { useGame } from './useGame'
 import { useReplay } from './useReplay'
 import { SERVER, useTable } from './useTable'
@@ -181,6 +183,7 @@ export function App() {
    * three different answers, so the game says which one it is.
    */
   const [soundNote, setSoundNote] = useState<string | null>(null)
+  const [saveNote, setSaveNote] = useState<string | null>(null)
 
   // Which computer player, if any, should be moving right now.
   const whoseTurn = state.players.find(
@@ -247,6 +250,31 @@ export function App() {
    * and a computer's move are shown the same way. The state changes at once
    * and the effect is drawn over the top. Nothing waits for it. Spec S24.
    */
+  /** Write the game so far to a file the player can send on. */
+  const saveThisGame = async (): Promise<void> => {
+    const now = new Date()
+    const two = (n: number): string => String(n).padStart(2, '0')
+    // The device's own local time, because that is what the player will
+    // remember the game by.
+    const savedAt =
+      `${now.getFullYear()}-${two(now.getMonth() + 1)}-${two(now.getDate())}` +
+      `T${two(now.getHours())}:${two(now.getMinutes())}`
+
+    const outcome = await offerFile(
+      toSavedGame(onOneIPad.recording, onOneIPad.diceSeed, live, savedAt, __BUILD__),
+    )
+
+    setSaveNote(
+      outcome === 'shared'
+        ? 'Game saved.'
+        : outcome === 'downloaded'
+          ? 'Game saved to your downloads.'
+          : outcome === 'cancelled'
+            ? null
+            : 'The game could not be saved on this device.',
+    )
+  }
+
   const perform = (action: GameAction): void => {
     setMyLastMove(action)
     setMyMoveNumber((counted) => counted + 1)
@@ -593,10 +621,27 @@ export function App() {
             {soundOn ? 'Turn sounds off' : 'Turn sounds on'}
           </button>
 
+          {/* Nick: "Are games logged so that I can refer you to a logfile
+              of a match I think you should look at?" This is the log. It
+              holds the whole game, so it replays exactly. Not offered
+              across iPads, where this device never saw every move. Plan
+              task 4.58. */}
+          {across || replay.watching ? null : (
+            <button type="button" onClick={() => void saveThisGame()}>
+              Save game
+            </button>
+          )}
+
           <button type="button" onClick={() => setScreen('newGame')}>
             New game
           </button>
         </div>
+
+        {saveNote === null ? null : (
+          <p className="sound-note" role="status">
+            {saveNote}
+          </p>
+        )}
 
         {soundNote === null ? null : (
           <p className="sound-note" role="status">

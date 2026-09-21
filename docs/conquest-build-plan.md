@@ -1920,6 +1920,44 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       cards. The last two had been built long ago. A list of what we chose
       NOT to build is worthless once it lists things we did build, so all
       three came off it, with a note saying where each now lives.
+- [x] 4.58 **Nick's four-player games, measured under his own rules, and a
+      way to send a game.** Nick: "Turtle seems to win practically every 4
+      computer player [game] even when going last. If I setup a new game as
+      Planner/Optimus/General/Turtle to play in that order the winning order
+      is usually the reverse sequence. General outlasts Optimus more than I
+      would expect... I'm expecting Optimus... at least a 25% win rate."
+      His rules: fixed set values, trading after a knockout, one-step
+      fortify moves as many as you like.
+
+      **Every measurement before this used the default rules**, and so did
+      the tuning of Optimus. So his rules were measured directly, 1200 games
+      a line, in his seating:
+
+      | | Planner | Optimus | General | Turtle |
+      |---|---|---|---|---|
+      | World, his order | 5.6% | **42.8%** | 16.8% | 34.8% |
+      | World, seats rotated | 6.4% | **38.8%** | 18.3% | 36.5% |
+      | Australia in detail, his order | 5.8% | **40.2%** | 19.6% | 34.5% |
+      | World, first armies by hand | 10.9% | **43.3%** | 12.5% | 33.3% |
+
+      Optimus is the strongest in every one, well above the 25% he asked
+      for, and Turtle a clear second. His finishing order is real but not
+      usual: Turtle, General, Optimus, Planner is the SECOND most common
+      order, 178 games in 1200, behind Optimus, Turtle, General, Planner at
+      255. General outlasts Optimus in 38% of games, because Optimus plays
+      for the win and when it misses it tends to go out third. So the
+      simulation cannot reproduce "Turtle nearly always", and the next step
+      is one of his actual games. The live site runs build `73b5a94`, which
+      has the retuned Optimus; the new game screen shows which build a
+      device is running.
+
+      **Games were not logged**, so now they can be. A "Save game" button
+      writes the game so far to a file, through the iPad share sheet or as
+      a download, and `npm run read-game -- <file>` replays it and tells its
+      story round by round. Spec S35. A saved game played under his rules
+      goes through text and back and lands on the identical board, tested.
+      Driven live: the button produced a valid file stamped with the
+      running build.
 - [x] 5.12 **`touchingLength` was not symmetric, and both Australia maps
       were drawn wrong because of it.** Reported by another session, which
       found it in copied code. Verified at source here before anything was

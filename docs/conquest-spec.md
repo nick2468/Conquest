@@ -818,6 +818,26 @@ The chances are scaled to add up to 100%. The fit answers each player
 separately, so four players can each honestly read "40%", which is useless
 as a table.
 
+### 11.4c Saving a game to send on
+
+**S35. "Save game" writes the game so far to a file.** Nick: "Are games
+logged so that I can refer you to a logfile of a match I think you should
+look at for balance issues?" They were not; the history lived only as long
+as the game. The button in the header hands over a file: on an iPad through
+the share sheet (AirDrop, Mail, Files), elsewhere as a download. Not offered
+across iPads, where this device never saw every move.
+
+The file (`engine/saved-game.ts`) holds the board the game began on, the
+dice seed, every action, the build that wrote it, and how the game stood
+when saved. It replays exactly, because the engine is pure. It records what
+the computer players DID, so a later change to how they think cannot change
+the game on replay. A later change to the RULES could, and
+`tools/read-game.mjs` says so when a replay ends differently from the save.
+
+`npm run read-game -- <file>` tells the game's story: the players in turn
+order, the rules, who went out when, and land, armies, cards and chance of
+winning for every player at the start of every round.
+
 ### 11.4b Watching a finished game again
 
 **S32. When a game ends, it can be watched again on the map.** A frame is

@@ -138,6 +138,16 @@ export {
   resolveAttack,
 } from './attack'
 
+export type { BuildStamp, Ending, SavedGame } from './saved-game'
+export {
+  SAVED_GAME_FORMAT,
+  SAVED_GAME_VERSION,
+  SavedGameError,
+  endingOf,
+  readSavedGame,
+  toSavedGame,
+} from './saved-game'
+
 export type { Recording } from './replay'
 export { replayTo } from './replay'
 
