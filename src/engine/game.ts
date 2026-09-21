@@ -765,8 +765,16 @@ function doFortify(
 
   const player = currentPlayer(state)
 
+  // Once armies have arrived here, nothing more leaves this turn. So every
+  // army crosses one border at most, which is what "one step only, as many
+  // moves as you like" means: moves happen at the same time, not one after
+  // another. Nick chose this over counting what each territory began with,
+  // as the simpler rule. Plan task 4.59.
   if ((state.turn.movedInto ?? []).includes(fromId)) {
-    refuse('Armies that arrived this turn stay where they are.')
+    refuse(
+      `Armies have arrived in ${nameOf(state, fromId)} this turn, so nothing ` +
+        'more can leave it. They stay where they are.',
+    )
   }
 
   const problem = fortifyProblem(

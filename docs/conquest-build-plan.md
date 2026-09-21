@@ -1958,6 +1958,31 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       goes through text and back and lands on the identical board, tested.
       Driven live: the button produced a valid file stamped with the
       running build.
+- [x] 4.59 **Fortify with "one step only, as many as you like": no army
+      crosses two borders.** Nick: "it doesn't mean a player can walk an army
+      from one territory to one multiple borders away... in the same time
+      frame multiple armies can all move at once crossing different
+      borders."
+
+      Tested first rather than assumed: the game already refused it. Four
+      armies moved from Western Australia into the Northern Territory, and
+      the Northern Territory was refused any move onward. The rule since
+      plan 4.24 is that once armies arrive in a territory, NOTHING more
+      leaves it that turn.
+
+      That is stricter than Nick's own description, which let a territory
+      still send what it began with, less one. That version was built and
+      tested, then put back when Nick said: "If this is true... then that's
+      a simpler rule to adopt." So the rule stands, with two changes around
+      it:
+
+      - How to Play said only "Armies that arrived this turn stay where they
+        are", which is true but reads as if the territory's own armies
+        could still move. It now says nothing more can leave, and to move
+        armies out of a territory before moving others in.
+      - Two tests lock it in: an army cannot be walked two borders, and a
+        territory CAN send its own armies if it sends them first. The refusal
+        now names the territory. Spec S36.
 - [x] 5.12 **`touchingLength` was not symmetric, and both Australia maps
       were drawn wrong because of it.** Reported by another session, which
       found it in copied code. Verified at source here before anything was

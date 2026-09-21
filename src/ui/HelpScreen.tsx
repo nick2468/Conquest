@@ -101,7 +101,7 @@ export function HelpScreen({ map, options, onBack }: HelpScreenProps) {
             <li>
               <strong>Fortify.</strong>{' '}
               {options.fortifyMoves === 'many'
-                ? 'At the end of your turn you may move armies as many times as you like, from one of your territories to another. Armies that arrived this turn stay where they are.'
+                ? 'At the end of your turn you may move armies as many times as you like, from one of your territories to another. Once armies have arrived in a territory, nothing more can leave it this turn, so no army crosses more than one border. Move armies out of a territory before you move others in.'
                 : 'At the end of your turn you may make one move, from one of your territories to another.'}{' '}
               {options.fortifyDistance === 'connected'
                 ? 'This game allows any distance, as long as every territory on the way is yours.'

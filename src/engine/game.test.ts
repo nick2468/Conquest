@@ -644,6 +644,34 @@ describe('many fortify moves', () => {
     ).toThrow(/stay where they are/)
   })
 
+  it('never lets an army cross a second border in one turn', () => {
+    // Plan task 4.59. Nick: "it doesn't mean a player can walk an army from
+    // one territory to one multiple borders away." Western Australia to the
+    // Northern Territory, then on to South Australia, would be exactly that.
+    const state = applyAction(
+      start(),
+      { type: 'fortify', fromId: 'wa', toId: 'nt', count: 4 },
+      NO_DICE,
+    )
+
+    expect(() =>
+      applyAction(state, { type: 'fortify', fromId: 'nt', toId: 'sa', count: 4 }, NO_DICE),
+    ).toThrow(/Armies have arrived in Northern Territory this turn/)
+  })
+
+  it('lets a territory send its own armies if it sends them first', () => {
+    // The order matters, and How to Play says so: out before in.
+    let state = applyAction(
+      start(),
+      { type: 'fortify', fromId: 'sa', toId: 'nt', count: 3 },
+      NO_DICE,
+    )
+    state = applyAction(state, { type: 'fortify', fromId: 'wa', toId: 'sa', count: 2 }, NO_DICE)
+
+    expect(armiesOn(state, 'sa')).toBe(3)
+    expect(armiesOn(state, 'nt')).toBe(4)
+  })
+
   it('ends the turn when the player says so', () => {
     const moved = applyAction(
       start(),

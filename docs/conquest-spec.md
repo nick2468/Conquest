@@ -531,10 +531,21 @@ empty" into a rule with no exceptions.
 
 One move per turn, at the end, unless `options.fortifyMoves` says `'many'`
 (plan 4.24). Then a player may move armies as often as they like, and ends
-the turn when they are done. Armies that arrived by a fortify move this turn
-stay where they are (`turn.movedInto`), so nothing can be passed along a
-chain or moved back and forth, and a computer player always runs out of
-moves. Nick: "Add the multi-fortify option but default to classic."
+the turn when they are done. **Once armies have arrived in a territory by a
+fortify move, nothing more can leave it that turn** (`turn.movedInto`), not
+even the armies it began with. So no army crosses more than one border,
+nothing can be passed along a chain or moved back and forth, and a computer
+player always runs out of moves. Nick: "Add the multi-fortify option but
+default to classic."
+
+**S36. The moves happen at the same time, not one after another.** Nick:
+fortify moves "mimic the idea that in the same time frame multiple armies can
+all move at once crossing different borders." A fairer version was built
+that let a territory still send what it began with, less one, however much
+arrived. Nick chose the simpler rule above instead, and it was put back
+(plan 4.59). The one thing it costs is order: send armies out of a territory
+before moving others in. How to Play says so, because the old wording, "Armies
+that arrived this turn stay where they are", was true but undersold the rule.
 
 - Both territories must belong to the player.
 - At least one army must stay behind.
