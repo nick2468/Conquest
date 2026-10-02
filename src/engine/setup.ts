@@ -15,6 +15,7 @@ import {
 import { createDeck } from './cards'
 import type { RandomSource } from './random'
 import { shuffle } from './random'
+import { numberedNames } from './names'
 import { armiesAtTurnStart } from './reinforce'
 import type {
   GameMap,
@@ -138,9 +139,14 @@ export function createGame(game: NewGame): GameState {
 
   checkPlayers(map, newPlayers)
 
+  // Two players called "General" cannot be told apart in the scores, the
+  // history, or a saved game. Numbering them here covers every way a game
+  // is started: one iPad, several iPads, and the tools. Plan task 4.60.
+  const names = numberedNames(newPlayers.map((each) => each.name))
+
   const players: Player[] = newPlayers.map((newPlayer, position) => ({
     id: `p${position + 1}`,
-    name: newPlayer.name,
+    name: names[position] as string,
     colour:
       newPlayer.colour ??
       (PLAYER_COLOURS[position % PLAYER_COLOURS.length] as string),

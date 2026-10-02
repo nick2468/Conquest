@@ -138,6 +138,8 @@ export {
   resolveAttack,
 } from './attack'
 
+export { numberedNames } from './names'
+
 export type { BuildStamp, Ending, SavedGame } from './saved-game'
 export {
   SAVED_GAME_FORMAT,

@@ -1983,6 +1983,23 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       - Two tests lock it in: an army cannot be walked two borders, and a
         territory CAN send its own armies if it sends them first. The refusal
         now names the territory. Spec S36.
+- [x] 4.60 **Two players with the same name are numbered.** Nick: "when
+      there are multiple computer players with the same personality their
+      names are all the same, they need to be numbered to distinguish each
+      one." Two Generals both read "General" everywhere: the scores, the
+      history, the replay and a saved game.
+
+      `numberedNames` gives a shared name a number in turn order and leaves
+      a name nobody shares alone, so one General is still "General". It
+      never hands out a number somebody already holds: General, General,
+      "General 1" becomes "General 2", "General 3", "General 1". Eight tests,
+      one of which checks that no two players ever come out with the same
+      name whatever list is handed in.
+
+      Done in `createGame`, not on the new game screen, so it covers every
+      way a game starts: one iPad, several iPads, the tournament tools and
+      saved games. Driven live: the scores panel reads "General 1" and
+      "General 2". Spec S37.
 - [x] 5.12 **`touchingLength` was not symmetric, and both Australia maps
       were drawn wrong because of it.** Reported by another session, which
       found it in copied code. Verified at source here before anything was

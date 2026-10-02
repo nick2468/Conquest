@@ -538,6 +538,19 @@ nothing can be passed along a chain or moved back and forth, and a computer
 player always runs out of moves. Nick: "Add the multi-fortify option but
 default to classic."
 
+**S37. A name two players share is numbered, in turn order.** Nick: "when
+there are multiple computer players with the same personality their names
+are all the same, they need to be numbered to distinguish each one." Two
+Generals both read "General" in the scores, the history and a saved game,
+so there was no telling which one took Peru. `createGame` now numbers them:
+"General 1", "General 2". A name nobody else holds is left exactly as it is,
+so one General stays "General" and a player called Nick is never "Nick 1".
+
+It is done in `createGame` rather than on the new game screen, so it covers
+every way a game starts: one iPad, several iPads, and the tools. The new
+game screen still shows the plain name while you are setting up; the
+numbering appears when the game does.
+
 **S36. The moves happen at the same time, not one after another.** Nick:
 fortify moves "mimic the idea that in the same time frame multiple armies can
 all move at once crossing different borders." A fairer version was built
