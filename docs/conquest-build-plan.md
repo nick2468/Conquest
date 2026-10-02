@@ -2000,6 +2000,23 @@ Test 4.6 is the interesting one. It turns "is this any good?" into a number.
       way a game starts: one iPad, several iPads, the tournament tools and
       saved games. Driven live: the scores panel reads "General 1" and
       "General 2". Spec S37.
+
+      **The new game screen shows the numbers too**, asked for straight
+      after. The box being TYPED IN keeps the raw text until the player
+      leaves it, and the others renumber around it. Without that, typing a
+      name another seat already had would rewrite the box under the
+      player's fingers the moment it matched. Driven live: typing "General"
+      into seat 1 left that box alone and turned the others into "General 2"
+      and "General 3"; leaving the box made all three 1, 2 and 3.
+
+      A tooling trap worth recording. Three edits to the same file landed
+      within one second, and the dev server went on serving a HALF-EDITED
+      version: it had the new `typingIn` state and not the new `shownName`.
+      The screen looked unchanged after a full reload, and the fault was
+      only found by fetching the module the page was really running and
+      looking for the new name in it. Touching the file fixed it. Checking
+      the served source, not the file on disk, is what settles "did my
+      change actually reach the page".
 - [x] 5.12 **`touchingLength` was not symmetric, and both Australia maps
       were drawn wrong because of it.** Reported by another session, which
       found it in copied code. Verified at source here before anything was

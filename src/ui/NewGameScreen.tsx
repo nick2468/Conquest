@@ -9,6 +9,7 @@ import {
   GAME_NAME,
   MAX_PLAYERS,
   MIN_PLAYERS,
+  numberedNames,
   PLAYER_COLOURS,
   TERRITORY_CARD_BONUS,
   playerFor,
@@ -103,6 +104,12 @@ export function NewGameScreen({
   const [players, setPlayers] = useState<NewPlayer[]>([...startWith.players])
   const [options, setOptions] = useState<GameOptions>(startWith.options)
   const [mapId, setMapId] = useState<string>(startWith.map.id)
+  /**
+   * Which name box the player is typing in, so that box is left alone.
+   * Without this, typing a name another seat already has would rewrite the
+   * box under the player's fingers the moment it matched. Plan task 4.60.
+   */
+  const [typingIn, setTypingIn] = useState<number | null>(null)
 
   /** A map the player loaded from a file of their own, if any. */
   const [ownMap, setOwnMap] = useState<GameMap | null>(mapRemembered)
@@ -203,6 +210,24 @@ export function NewGameScreen({
     setOptions((current) => ({ ...current, [key]: value }))
   }
 
+  /**
+   * The names as they will read in the game: a name two seats share is
+   * numbered. Nick asked to see the numbers while setting up, not only
+   * once the game starts. The game itself numbers them again in
+   * `createGame`, which is what covers games started any other way.
+   *
+   * A box left empty stays empty here. It becomes "Player 3" when the game
+   * starts, not while somebody is still deciding what to type.
+   */
+  const numbered = numberedNames(players.map((player) => player.name))
+  const shownName = (index: number): string => {
+    const typed = players[index]?.name ?? ''
+
+    return typingIn === index || typed.trim() === ''
+      ? typed
+      : (numbered[index] as string)
+  }
+
   const named = players.map((player, index) => ({
     ...player,
     name: player.name.trim() === '' ? `Player ${index + 1}` : player.name,
@@ -296,9 +321,11 @@ export function NewGameScreen({
                 <input
                   type="text"
                   className="player-name"
-                  value={player.name}
+                  value={shownName(index)}
                   maxLength={16}
                   aria-label={`Name of player ${index + 1}`}
+                  onFocus={() => setTypingIn(index)}
+                  onBlur={() => setTypingIn(null)}
                   onChange={(event) => rename(index, event.target.value)}
                 />
 

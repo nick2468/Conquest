@@ -546,10 +546,15 @@ so there was no telling which one took Peru. `createGame` now numbers them:
 "General 1", "General 2". A name nobody else holds is left exactly as it is,
 so one General stays "General" and a player called Nick is never "Nick 1".
 
-It is done in `createGame` rather than on the new game screen, so it covers
-every way a game starts: one iPad, several iPads, and the tools. The new
-game screen still shows the plain name while you are setting up; the
-numbering appears when the game does.
+It is done in `createGame`, so it covers every way a game starts: one iPad,
+several iPads, and the tools.
+
+**The new game screen shows the numbers too**, so what you set up is what
+you get. The box you are TYPING IN is left alone until you leave it:
+otherwise, typing a name another seat already has would rewrite the box
+under your fingers the moment it matched. The other boxes renumber as you
+type. What is remembered between games is the plain name, so changing a seat
+renumbers the rest correctly.
 
 **S36. The moves happen at the same time, not one after another.** Nick:
 fortify moves "mimic the idea that in the same time frame multiple armies can
