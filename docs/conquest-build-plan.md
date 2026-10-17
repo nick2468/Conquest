@@ -210,8 +210,8 @@ nothing on the screen disagrees with the rules.
       building from `nick2468/Conquest` on `main`, live at
       `conquest-bih.pages.dev`. Every push to main now rebuilds it.
 - [x] 3.5 Point `conquest.datacrafter.net` at it. Done 2026-09-07. One new
-      CNAME beside the existing records. `demo`, `test` and `www` all still
-      answer 200.
+      CNAME beside the existing records, and every name already on the
+      domain still answers 200.
 - [ ] 3.6 Add it to the iPad Home Screen and play a game with Wi-Fi turned
       off. Needs Nick and the iPad. This is the task that decides the phase.
 
@@ -2538,8 +2538,8 @@ type-checks.
 
 **Not deployed.** The server runs locally and everything above was driven
 against it. Putting it on Cloudflare is a change to Nick's live account,
-which also runs the datacrafter.net DNS and the demo and test instances, so
-that waits for him to say go. Until an address is set at build time, the
+which also runs the datacrafter.net DNS and other services, so that waits
+for him to say go. Until an address is set at build time, the
 game does not offer playing together at all, which is better than offering
 it and failing.
 

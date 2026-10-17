@@ -1,0 +1,84 @@
+name: Bug report
+description: Something in the game does not work the way it should.
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time. The two fields that help most are the
+        version line and the saved game, because together they let the exact
+        game be replayed move by move.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What the game did.
+      placeholder: Going backwards twice in the replay skipped a move.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
+      placeholder: Each press of the back button should undo one move.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to make it happen
+      description: One step per line, starting from a new game.
+      placeholder: |
+        1. Start a game on the World map against two Generals.
+        2. Play to the end.
+        3. Press Replay, then press back twice.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: >
+        The line at the bottom of the New game screen. It reads something like
+        "Version 3e2efcf, built 2 Oct, 10:06 am".
+      placeholder: Version 3e2efcf, built 2 Oct, 10:06 am
+    validations:
+      required: true
+
+  - type: dropdown
+    id: map
+    attributes:
+      label: Which map
+      options:
+        - Australia
+        - Australia in detail
+        - World
+        - One of my own
+        - It happens on any map
+        - Not about a map
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: iPad, Safari, added to the Home Screen
+    validations:
+      required: true
+
+  - type: textarea
+    id: saved-game
+    attributes:
+      label: Saved game
+      description: >
+        Press "Save game" on the game menu, then drag the file into this box.
+        The file holds every move, so the game replays exactly. Leave this
+        empty if the bug stopped you reaching the menu.
+    validations:
+      required: false

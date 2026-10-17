@@ -70,6 +70,23 @@ Cloudflare Worker without one line changing.
 The screen imports from `src/engine/index.ts` and never from a file inside the
 engine, so the engine can be rearranged without the screen noticing.
 
+## Found a bug, or want to suggest something?
+
+Open an issue at
+[github.com/nick2468/Conquest/issues](https://github.com/nick2468/Conquest/issues).
+
+Two things make a bug report much easier to act on:
+
+1. **The version line.** It is at the bottom of the New game screen, and reads
+   something like `Version 3e2efcf, built 2 Oct, 10:06 am`.
+2. **A saved game.** Press **Save game** on the game menu. The file holds every
+   move, so the whole game replays exactly as you played it. Attach it to the
+   issue.
+
+Please be aware this is a personal project built for fun. I read everything,
+but I may not act on it, and I may fix a thing my own way rather than take a
+change as written.
+
 ## Licence
 
 MIT. See [LICENSE](LICENSE). You may copy, change and use this, including in

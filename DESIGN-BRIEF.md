@@ -54,8 +54,8 @@ That is the whole trick. It is a normal website that behaves like an app.
 
 The URL will be **https://conquest.datacrafter.net**.
 
-Nick already owns `datacrafter.net` through Cloudflare, with `www`, `test` and
-`demo` already running. Adding `conquest` is one more DNS record.
+Nick already owns `datacrafter.net` through Cloudflare. Adding `conquest` is
+one more DNS record.
 
 **Hosting: Cloudflare Pages.** It builds the site from a Git repository and
 serves it for free. No machine of Nick's has to stay switched on.

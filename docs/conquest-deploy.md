@@ -35,8 +35,8 @@ One record was added. Nothing was edited or removed.
 |---|---|---|
 | CNAME | conquest | `conquest-bih.pages.dev` |
 
-`demo`, `test`, `www`, and the mail records were all checked afterwards and
-all still answer.
+Every other name on the domain, and the mail records, were all checked
+afterwards and all still answer.
 
 ---
 
