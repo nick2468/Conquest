@@ -19,3 +19,9 @@ Phase 0. No code yet. The design is agreed and the repository is set up.
 3. The Home Screen app wrapper, published to `conquest.datacrafter.net`.
 4. Custom maps.
 5. Several players on separate devices, plus computer players.
+
+## Licence
+
+MIT. See [LICENSE](LICENSE). You may copy, change and use this, including in
+something you sell. Keep the copyright notice in any copy you pass on. The map
+drawings under `assets/` and `tools/data/` are covered by the same licence.
