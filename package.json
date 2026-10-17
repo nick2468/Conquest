@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A turn-based territory game set in Australia.",
+  "description": "A turn-based territory game, built in Australia.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
